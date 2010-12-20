@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+import os
+
+from setuptools import setup
+
+from scss import VERSION, PROJECT, LICENSE
+
+
+def read( fname ):
+    try:
+        return open( os.path.join( os.path.dirname( __file__ ), fname ) ).read()
+    except IOError:
+        return ''
+
+
+META_DATA = dict(
+    name=PROJECT,
+    version=VERSION,
+    license=LICENSE,
+    description=read( 'DESCRIPTION' ),
+    long_description=read( 'README.rst' ),
+
+    author='Kirill Klenov',
+    author_email='horneds@gmail.com',
+
+    url=' http://github.com/klen',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Programming Language :: Python',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'Environment :: Console',
+        'License :: Public domain',
+    ],
+
+    platforms=('Any'),
+
+    install_requires = [ 'pyparsing' ],
+)
+
+
+if __name__ == "__main__":
+    setup( **META_DATA )
+
+

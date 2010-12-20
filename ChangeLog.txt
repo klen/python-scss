@@ -1,0 +1,5 @@
+# sitegen changelog
+
+## 2010-12-20 0.01
+
+* First public version.
