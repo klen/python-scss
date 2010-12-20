@@ -22,16 +22,18 @@ META_DATA = dict(
 
     author='Kirill Klenov',
     author_email='horneds@gmail.com',
+    url='http://github.com/klen/python-scss',
 
-    url=' http://github.com/klen',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Natural Language :: Russian',
         'Natural Language :: English',
-
+        'License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)',
         'Programming Language :: Python',
         'Environment :: Console',
+        'Topic :: Software Development :: Code Generators',
+        'Topic :: Text Processing :: Markup',
     ],
 
     platforms=('Any'),
