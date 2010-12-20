@@ -1,16 +1,12 @@
 from collections import defaultdict
 
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAR_STRING, CHARSET, SELECTOR_GROUP, TERM, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, COMMENT, VARIABLE, DEC_NAME
+from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAR_STRING, SELECTOR_GROUP, TERM, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, COMMENT, VARIABLE, DEC_NAME
 
 
 class Node(object):
     def __init__(self, t, stylecheet=None):
         self.t = list(t)
         self.stylecheet = stylecheet
-
-class AtRule(Node):
-    def render(self):
-        return ' '.join(self.t) + ';'
 
 class Term(Node):
     def render(self, context=None):
@@ -75,7 +71,7 @@ class Declaration(object):
     def parse(self, target):
         target.declaration.append(self)
     def render(self):
-        return ':'.join((self.name.render(self.context), ' '.join(
+        return ''.join((self.name.render(self.context), ' '.join(
                 t.render(self.context) if hasattr(t, 'render') else t for t in self.terms
             )))
 
@@ -182,7 +178,6 @@ class Stylecheet(object):
         COMMENT.setParseAction(self.comment)
         VARIABLE.setParseAction(self.getType(Variable))
         VAR_STRING.setParseAction(self.getType(VarString))
-        CHARSET.setParseAction(self.getType(AtRule))
         SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
         TERM.setParseAction(self.getType(Term))
         DECLARESET.setParseAction(self.getType(DeclareSet))
@@ -198,7 +193,17 @@ class Stylecheet(object):
         self.t = STYLESHEET.parseString(src)
 
     def render(self):
-        return '\n'.join(e.render() if hasattr(e, 'render') else e for e in self.t if e)
+        out = nl = ''
+        for e in self.t:
+            if hasattr(e, 'render'):
+                out += e.render() + '\n'
+            elif e in ';{}':
+                out += e + '\n'
+                nl = ''
+            else:
+                out += nl + e
+                nl = ' '
+        return out.strip()
 
     def getType(self, node):
         def wrap(s, l, t):

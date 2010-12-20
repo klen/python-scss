@@ -1,9 +1,14 @@
-.main {
+@charset utf-8;
 
-    font-weight: bold;
+@media print {
+    
+    .main {
 
-    b & {
-        color: red;
+        font-weight: bold;
+
+        b & {
+            color: red;
+        }
+
     }
-
 }

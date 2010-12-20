@@ -25,7 +25,10 @@ Installation
 
 Using
 -----
-::
+example: ::
+
     from scss import parse
     src = file.read()
     print parse('src')
+
+
