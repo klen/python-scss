@@ -6,6 +6,11 @@ clean:
 
 install: remove _install clean
 
+register: _register clean
+
+_register:
+	python setup.py register
+
 remove:
 	sudo pip uninstall $(MODULE)
 

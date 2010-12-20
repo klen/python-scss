@@ -26,11 +26,13 @@ META_DATA = dict(
     url=' http://github.com/klen',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python',
         'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
+        'License :: GNU LGPL',
+        'Natural Language :: Russian',
+        'Natural Language :: English',
+
+        'Programming Language :: Python',
         'Environment :: Console',
-        'License :: Public domain',
     ],
 
     platforms=('Any'),
