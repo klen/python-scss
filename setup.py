@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 from scss import VERSION, PROJECT, LICENSE
 
@@ -19,6 +19,7 @@ META_DATA = dict(
     license=LICENSE,
     description=read( 'DESCRIPTION' ),
     long_description=read( 'README.rst' ),
+    platforms=('Any'),
 
     author='Kirill Klenov',
     author_email='horneds@gmail.com',
@@ -36,7 +37,7 @@ META_DATA = dict(
         'Topic :: Text Processing :: Markup',
     ],
 
-    platforms=('Any'),
+    packages=find_packages(),
 
     install_requires = [ 'pyparsing' ],
 )
