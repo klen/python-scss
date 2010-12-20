@@ -8,6 +8,11 @@ install: remove _install clean
 
 register: _register clean
 
+upload: _upload clean
+
+_upload:
+	python setup.py sdist upload
+
 _register:
 	python setup.py register
 

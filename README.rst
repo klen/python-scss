@@ -1,7 +1,7 @@
 ..   -*- mode: rst -*-
 
 python-scss
-#######
+############
 
 Python-scss is scss parser. See http://sass-lang.com for more information about scss syntax.
 

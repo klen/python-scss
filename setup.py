@@ -27,7 +27,6 @@ META_DATA = dict(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: GNU LGPL',
         'Natural Language :: Russian',
         'Natural Language :: English',
 

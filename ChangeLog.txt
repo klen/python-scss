@@ -1,5 +1,9 @@
 # sitegen changelog
 
-## 2010-12-20 0.01
+## 2010-12-20 0.0.2
+
+* Push in pypi 
+
+## 2010-12-20 0.0.1
 
 * First public version.
