@@ -27,12 +27,6 @@ MIXIN_SYM = Suppress("@mixin")
 INCLUDE_SYM = Suppress("@include")
 EXTEND_SYM = Suppress("@extend")
 
-# SCSS Variables
-MATH_OPERATOR = oneOf("+ - / *")
-VARIABLE = "$" + IDENT
-VAR_STRING = VARIABLE + ZeroOrMore(MATH_OPERATOR + (VARIABLE | NUMBER))
-DEC_VAR = Suppress("#") + LACC + VARIABLE + RACC
-
 # Property values
 HASH = Word('#', alphanums + "_-")
 HEXCOLOR = Literal("#") + Word(hexnums, min=3, max=6)
@@ -48,10 +42,18 @@ URI = Literal("url(") + SkipTo(")")("path") + Literal(")")
 FUNCTION = IDENT + Literal("(") + SkipTo(")") + Literal(")")
 PRIO = "!important"
 
+# SCSS Variables
+VARIABLE = "$" + IDENT
+DEC_VAR = Suppress("#") + LACC + VARIABLE + RACC
+
 # Operators
+MATH_OPERATOR = oneOf("+ - / *")
 OPERATOR = oneOf("/ ,")
 COMBINATOR = oneOf("+ >")
 UNARY_OPERATOR = oneOf("- +")
+
+VALUE = LENGTH | PERCENTAGE | FREQ | EMS | EXS | ANGLE | TIME | NUMBER | FUNCTION | IDENT | HEXCOLOR | VARIABLE
+VAL_STRING = VALUE + ZeroOrMore(MATH_OPERATOR + VALUE)
 
 # SCSS parent reference
 PARENT_REFERENCE = Literal("&")
@@ -69,9 +71,7 @@ SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(COMBINATOR) + SELECTOR)
 SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA.suppress() + SELECTOR_GROUP)
 
 # Property values
-TERM = Optional(UNARY_OPERATOR) + (( LENGTH | PERCENTAGE
-            | FREQ | EMS | EXS | ANGLE | TIME | NUMBER
-        ) | FUNCTION | URI | IDENT | HEXCOLOR | VAR_STRING)
+TERM = Optional(UNARY_OPERATOR.suppress()) + (URI | VAL_STRING)
 EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
 DEC_NAME = OneOrMore(NAME | DEC_VAR)
 DECLARATION = DEC_NAME + COLON + EXPR + Optional(SEMICOLON.suppress())
@@ -81,14 +81,14 @@ DECLARESET = Forward()
 DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION) + RACC
 
 # SCSS include
-INCLUDE_PARAMS = LPAREN + TERM + ZeroOrMore(COMMA.suppress() + TERM) + RPAREN
+INCLUDE_PARAMS = LPAREN + VAL_STRING + ZeroOrMore(COMMA.suppress() + VAL_STRING) + RPAREN
 INCLUDE = INCLUDE_SYM + IDENT + Optional(INCLUDE_PARAMS) + SEMICOLON.suppress()
 
 # SCSS extend
 EXTEND = EXTEND_SYM + SELECTOR + SEMICOLON.suppress()
 
 # SCSS variable assigment
-VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + TERM + SEMICOLON.suppress()
+VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + SEMICOLON.suppress()
 
 # Ruleset
 RULESET = Forward()
@@ -105,7 +105,7 @@ RULESET << (
     + RACC )
 
 # SCSS mixin
-MIXIN_PARAM = VARIABLE + Optional(COLON.suppress() + TERM)
+MIXIN_PARAM = VARIABLE + Optional(COLON.suppress() + VAL_STRING)
 MIXIN_PARAMS = LPAREN + MIXIN_PARAM + ZeroOrMore(COMMA.suppress() + MIXIN_PARAM) + RPAREN
 
 MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
@@ -127,12 +127,14 @@ PAGE = PAGE_SYM + Optional(IDENT) + Optional(PSEUDO_PAGE) + LLACC + DECLARATION 
 CHARSET = CHARSET_SYM + IDENT + SEMICOLON
 
 # Css stylesheet
-STYLESHEET = (
-        Optional(CHARSET) +
-        ZeroOrMore(CDC | CDO) +
-        ZeroOrMore(IMPORT + Optional(ZeroOrMore(CDC | CDO))) +
-        ZeroOrMore(
-            ( VARIABLE_ASSIGMENT | MIXIN | RULESET | MEDIA | PAGE | FONT_FACE | COMMENT ) +
-            ZeroOrMore(CDC | CDO)
-        )
+STYLESHEET = ZeroOrMore(
+    CDC | CDO
+    | COMMENT
+    | CHARSET
+    | VARIABLE_ASSIGMENT
+    | MIXIN
+    | RULESET
+    | MEDIA
+    | PAGE
+    | FONT_FACE
 )

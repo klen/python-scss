@@ -1,14 +1,16 @@
 @charset utf-8;
 
-@media print {
-    
-    .main {
+.error {
+  border: 1px #f00;
+  background: #fdd;
+}
+.error.intrusion {
+  font-size: 1.3em;
+  font-weight: bold;
+  width: 20% * 2;
+}
 
-        font-weight: bold;
-
-        b & {
-            color: red;
-        }
-
-    }
+.badError {
+  @extend .error;
+  border-width: 3px;
 }

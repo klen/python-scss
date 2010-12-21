@@ -1,168 +1,210 @@
 from collections import defaultdict
 
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAR_STRING, SELECTOR_GROUP, TERM, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, COMMENT, VARIABLE, DEC_NAME
+from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, COMMENT, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS
+from scss.math import Length, Hexcolor
 
 
 class Node(object):
-    def __init__(self, t, stylecheet=None):
+    """ Base node for css object.
+    """
+    delim = ''
+
+    def __init__(self, t, s=None):
         self.t = list(t)
-        self.stylecheet = stylecheet
+        self.stylecheet = s
+        self.parent = None
+        self.context = None
+        for e in self.t:
+            if isinstance(e, Node):
+                e.parse(self)
 
-class Term(Node):
-    def render(self, context=None):
-        return ''.join(e.render(context) if hasattr(e, 'render') else e for e in self.t)
+    def parse(self, target):
+        name = self.__class__.__name__.lower()
+        if not hasattr(target, name):
+            setattr(target, name, list())
+        getattr(target, name).append(self)
+        self.parent = target
 
-class DecName(Node):
-    def render(self, context=None):
-        return ''.join(e.parse(context) if hasattr(e, 'parse') else e for e in self.t)
+    def copy(self):
+        return self.__class__(
+            [ n.copy() if isinstance(n, Node) else n for n in self.t ],
+            self.stylecheet
+        )
+
+    def getContext(self):
+        if not self.context:
+            return self.parent.getContext()
+        return self.context
+
+    def __add__(self, other):
+        return self.__class__(self.t + other.t)
+
+    def __str__(self):
+        return self.delim.join(str(e) for e in self.t)
+
+
+class SelectorGroup(Node):
+    """ Part of css rule.
+    """
+    delim = ' '
+
+
+class Declaration(Node):
+    """ Css declaration.
+    """
+    delim = ' '
+    def __str__(self):
+        return str(self.t[0]) + ': ' + ' '.join(str(e) for e in self.t[2:])
+
 
 class Variable(Node):
-    value = Term(('0', 'px'))
-    def __init__(self, t, stylecheet):
-        super(Variable, self).__init__(t, stylecheet)
-        self.name = t[1]
-    def parse(self, context=None):
-        if context and context.get(self.name):
-            self.value = context.get(self.name)
+    """ Get variable value.
+    """
+    @property
+    def value(self):
+        name = self.t[1]
+        ctx = self.getContext()
+        if ctx and ctx.get(name):
+            value = ctx.get(name)
         else:
-            self.value = self.stylecheet.context.get(self.name) or self.value
-        return self.value.t[0]
+            value = self.stylecheet.context.get(name) or '0'
+        return value
+
+    def math(self, arg, op):
+        return self.value.math(arg, op)
+
+    def __str__(self):
+        return str(self.value)
+
 
 class VarString(Node):
-    def render(self, context=None):
-        var = self.t[0]
-        math = ''.join(
-                e.parse(context) if hasattr(e, 'parse') else e for e in self.t)
-        try:
-            result = str(eval(math))
-            return ''.join((result, var.value.t[1]))
-        except SyntaxError:
-            return var.value.render()
+    """ Parse mathematic operation.
+    """
+    @property
+    def value(self):
+        it = iter(self.t)
+        res = next(it)
+        op = True
+        while op:
+            try:
+                op = next(it)
+                if op in "+-/*":
+                    arg = next(it)
+                    res = res.math(arg, op)
+            except StopIteration:
+                op = False
+        return res
+
+    def __str__(self):
+        return str(self.value)
+
+
+class Ruleset(Node):
+
+    def __init__(self, t, s):
+        super(Ruleset, self).__init__(t, s)
+        ancor = self.t[0].t[0]
+        self.stylecheet.ruleset[ancor].add(self)
+
+    def parse(self, target):
+        super(Ruleset, self).parse(target)
+        if isinstance(target, Ruleset):
+            self.parse_ruleset(target)
+            for r in getattr(self, 'ruleset', []):
+                r.parse_ruleset(target)
+
+    def parse_ruleset(self, target):
+        selgroup = list()
+        for psg in target.selectorgroup:
+            for sg in self.selectorgroup:
+                selgroup.append(psg + sg)
+        self.selectorgroup = selgroup
+
+    def __str__(self):
+        out = ''
+        if hasattr(self, 'declaration'):
+            out += self.render_selectors()
+            out += ' {\n\t'
+            out += ';\n\t'.join(str(d) for d in self.declaration)
+            out += '}\n\n'
+        if hasattr(self, 'ruleset'):
+            out += ''.join(str(r) for r in self.ruleset)
+        return out
+
+    def render_selectors(self):
+        return ', '.join(str(s) for s in self.selectorgroup)
+
+
+class DeclareSet(Node):
+
+    def __init__(self, t, s):
+        super(DeclareSet, self).__init__(t, s)
+        if hasattr(self, "declaration"):
+            for d in self.declaration:
+                d.t[0].t.insert(0, self.t[0] + "-")
+
+    def parse(self, target):
+        for d in self.declaration:
+            d.parse(target)
+
+
+class Mixinparam(Node):
+    @property
+    def name(self):
+        return self.t[0].t[1]
+
+    @property
+    def default(self):
+        return self.t[1].value if len(self.t) > 1 else None
+
+
+class Mixin(Node):
+
+    def __init__(self, t, s=None):
+        super(Mixin, self).__init__(t, s)
+        s.mix[self.t[0]] = self
+
+    def include(self, target, params):
+        test = map(lambda x,y: (x,y), getattr(self, 'mixinparam', []), params)
+        ctx = dict(( mp.name, v or mp.default ) for mp, v in test if mp)
+
+        for e in self.t:
+            if isinstance(e, Node):
+                node = e.copy()
+                node.context = ctx
+                node.parse(target)
+
+    def __str__(self):
+        return ''
+
+    def __len__(self):
+        return False
+
+
+class Include(Node):
+
+    def __init__(self, t, s):
+        super(Include, self).__init__(t, s)
+        self.mixin = s.mix.get(t[0])
+        self.params = t[1:]
+
+    def parse(self, target):
+        if not self.mixin is None:
+            self.mixin.include(target, self.params)
+
 
 class Extend(Node):
+    """ @extend at rule.
+    """
     def parse(self, target):
         name = self.t[0]
-        rulesets = target.stylecheet.ruleset.get(name)
+        rulesets = self.stylecheet.ruleset.get(name)
         if rulesets:
             for rul in rulesets:
                 selgroup = SelectorGroup(
                     target.selectorgroup[0].t + rul.selectorgroup[0].t[1:])
                 rul.selectorgroup.append(selgroup)
 
-class SelectorGroup(Node):
-    def render(self):
-        return ' '.join(self.t)
-    def parse(self, target):
-        target.selectorgroup.append(self)
-
-class MixinParam(Node):
-    def parse(self, target):
-        target.mixinparam.append(self)
-        try:
-            self.t[0].value = self.t[1]
-        except IndexError:
-            pass
-
-class Declaration(object):
-    def __init__(self, t, stylecheet=None):
-        self.name = t[0]
-        self.terms = t[1:]
-        self.context = None
-    def parse(self, target):
-        target.declaration.append(self)
-    def render(self):
-        return ''.join((self.name.render(self.context), ' '.join(
-                t.render(self.context) if hasattr(t, 'render') else t for t in self.terms
-            )))
-
-class AbstractSet(object):
-    def __init__(self, t, stylecheet=None):
-        self.name = t[0]
-        self.stylecheet = stylecheet
-        self.selectorgroup = []
-        self.declaration = []
-        self.ruleset = []
-
-        for e in t:
-            if hasattr(e, 'parse'):
-                e.parse(self)
-
-class DeclareSet(AbstractSet):
-    def __init__(self, t, stylecheet=None):
-        super(DeclareSet, self).__init__(t, stylecheet)
-        for d in self.declaration:
-            d.name = '-'.join((self.name, d.name))
-    def parse(self, target):
-        target.declaration += self.declaration
-
-class Mixin(AbstractSet):
-    def __init__(self, t, stylecheet=None):
-        self.mixinparam = []
-        super(Mixin, self).__init__(t, stylecheet)
-        stylecheet.mix[self.name] = self
-    def __len__(self):
-        return False
-
-class RuleSet(AbstractSet):
-    def __init__(self, t, stylecheet):
-        super(RuleSet, self).__init__(t, stylecheet)
-        ancor = self.name.t[0]
-        stylecheet.ruleset[ancor].add(self)
-    def parse(self, target):
-        target.ruleset.append(self)
-    def render(self, parent=None):
-        out = ''
-        if self.declaration:
-            # Selectors
-            out += self.render_selectors(parent=parent)
-            # Declaration
-            out += self.render_declaration()
-        # Ruleset
-        for r in self.ruleset:
-            out += '\n' + r.render(parent=self)
-        return out
-    def render_selectors(self, parent=None):
-        if parent:
-            selgroup = []
-            for ps in parent.selectorgroup:
-                for cs in self.selectorgroup:
-                    s = ' '.join(cs.t)
-                    if '&' in s:
-                        s = s.replace('&', ' '.join(ps.t))
-                        selgroup.append(SelectorGroup(s.split()))
-                        break
-                    else:
-                        selgroup.append(SelectorGroup(ps.t+cs.t))
-            self.selectorgroup = selgroup
-        return ', '.join([s.render() for s in self.selectorgroup])
-    def render_declaration(self):
-        nl = '\n '# if len(self.declaration) > 1 else ' '
-        # Sorting declarations alhabeticle
-        self.declaration.sort(key=lambda x: x.name.t[0])
-        return ''.join((' {', nl, ';\n '.join(
-            d.render() for d in self.declaration
-        ), ' }\n'))
-
-class Include(object):
-    def __init__(self, t, stylecheet):
-        self.name = t[0]
-        self.params = t[1:]
-        self.mixin = stylecheet.mix.get(self.name)
-    def parse(self, target):
-        if self.mixin is None:
-            return
-        context = dict(self.get_context())
-        for d in self.mixin.declaration:
-            d.context = context
-            target.declaration.append(d)
-        target.ruleset += self.mixin.ruleset
-    def get_context(self):
-        it = iter(self.params)
-        for param in self.mixin.mixinparam:
-            try:
-                yield (param.t[0].name, next(it))
-            except StopIteration:
-                yield (param.t[0].name, param.t[0].value)
 
 class Stylecheet(object):
 
@@ -174,45 +216,58 @@ class Stylecheet(object):
         self.t = None
 
         VARIABLE_ASSIGMENT.setParseAction(self.var_assigment)
-
         COMMENT.setParseAction(self.comment)
+
+        HEXCOLOR.setParseAction(self.getType(Hexcolor, style=False))
+        LENGTH.setParseAction(self.getType(Length, style=False))
+        EMS.setParseAction(self.getType(Length, style=False))
+        EXS.setParseAction(self.getType(Length, style=False))
+        PERCENTAGE.setParseAction(self.getType(Length, style=False))
+
+        DEC_NAME.setParseAction(self.getType())
+
         VARIABLE.setParseAction(self.getType(Variable))
-        VAR_STRING.setParseAction(self.getType(VarString))
-        SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
-        TERM.setParseAction(self.getType(Term))
-        DECLARESET.setParseAction(self.getType(DeclareSet))
-        DEC_NAME.setParseAction(self.getType(DecName))
+        VAL_STRING.setParseAction(self.getType(VarString))
         DECLARATION.setParseAction(self.getType(Declaration))
-        EXTEND.setParseAction(self.getType(Extend))
-        MIXIN_PARAM.setParseAction(self.getType(MixinParam))
-        INCLUDE.setParseAction(self.getType(Include))
+        SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
+        RULESET.setParseAction(self.getType(Ruleset))
+
+        DECLARESET.setParseAction(self.getType(DeclareSet))
+        MIXIN_PARAM.setParseAction(self.getType(Mixinparam))
         MIXIN.setParseAction(self.getType(Mixin))
-        RULESET.setParseAction(self.getType(RuleSet))
+        INCLUDE.setParseAction(self.getType(Include))
+        EXTEND.setParseAction(self.getType(Extend))
 
     def parse(self, src):
         self.t = STYLESHEET.parseString(src)
 
     def render(self):
-        out = nl = ''
+        out = delim = ''
         for e in self.t:
-            if hasattr(e, 'render'):
-                out += e.render() + '\n'
-            elif e in ';{}':
-                out += e + '\n'
-                nl = ''
+            if not e:
+                continue
+            if isinstance(e, str):
+                if e in ";{}":
+                    out += e + '\n'
+                    delim = ''
+                else:
+                    out += delim + e
+                    delim = ' '
             else:
-                out += nl + e
-                nl = ' '
+                out += str(e)
+
         return out.strip()
 
-    def getType(self, node):
+    def getType(self, node=Node, style=True):
         def wrap(s, l, t):
-            return node(t, self)
+            if style:
+                return node(t, self)
+            return node(t)
         return wrap
 
     def var_assigment(self, s, l, t):
-        name, value = t
-        self.context[name] = value
+        name, val_string = t
+        self.context[name] = val_string.value
         return False
 
     def comment(self, s, l, t):

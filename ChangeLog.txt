@@ -1,8 +1,14 @@
 # sitegen changelog
 
+## 2010-12-20 0.0.3
+
+* Add math operation
+
+
 ## 2010-12-20 0.0.2
 
 * Push in pypi 
+
 
 ## 2010-12-20 0.0.1
 
