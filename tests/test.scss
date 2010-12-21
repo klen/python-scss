@@ -1,16 +1,53 @@
 @charset utf-8;
 
-.error {
-  border: 1px #f00;
-  background: #fdd;
-}
-.error.intrusion {
-  font-size: 1.3em;
-  font-weight: bold;
-  width: 20% * 2;
+#navbar {
+  $navbar-width: 800px;
+  $items: 5;
+  $navbar-color: #ce4dd6;
+
+  width: $navbar-width;
+  border-bottom: 2px solid $navbar-color;
+
+  li {
+    float: left;
+    width: $navbar-width/$items - 10px;
+
+    background-color:
+      lighten($navbar-color, 20%);
+    &:hover {
+      background-color:
+        lighten($navbar-color, 10%);
+    }
+  }
 }
 
-.badError {
-  @extend .error;
-  border-width: 3px;
+$side: top;
+$radius: 10px;
+
+.rounded {
+  border-#{$side}-radius: $radius;
+  -moz-border-radius-#{$side}: $radius;
+  -webkit-border-#{$side}-radius: $radius;
 }
+
+@mixin rounded-top {
+  $side: top;
+  $radius: 10px;
+
+  border-#{$side}-radius: $radius;
+  -moz-border-radius-#{$side}: $radius;
+  -webkit-border-#{$side}-radius: $radius;
+}
+
+#navbar li { @include rounded-top; }
+#footer { @include rounded-top; }
+
+@mixin rounded($side, $radius: 15px) {
+  border-#{$side}-radius: $radius;
+  -moz-border-radius-#{$side}: $radius;
+  -webkit-border-#{$side}-radius: $radius;
+}
+
+#navbar li { @include rounded(top); }
+#footer { @include rounded(top, 5px); }
+#sidebar { @include rounded(left, 8px); }

@@ -49,7 +49,7 @@ class Length(object):
         b = self.parse(other)
         if b:
             try:
-                res = eval(a + op + b)
+                res = str(eval(a + op + b))
                 return Length((res, self.units))
             except SyntaxError:
                 pass

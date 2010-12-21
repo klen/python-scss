@@ -32,12 +32,9 @@ class Node(object):
         )
 
     def getContext(self):
-        if not self.context:
+        if not self.context and self.parent:
             return self.parent.getContext()
         return self.context
-
-    def __add__(self, other):
-        return self.__class__(self.t + other.t)
 
     def __str__(self):
         return self.delim.join(str(e) for e in self.t)
@@ -47,6 +44,13 @@ class SelectorGroup(Node):
     """ Part of css rule.
     """
     delim = ' '
+
+    def __add__(self, other):
+        for s in other.t:
+            if '&' in s:
+                return SelectorGroup([s.replace('&', ' '.join(self.t)) for s in other.t])
+        return SelectorGroup(self.t + other.t)
+
 
 
 class Declaration(Node):
@@ -70,9 +74,6 @@ class Variable(Node):
             value = self.stylecheet.context.get(name) or '0'
         return value
 
-    def math(self, arg, op):
-        return self.value.math(arg, op)
-
     def __str__(self):
         return str(self.value)
 
@@ -90,6 +91,10 @@ class VarString(Node):
                 op = next(it)
                 if op in "+-/*":
                     arg = next(it)
+                    if isinstance(res, Variable):
+                        res = res.value
+                    if isinstance(arg, Variable):
+                        arg = arg.value
                     res = res.math(arg, op)
             except StopIteration:
                 op = False
@@ -165,7 +170,7 @@ class Mixin(Node):
         s.mix[self.t[0]] = self
 
     def include(self, target, params):
-        test = map(lambda x,y: (x,y), getattr(self, 'mixinparam', []), params)
+        test = map(lambda x, y: (x, y), getattr(self, 'mixinparam', []), params)
         ctx = dict(( mp.name, v or mp.default ) for mp, v in test if mp)
 
         for e in self.t:
