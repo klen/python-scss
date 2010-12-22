@@ -10,11 +10,17 @@ class TestSCSS( unittest.TestCase ):
 
     def test_base(self):
         src = """
+            @mixin z-base {
+                a:hover, a:active { outline: none; }
+                a, a:active, a:visited { color: #607890; }
+                a:hover { color: #036; }
+            }
+
+            @include z-base;
             body {
                 $font: Georgia;
                 font-family: $font, sans-serif;
-                *font:13px/1.231 sans-serif;
-                }
+                *font:13px/1.231 sans-serif; }
             .test {
             color: red;
             &:after { content: 'blue'; }}
@@ -24,7 +30,7 @@ class TestSCSS( unittest.TestCase ):
             abbr[title], dfn[title] {
                 border:2px; }
             """
-        test = "body {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia,sans-serif}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace,sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
+        test = "a:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n\nbody {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia,sans-serif}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace,sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
