@@ -8,7 +8,13 @@ from scss import parser
 
 class TestSCSS( unittest.TestCase ):
 
-    def test_nesting(self):
+    def test_nesting_1(self):
+        src = ".test { color: red; a p { color: blue; }}"
+        test = ".test {\n\tcolor: red}\n\n.test a p {\n\tcolor: blue}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
+    def test_nesting_2(self):
         src = """#navbar {
           width: 80%;
           height: 23px;
@@ -59,7 +65,9 @@ class TestSCSS( unittest.TestCase ):
             $navbar-color: #ce4dd6;
             width: $navbar-width;
             border-bottom: 2px solid $navbar-color;
+
             #{enumerate(div, 1, 5)} { color: red; }
+
             li { float: left;
                 font: 8px/10px;
                 margin: 3px + 5px auto;

@@ -1,6 +1,7 @@
 # sitegen changelog
 
-## 2010-12-22 0.0.6
+
+## 2010-12-22 0.0.7
 
 * Add !default support for variable assigment
 * Fix division and / bug
