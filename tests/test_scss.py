@@ -8,9 +8,9 @@ from scss import parser
 
 class TestSCSS( unittest.TestCase ):
 
-    def test_nesting_1(self):
-        src = ".test { color: red; a p { color: blue; }}"
-        test = ".test {\n\tcolor: red}\n\n.test a p {\n\tcolor: blue}"
+    def test_base(self):
+        src = ".test { color: red; &:after { content: 'blue'; }}"
+        test = ".test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -22,7 +22,7 @@ class TestSCSS( unittest.TestCase ):
           li { float: left;
             a .test .main{ font-weight: bold; }
           } }"""
-        test = "#navbar {\n\twidth: 80%;\n\theight: 23px}\n\n#navbar ul {\n\tlist-style-type: none}\n\n#navbar li {\n\tfloat: left}\n\n#navbar li a.test .main {\n\tfont-weight: bold}"
+        test = "#navbar {\n\theight: 23px;\n\twidth: 80%}\n\n#navbar ul {\n\tlist-style-type: none}\n\n#navbar li {\n\tfloat: left}\n\n#navbar li a.test .main {\n\tfont-weight: bold}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -33,7 +33,7 @@ class TestSCSS( unittest.TestCase ):
                 left: { width: 4px; color: #888; }
                 right: { width: 2px; color: #ccc; }
             } }"""
-        test = ".fakeshadow {\n\tborder-style: solid;\n\tborder-left-width: 4px;\n\tborder-left-color: #888;\n\tborder-right-width: 2px;\n\tborder-right-color: #ccc}"
+        test = ".fakeshadow {\n\tborder-left-color: #888;\n\tborder-left-width: 4px;\n\tborder-right-color: #ccc;\n\tborder-right-width: 2px;\n\tborder-style: solid}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -65,20 +65,7 @@ class TestSCSS( unittest.TestCase ):
             border-#{$side}-radius: $radius;
             -moz-border-radius-#{$side}: $radius;
             -webkit-border-#{$side}-radius: $radius; }"""
-        test = "div.rounded-top p {\n\tborder-top-radius: 10px;\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px}"
-        out = parser.parse(src)
-        self.assertEqual(test, out)
-
-    def test_mixin(self):
-        src = """@mixin rounded-top {
-            $side: top;
-            $radius: 10px;
-            border-#{$side}-radius: $radius;
-            -moz-border-radius-#{$side}: $radius;
-            -webkit-border-#{$side}-radius: $radius; }
-            #navbar li { @include rounded-top; }
-            #footer { @include rounded-top; }"""
-        test = "#navbar li {\n\tborder-top-radius: 10px;\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px}\n\n#footer {\n\tborder-top-radius: 10px;\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px}"
+        test = "div.rounded-top p {\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px;\n\tborder-top-radius: 10px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -90,7 +77,7 @@ class TestSCSS( unittest.TestCase ):
             #navbar li { @include rounded(top); }
             #footer { @include rounded(top, 5px); }
             #sidebar { @include rounded(left, 8px); }"""
-        test = "#navbar li {\n\tborder-top-radius: 10px;\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px}\n\n#footer {\n\tborder-top-radius: 5px;\n\t-moz-border-radius-top: 5px;\n\t-webkit-border-top-radius: 5px}\n\n#sidebar {\n\tborder-left-radius: 8px;\n\t-moz-border-radius-left: 8px;\n\t-webkit-border-left-radius: 8px}"
+        test = "#navbar li {\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px;\n\tborder-top-radius: 10px}\n\n#footer {\n\t-moz-border-radius-top: 5px;\n\t-webkit-border-top-radius: 5px;\n\tborder-top-radius: 5px}\n\n#sidebar {\n\t-moz-border-radius-left: 8px;\n\t-webkit-border-left-radius: 8px;\n\tborder-left-radius: 8px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -100,7 +87,7 @@ class TestSCSS( unittest.TestCase ):
             .hoverlink {@extend a:hover}
             .error .intrusion { background-image: url(/image/hacked.png); }
             .seriousError { @extend .error; border-width: 3px; }"""
-        test = ".error, .seriousError {\n\tborder: 1px #f00;\n\tbackground-color: #fdd}\n\na:hover, .hoverlink {\n\ttext-decoration: underline}\n\n.error .intrusion, .seriousError .intrusion {\n\tbackground-image: url(/image/hacked.png)}\n\n.seriousError {\n\tborder-width: 3px}"
+        test = ".error, .seriousError {\n\tbackground-color: #fdd;\n\tborder: 1px #f00}\n\na:hover, .hoverlink {\n\ttext-decoration: underline}\n\n.error .intrusion, .seriousError .intrusion {\n\tbackground-image: url(/image/hacked.png)}\n\n.seriousError {\n\tborder-width: 3px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -150,9 +137,33 @@ class TestSCSS( unittest.TestCase ):
                 width: $navbar-width/$items - 10px;
                 background-color: $navbar-color - #333;
                 &:hover { background-color: $navbar-color - 10%; } } }"""
-        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #ce4dd6}\n\n#navbar div1, div2, div3, div4 {\n\tcolor: red}\n\n#navbar li {\n\tfloat: left;\n\tfont: 8px/10px;\n\ttest: 63px;\n\tmargin: 8px auto;\n\twidth: 150px;\n\tbackground-color: #9b1aa3}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
+        test = "#navbar {\n\tborder-bottom: 2px solid #ce4dd6;\n\twidth: 800px}\n\n#navbar div1, div2, div3, div4 {\n\tcolor: red}\n\n#navbar li {\n\tbackground-color: #9b1aa3;\n\tfloat: left;\n\tfont: 8px/10px;\n\tmargin: 8px auto;\n\ttest: 63px;\n\twidth: 150px}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
         out = parser.parse(src)
         self.assertEqual(test, out)
+
+    def test_mixin(self):
+        src = """
+        @mixin font {
+            font: {
+                weight: inherit;
+                style: inherit;
+                size: 100%;
+                family: inherit; };
+            vertical-align: baseline; }
+        @mixin global { .global { border:red; @include font; }}
+        @include global;
+        @mixin rounded-top {
+            $side: top;
+            $radius: 10px;
+            border-#{$side}-radius: $radius;
+            -moz-border-radius-#{$side}: $radius;
+            -webkit-border-#{$side}-radius: $radius; }
+            #navbar li { @include rounded-top; }
+            #footer { @include rounded-top; }"""
+        test = ".global {\n\tborder: red;\n\tfont-family: inherit;\n\tfont-size: 100%;\n\tfont-style: inherit;\n\tfont-weight: inherit;\n\tvertical-align: baseline}\n\n#navbar li {\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px;\n\tborder-top-radius: 10px}\n\n#footer {\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px;\n\tborder-top-radius: 10px}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSCSS)

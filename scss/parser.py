@@ -1,4 +1,5 @@
 from collections import defaultdict
+import ipdb as pdb
 
 from scss.base import Node
 from scss.function import Function, IfNode, ForNode
@@ -112,6 +113,7 @@ class Ruleset(Node):
         if hasattr(self, 'declaration'):
             out += ', '.join(str(s) for s in self.selectorgroup)
             out += ' {\n\t'
+            self.declaration.sort(key=lambda x: str(x.t[0]))
             out += ';\n\t'.join(str(d) for d in self.declaration)
             out += '}\n\n'
         if hasattr(self, 'ruleset'):
@@ -121,15 +123,11 @@ class Ruleset(Node):
 
 class DeclareSet(Node):
 
-    def __init__(self, t, s):
-        super(DeclareSet, self).__init__(t, s)
-        if hasattr(self, "declaration"):
-            for d in self.declaration:
-                d.t[0].t.insert(0, self.t[0] + "-")
-
     def parse(self, target):
-        for d in self.declaration:
-            d.parse(target)
+        for d in getattr(self, 'declaration', []):
+            if not isinstance(target, Mixin):
+                d.t[0].t.insert(0, self.t[0] + "-")
+                d.parse(target)
 
 
 class Mixinparam(Node):
@@ -160,9 +158,6 @@ class Mixin(Node):
                 node.context = ctx
                 node.parse(target)
 
-    def __str__(self):
-        return ''
-
     def __len__(self):
         return False
 
@@ -173,6 +168,15 @@ class Include(Node):
         super(Include, self).__init__(t, s)
         self.mixin = s.mix.get(t[0])
         self.params = t[1:]
+
+    def __str__(self):
+        out = ''
+        if not self.mixin is None:
+            node = Node([])
+            self.parse(node)
+            for r in getattr(node, 'ruleset', []):
+                out += str(r)
+        return out
 
     def parse(self, target):
         if not self.mixin is None:

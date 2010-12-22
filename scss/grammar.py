@@ -1,4 +1,4 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString
 
 
 # Base css word and literals
@@ -59,7 +59,7 @@ IF_OPERATOR = oneOf("== != <= >= < >")
 # Parse values
 FUNCTION = IDENT + LPAREN + SkipTo(")") + RPAREN
 SIMPLE_VALUE = LENGTH | PERCENTAGE | FREQ | EMS | EXS | ANGLE | TIME | NUMBER | FUNCTION | IDENT | HEXCOLOR
-VALUE = SIMPLE_VALUE | VARIABLE
+VALUE = SIMPLE_VALUE | VARIABLE | quotedString
 SIMPLE_STRING = Combine(SIMPLE_VALUE + OneOrMore(Optional(OPERATOR) + SIMPLE_VALUE))
 
 VAL_STRING = Forward()
@@ -77,7 +77,7 @@ DECLARATION = DEC_NAME + COLON + EXPR + Optional(SEMICOLON.suppress())
 
 # SCSS group of declarations
 DECLARESET = Forward()
-DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION) + RACC
+DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION) + RACC + Optional(SEMICOLON)
 
 # SCSS parent reference
 PARENT_REFERENCE = Literal("&")
@@ -148,6 +148,7 @@ STYLESHEET = ZeroOrMore(
     | CHARSET
     | VARIABLE_ASSIGMENT
     | MIXIN
+    | INCLUDE
     | RULESET
     | IF
     | FOR
