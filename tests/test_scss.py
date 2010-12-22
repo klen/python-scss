@@ -104,20 +104,6 @@ class TestSCSS( unittest.TestCase ):
         out = parser.parse(src)
         self.assertEqual(test, out)
 
-    def test_control_functions(self):
-        src = """$type: monster;
-            @mixin test($fix: 0) {
-                @if $fix { display: block; } @else { display: none; }
-            }
-            span { @include test(false) }
-            p { border: red;
-                @if $type == monster { color: blue;
-                    b { color: red; }
-                } @else { color: black; } } """
-        test = "span {\n\tdisplay: none}\n\np {\n\tborder: red;\n\tcolor: blue}\n\np b {\n\tcolor: red}"
-        out = parser.parse(src)
-        self.assertEqual(test, out)
-
     def test_operations_and_functions(self):
         src = """#navbar {
             $navbar-width: 800px;
@@ -138,6 +124,35 @@ class TestSCSS( unittest.TestCase ):
         test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #ce4dd6}\n\n#navbar div1, div2, div3, div4 {\n\tcolor: red}\n\n#navbar li {\n\tfloat: left;\n\tfont: 8px/10px;\n\ttest: 63px;\n\tmargin: 8px auto;\n\twidth: 150px;\n\tbackground-color: #9b1aa3}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
         out = parser.parse(src)
         self.assertEqual(test, out)
+
+    def test_if(self):
+        src = """$type: monster; $test: 11;
+            @if $test { .test { border: 2px; } }
+            @mixin test($fix: 0) {
+                @if $fix { display: block; } @else { display: none; }
+            }
+            span { @include test(false) }
+            p { border: red;
+                @if $type == monster { color: blue;
+                    b { color: red; }
+                } @else { color: black; } } """
+        test = ".test {\n\tborder: 2px}\n\nspan {\n\tdisplay: none}\n\np {\n\tborder: red;\n\tcolor: blue}\n\np b {\n\tcolor: red}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
+    def test_for(self):
+        src = """
+            .test {
+                color: blue;
+                @for $i from 1 through 3 {
+                    .span#{$i} { border: red; }
+                }
+            }
+        """
+        test = ".test {\n\tcolor: blue}\n\n.test .span1 {\n\tborder: red}\n\n.test .span2 {\n\tborder: red}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestSCSS)

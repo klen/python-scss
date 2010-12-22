@@ -1,10 +1,10 @@
+Add @for
 Add @debug, @warn
 Fix selector bug
 Add output styles
 Add declaration sorting
 Add declaration check for dublicate
 Add ruleset check for dublicate
-Add parentheses for operations
 Add rgb
 Add caching
 Use StringIO

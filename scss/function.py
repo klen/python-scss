@@ -1,5 +1,6 @@
 from scss.base import Node
 
+
 class Function(Node):
 
     def enumerate(self, p):
@@ -25,22 +26,54 @@ class Function(Node):
         return "%s(%s)" % (name, params)
 
 class IfNode(Node):
-    def parse(self, target):
-        cond, body, els = self.t
-        cond = cond.safe_str()
-        ctest = cond.strip("'")
+
+    def __init__(self, t, s):
+        super(IfNode, self).__init__(t, s)
+        self.cond, self.body, self.els = self.t[0], self.t[1], self.t[2] if len(self.t) > 2 else None
+
+    def __str__(self):
+        node = self.get_node()
+        if node:
+            return str(node)
+        return ''
+
+    def get_node(self):
+        self.cond = self.cond.safe_str()
+        ctest = self.cond.strip("'")
         if ctest.isdigit():
-            test = int(ctest)
+            return self.body if int(ctest) else self.els
         elif ctest.lower() == 'false':
-            test = False
+            return self.els
         else:
             try:
-                test = eval(cond)
+                return self.body if eval(self.cond) else self.els
             except SyntaxError:
-                test = False
-        if test:
-            node = body
-        else:
-            node = els
-        for n in node.t:
-            n.parse(target)
+                return self.els
+
+    def parse(self, target):
+        node = self.get_node()
+        if node:
+            for n in node.t:
+                n.parse(target)
+
+
+class ForNode(Node):
+    def __init__(self, t, s):
+        super(ForNode, self).__init__(t, s)
+        self.var, self.first, self.second, self.body = self.t
+
+    def __str__(self):
+        out = ''
+        name = self.var.t[1]
+        for i in xrange(int(self.first), int(self.second)):
+            self.body.context = {name: i}
+            out += str(self.body)
+        return out
+
+    def parse(self, target):
+        name = self.var.t[1]
+        for i in xrange(int(self.first), int(self.second)):
+            for n in self.body.t:
+                node = n.copy()
+                node.context = {name: i}
+                node.parse(target)

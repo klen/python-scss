@@ -1,8 +1,8 @@
 from collections import defaultdict
 
 from scss.base import Node
-from scss.function import Function, IfNode
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR
+from scss.function import Function, IfNode, ForNode
+from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY
 from scss.value import Length, Color, Percentage
 
 
@@ -16,9 +16,13 @@ class SelectorGroup(Node):
         test = str(other)
         if '&' in test:
             stest = str(self)
-            return SelectorGroup(test.replace('&', stest).split())
-
-        return SelectorGroup(self.t + other.t)
+            node = SelectorGroup(test.replace('&', stest).split())
+        else:
+            node = SelectorGroup(self.t + other.t)
+        ctx1, ctx2 = self.getContext(), other.getContext()
+        if ctx1 or ctx2:
+            node.context = ctx1.update(ctx2 or {}) if ctx1 else ctx2
+        return node
 
 
 class Declaration(Node):
@@ -38,8 +42,9 @@ class Variable(Node):
     def value(self):
         name = self.t[1]
         ctx = self.getContext()
-        value = ctx.get(name) or '0'
-        return value
+        if ctx and ctx.get(name):
+            return ctx.get(name)
+        return self.stylecheet.context.get(name) or '0'
 
     def __str__(self):
         return str(self.value)
@@ -222,6 +227,8 @@ class Stylecheet(object):
         EXTEND.setParseAction(self.getType(Extend))
 
         IF.setParseAction(self.getType(IfNode))
+        FOR.setParseAction(self.getType(ForNode))
+        FOR_BODY.setParseAction(self.getType())
         IF_CONDITION.setParseAction(self.getType())
         IF_BODY.setParseAction(self.getType())
         ELSE.setParseAction(self.getType())

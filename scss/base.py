@@ -1,3 +1,4 @@
+
 class Node(object):
     """ Base node for css object.
     """
@@ -27,7 +28,7 @@ class Node(object):
     def getContext(self):
         if not self.context and self.parent:
             return self.parent.getContext()
-        return self.context or self.stylecheet.context
+        return self.context
 
     def __str__(self):
         return self.delim.join(str(e) for e in self.t)

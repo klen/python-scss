@@ -30,6 +30,7 @@ INCLUDE_SYM = Suppress("@include")
 EXTEND_SYM = Suppress("@extend")
 IF_SYM = Suppress("@if")
 ELSE_SYM = Suppress("@else")
+FOR_SYM = Suppress("@for")
 
 # Property values
 HASH = Word('#', alphanums + "_-")
@@ -119,16 +120,18 @@ IF_CONDITION = VALUE + Optional(IF_OPERATOR + VALUE)
 IF_BODY = LACC + ZeroOrMore(BASE_CONTENT) + RACC
 ELSE = ELSE_SYM + LACC + ZeroOrMore(BASE_CONTENT) + RACC
 IF = IF_SYM + IF_CONDITION + IF_BODY + Optional(ELSE)
+FOR_BODY = ZeroOrMore(BASE_CONTENT)
+FOR = FOR_SYM + VARIABLE + Suppress("from") + VALUE + Suppress("through") + VALUE + LACC + FOR_BODY + RACC
 
 RULESET << (
     SELECTOR_TREE +
-    LACC + ZeroOrMore(BASE_CONTENT | IF | EXTEND) + RACC )
+    LACC + ZeroOrMore(BASE_CONTENT | IF | FOR | EXTEND) + RACC )
 
 # SCSS mixin
 MIXIN_PARAM = VARIABLE + Optional(COLON.suppress() + VAL_STRING)
 MIXIN_PARAMS = LPAREN + MIXIN_PARAM + ZeroOrMore(COMMA.suppress() + MIXIN_PARAM) + RPAREN
 MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
-    LACC + ZeroOrMore(BASE_CONTENT | IF) + RACC)
+    LACC + ZeroOrMore(BASE_CONTENT | IF | FOR) + RACC)
 
 # Root elements
 IMPORT = IMPORT_SYM + URI + Optional(IDENT + ZeroOrMore(IDENT)) + SEMICOLON
@@ -146,6 +149,8 @@ STYLESHEET = ZeroOrMore(
     | VARIABLE_ASSIGMENT
     | MIXIN
     | RULESET
+    | IF
+    | FOR
     | MEDIA
     | PAGE
     | FONT_FACE
