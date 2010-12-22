@@ -12,7 +12,11 @@ class Function(Node):
             if p.startswith('$'):
                 name = p[1:]
                 ctx = self.getContext()
-                p = ctx.get(name) or '0'
+                if ctx and ctx.get(name):
+                    p = ctx.get(name)
+                p = self.stylecheet.context.get(name) or '0'
+                if not isinstance(p, str):
+                    p = p.value
             result.append(p)
         return result
 
