@@ -1,13 +1,14 @@
 # sitegen changelog
 
 
-## 2010-12-22 0.0.8
+## 2010-12-22 0.0.9
 
 * Add !default support for variable assigment
 * Add true, false, int parse in @if condition
 * Fix division and / bug
 * Fix @extend rule
 * Fix selector filter bug
+* Add parens support in operation
 
 
 ## 2010-12-20 0.0.5

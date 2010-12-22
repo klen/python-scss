@@ -58,26 +58,6 @@ class TestSCSS( unittest.TestCase ):
         out = parser.parse(src)
         self.assertEqual(test, out)
 
-    def test_operations_and_functions(self):
-        src = """#navbar {
-            $navbar-width: 800px;
-            $items: 5;
-            $navbar-color: #ce4dd6;
-            width: $navbar-width;
-            border-bottom: 2px solid $navbar-color;
-
-            #{enumerate(div, 1, 5)} { color: red; }
-
-            li { float: left;
-                font: 8px/10px;
-                margin: 3px + 5px auto;
-                width: $navbar-width/$items - 10px;
-                background-color: $navbar-color - #333;
-                &:hover { background-color: $navbar-color - 10%; } } }"""
-        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #ce4dd6}\n\n#navbar div1, div2, div3, div4 {\n\tcolor: red}\n\n#navbar li {\n\tfloat: left;\n\tfont: 8px/10px;\n\tmargin: 8px auto;\n\twidth: 150px;\n\tbackground-color: #9b1aa3}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
-        out = parser.parse(src)
-        self.assertEqual(test, out)
-
     def test_interpolation(self):
         src = """$side: top;
             $radius: 10px;
@@ -135,6 +115,27 @@ class TestSCSS( unittest.TestCase ):
                     b { color: red; }
                 } @else { color: black; } } """
         test = "span {\n\tdisplay: none}\n\np {\n\tborder: red;\n\tcolor: blue}\n\np b {\n\tcolor: red}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
+    def test_operations_and_functions(self):
+        src = """#navbar {
+            $navbar-width: 800px;
+            $items: 3 + 2;
+            $navbar-color: #ce4dd6;
+            width: $navbar-width;
+            border-bottom: 2px solid $navbar-color;
+
+            #{enumerate(div, 1, 5)} { color: red; }
+
+            li { float: left;
+                font: 8px/10px;
+                test: 5px + 4px * (2 + $items);
+                margin: 3px + 5px auto;
+                width: $navbar-width/$items - 10px;
+                background-color: $navbar-color - #333;
+                &:hover { background-color: $navbar-color - 10%; } } }"""
+        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #ce4dd6}\n\n#navbar div1, div2, div3, div4 {\n\tcolor: red}\n\n#navbar li {\n\tfloat: left;\n\tfont: 8px/10px;\n\ttest: 63px;\n\tmargin: 8px auto;\n\twidth: 150px;\n\tbackground-color: #9b1aa3}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 

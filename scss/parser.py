@@ -48,6 +48,16 @@ class Variable(Node):
 class VarString(Node):
     """ Parse mathematic operation.
     """
+    @staticmethod
+    def math(res, arg, op):
+        if isinstance(res, str):
+            if not res.isdigit():
+                return res
+            else:
+                # Create fake length
+                res = Length((res, 'px'))
+        return res.math(arg, op)
+
     @property
     def value(self):
         it = iter(self.t)
@@ -58,11 +68,11 @@ class VarString(Node):
                 op = next(it)
                 if op in "+-/*":
                     arg = next(it)
-                    if isinstance(res, Variable):
+                    if isinstance(res, (Variable, VarString)):
                         res = res.value
-                    if isinstance(arg, Variable):
+                    if isinstance(arg, (Variable, VarString)):
                         arg = arg.value
-                    res = res.math(arg, op)
+                    res = self.math(res, arg, op)
             except StopIteration:
                 op = False
         return res
