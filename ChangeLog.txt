@@ -1,7 +1,7 @@
 # sitegen changelog
 
 
-## 2010-12-22 0.1.0
+## 2010-12-22 0.1.1
 
 * Add !default support for variable assigment
 * Add true, false, int parse in @if condition
