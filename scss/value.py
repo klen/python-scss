@@ -1,4 +1,6 @@
-class Hexcolor(object):
+import colorsys
+
+class Color(object):
     def __init__(self, t):
         self.value = t[1]
         if len(self.value) == 3:
@@ -19,22 +21,33 @@ class Hexcolor(object):
         lv = len(h)
         return tuple(int(h[i:i+lv/3], 16) for i in range(0, lv, lv/3))
 
-    def math(self, other, op):
-        a = self.hex_to_rgb(self.value)
-        b = self.parse(other)
-        if b:
-            res = list()
-            for k, v in zip(a, b):
-                r = max(min(256, eval(str(k) + op + str(v))), 0)
-                res.append(r)
-            res = self.rgb_to_hex(*res)
-            return Hexcolor(('#', res))
-        return self
+    @staticmethod
+    def hex_to_hsv(h):
+        lv = len(h)
+        return colorsys.rgb_to_hsv(
+            *tuple(int(h[i:i+lv/3], 16)/256.0 for i in range(0, lv, lv/3)))
 
-    def parse(self, other):
-        if not isinstance(other, Hexcolor):
-            return False
-        return self.hex_to_rgb(other.value)
+    def math(self, other, op):
+        if isinstance(other, Color):
+            res = map(
+                    lambda x, y: max(min(255, eval(str(x) + op + str(y))), 0),
+                    self.hex_to_rgb(self.value),
+                    self.hex_to_rgb(other.value))
+            res = self.rgb_to_hex(*res)
+            return Color(('#', res))
+
+        elif isinstance(other, Percentage):
+            a = self.hex_to_hsv(self.value)
+            if op == "-":
+                br = a[2] - (a[2] * (float(other.value)/100))
+            else:
+                br = a[2] + (a[2] * (float(other.value)/100))
+            res = colorsys.hsv_to_rgb(a[0], a[1], br)
+            res = self.rgb_to_hex(*map(
+                lambda x: min(x*256, 255), res))
+            return Color(('#', res))
+
+        return self
 
 
 class Length(object):
@@ -61,3 +74,6 @@ class Length(object):
         elif isinstance(other, Length):
             return other.value
         return False
+
+class Percentage(Length):
+    pass

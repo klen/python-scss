@@ -1,64 +1,34 @@
 from collections import defaultdict
 
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, COMMENT, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS
-from scss.math import Length, Hexcolor
+from scss.base import Node
+from scss.function import Function, IfNode
+from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR
+from scss.value import Length, Color, Percentage
 
 
-class Node(object):
-    """ Base node for css object.
-    """
+class Selector(Node):
     delim = ''
-
-    def __init__(self, t, s=None):
-        self.t = list(t)
-        self.stylecheet = s
-        self.parent = None
-        self.context = None
-        for e in self.t:
-            if isinstance(e, Node):
-                e.parse(self)
-
-    def parse(self, target):
-        name = self.__class__.__name__.lower()
-        if not hasattr(target, name):
-            setattr(target, name, list())
-        getattr(target, name).append(self)
-        self.parent = target
-
-    def copy(self):
-        return self.__class__(
-            [ n.copy() if isinstance(n, Node) else n for n in self.t ],
-            self.stylecheet
-        )
-
-    def getContext(self):
-        if not self.context and self.parent:
-            return self.parent.getContext()
-        return self.context
-
-    def __str__(self):
-        return self.delim.join(str(e) for e in self.t)
-
 
 class SelectorGroup(Node):
     """ Part of css rule.
     """
-    delim = ' '
-
     def __add__(self, other):
-        for s in other.t:
-            if '&' in s:
-                return SelectorGroup([s.replace('&', ' '.join(self.t)) for s in other.t])
-        return SelectorGroup(self.t + other.t)
+        test = str(other)
+        if '&' in test:
+            stest = str(self)
+            return SelectorGroup(test.replace('&', stest).split())
 
+        return SelectorGroup(self.t + other.t)
 
 
 class Declaration(Node):
     """ Css declaration.
     """
-    delim = ' '
     def __str__(self):
-        return str(self.t[0]) + ': ' + ' '.join(str(e) for e in self.t[2:])
+        name, expr = self.t[0].t, self.t[2:]
+        return ': '.join([
+            ''.join(str(s) for s in name),
+            ' '.join(str(e) for e in expr)])
 
 
 class Variable(Node):
@@ -68,10 +38,7 @@ class Variable(Node):
     def value(self):
         name = self.t[1]
         ctx = self.getContext()
-        if ctx and ctx.get(name):
-            value = ctx.get(name)
-        else:
-            value = self.stylecheet.context.get(name) or '0'
+        value = ctx.get(name) or '0'
         return value
 
     def __str__(self):
@@ -160,7 +127,9 @@ class Mixinparam(Node):
 
     @property
     def default(self):
-        return self.t[1].value if len(self.t) > 1 else None
+        if len(self.t) > 1:
+            return self.t[1].value
+        return None
 
 
 class Mixin(Node):
@@ -221,13 +190,14 @@ class Stylecheet(object):
         self.t = None
 
         VARIABLE_ASSIGMENT.setParseAction(self.var_assigment)
-        COMMENT.setParseAction(self.comment)
+        CSS_COMMENT.setParseAction(self.comment)
+        SCSS_COMMENT.setParseAction(lambda s, l, t: False)
 
-        HEXCOLOR.setParseAction(self.getType(Hexcolor, style=False))
+        HEXCOLOR.setParseAction(self.getType(Color, style=False))
         LENGTH.setParseAction(self.getType(Length, style=False))
         EMS.setParseAction(self.getType(Length, style=False))
         EXS.setParseAction(self.getType(Length, style=False))
-        PERCENTAGE.setParseAction(self.getType(Length, style=False))
+        PERCENTAGE.setParseAction(self.getType(Percentage, style=False))
 
         DEC_NAME.setParseAction(self.getType())
 
@@ -235,6 +205,7 @@ class Stylecheet(object):
         VAL_STRING.setParseAction(self.getType(VarString))
         DECLARATION.setParseAction(self.getType(Declaration))
         SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
+        SELECTOR.setParseAction(self.getType(Selector))
         RULESET.setParseAction(self.getType(Ruleset))
 
         DECLARESET.setParseAction(self.getType(DeclareSet))
@@ -242,6 +213,12 @@ class Stylecheet(object):
         MIXIN.setParseAction(self.getType(Mixin))
         INCLUDE.setParseAction(self.getType(Include))
         EXTEND.setParseAction(self.getType(Extend))
+
+        IF.setParseAction(self.getType(IfNode))
+        IF_CONDITION.setParseAction(self.getType())
+        IF_BODY.setParseAction(self.getType())
+        ELSE.setParseAction(self.getType())
+        FUNCTION.setParseAction(self.getType(Function))
 
     def parse(self, src):
         self.t = STYLESHEET.parseString(src)

@@ -1,9 +1,11 @@
 # sitegen changelog
 
-## 2010-12-20 0.0.4
+## 2010-12-20 0.0.5
 
 * Add math operation
 * Add parent references
+* Add scss comments
+* Add @if @else
 
 
 ## 2010-12-20 0.0.2

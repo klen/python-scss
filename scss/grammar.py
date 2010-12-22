@@ -1,4 +1,4 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment
 
 
 # Base css word and literals
@@ -9,7 +9,9 @@ LACC, RACC, LPAREN, RPAREN, LBRACK, RBRACK = [Suppress(c) for c in "{}()[]"]
 LLACC, LRACC = [Literal(c) for c in "{}"]
 
 # Comment
-COMMENT = cStyleComment
+CSS_COMMENT = cStyleComment
+SCSS_COMMENT = dblSlashComment
+COMMENT = CSS_COMMENT | SCSS_COMMENT
 
 # Directives
 CDO = Literal("<!--")
@@ -26,6 +28,8 @@ CHARSET_SYM = Literal("@charset")
 MIXIN_SYM = Suppress("@mixin")
 INCLUDE_SYM = Suppress("@include")
 EXTEND_SYM = Suppress("@extend")
+IF_SYM = Suppress("@if")
+ELSE_SYM = Suppress("@else")
 
 # Property values
 HASH = Word('#', alphanums + "_-")
@@ -39,41 +43,43 @@ FREQ = NUMBER + oneOf("Hz kHz")
 DIMEN = NUMBER + IDENT
 PERCENTAGE = NUMBER + Literal("%")
 URI = Literal("url(") + SkipTo(")")("path") + Literal(")")
-FUNCTION = IDENT + Literal("(") + SkipTo(")") + Literal(")")
 PRIO = "!important"
 
 # SCSS Variables
 VARIABLE = "$" + IDENT
-DEC_VAR = Suppress("#") + LACC + VARIABLE + RACC
 
 # Operators
 MATH_OPERATOR = oneOf("+ - / *")
 OPERATOR = oneOf("/ ,")
 COMBINATOR = oneOf("+ >")
 UNARY_OPERATOR = oneOf("- +")
+IF_OPERATOR = oneOf("== != <= >= < >")
 
+FUNCTION = IDENT + LPAREN + SkipTo(")") + RPAREN
 VALUE = LENGTH | PERCENTAGE | FREQ | EMS | EXS | ANGLE | TIME | NUMBER | FUNCTION | IDENT | HEXCOLOR | VARIABLE
 VAL_STRING = VALUE + ZeroOrMore(MATH_OPERATOR + VALUE)
+SEL_VAR = Suppress("#") + LACC + VAL_STRING + RACC
 
 # SCSS parent reference
 PARENT_REFERENCE = Literal("&")
 
 # Simple selectors
-ELEMENT_NAME = IDENT | Literal("*") | PARENT_REFERENCE
+ELEMENT_NAME = Combine(OneOrMore(IDENT | PARENT_REFERENCE)) | Literal("*")
 CLASS = Word('.', alphanums + "-_")
 ATTRIB = LBRACK + SkipTo("]") + RBRACK
 PSEUDO = Word(':', alphanums + "-_")
 
 # Selectors
-SELECTOR_FILTER = HASH | CLASS | ATTRIB | PSEUDO
-SELECTOR = Combine(ELEMENT_NAME + SELECTOR_FILTER) | ELEMENT_NAME | SELECTOR_FILTER
+SEL_NAME = OneOrMore(ELEMENT_NAME | SEL_VAR)
+SELECTOR_FILTER = OneOrMore(SEL_VAR | HASH | CLASS | ATTRIB | PSEUDO)
+SELECTOR = (SEL_NAME + SELECTOR_FILTER) | SEL_NAME | SELECTOR_FILTER
 SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(COMBINATOR) + SELECTOR)
 SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA.suppress() + SELECTOR_GROUP)
 
 # Property values
 TERM = Optional(UNARY_OPERATOR.suppress()) + (URI | VAL_STRING)
 EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
-DEC_NAME = OneOrMore(NAME | DEC_VAR)
+DEC_NAME = OneOrMore(NAME | SEL_VAR)
 DECLARATION = DEC_NAME + COLON + EXPR + Optional(SEMICOLON.suppress())
 
 # SCSS group of declarations
@@ -92,31 +98,23 @@ VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + SEM
 
 # Ruleset
 RULESET = Forward()
+BASE_CONTENT = COMMENT | DECLARESET | DECLARATION | INCLUDE | RULESET | VARIABLE_ASSIGMENT
+
+# SCSS control directives
+IF_CONDITION = VALUE + Optional(IF_OPERATOR + VALUE)
+IF_BODY = LACC + ZeroOrMore(BASE_CONTENT) + RACC
+ELSE = ELSE_SYM + LACC + ZeroOrMore(BASE_CONTENT) + RACC
+IF = IF_SYM + IF_CONDITION + IF_BODY + Optional(ELSE)
+
 RULESET << (
     SELECTOR_TREE +
-    LACC + ZeroOrMore(
-        COMMENT |
-        VARIABLE_ASSIGMENT |
-        EXTEND |
-        DECLARESET |
-        DECLARATION |
-        INCLUDE |
-        RULESET)
-    + RACC )
+    LACC + ZeroOrMore(BASE_CONTENT | IF | EXTEND) + RACC )
 
 # SCSS mixin
 MIXIN_PARAM = VARIABLE + Optional(COLON.suppress() + VAL_STRING)
 MIXIN_PARAMS = LPAREN + MIXIN_PARAM + ZeroOrMore(COMMA.suppress() + MIXIN_PARAM) + RPAREN
-
 MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
-    LACC + ZeroOrMore(
-        COMMENT |
-        VARIABLE_ASSIGMENT |
-        DECLARESET |
-        DECLARATION |
-        INCLUDE |
-        RULESET)
-    + RACC)
+    LACC + ZeroOrMore(BASE_CONTENT) + RACC)
 
 # Root elements
 IMPORT = IMPORT_SYM + URI + Optional(IDENT + ZeroOrMore(IDENT)) + SEMICOLON
