@@ -55,46 +55,56 @@ COMBINATOR = oneOf("+ >")
 UNARY_OPERATOR = oneOf("- +")
 IF_OPERATOR = oneOf("== != <= >= < >")
 
+# Parse values
 FUNCTION = IDENT + LPAREN + SkipTo(")") + RPAREN
-VALUE = LENGTH | PERCENTAGE | FREQ | EMS | EXS | ANGLE | TIME | NUMBER | FUNCTION | IDENT | HEXCOLOR | VARIABLE
+SIMPLE_VALUE = LENGTH | PERCENTAGE | FREQ | EMS | EXS | ANGLE | TIME | NUMBER | FUNCTION | IDENT | HEXCOLOR
+VALUE = SIMPLE_VALUE | VARIABLE
+SIMPLE_STRING = Combine(SIMPLE_VALUE + OneOrMore(Optional(OPERATOR) + SIMPLE_VALUE))
 VAL_STRING = VALUE + ZeroOrMore(MATH_OPERATOR + VALUE)
-SEL_VAR = Suppress("#") + LACC + VAL_STRING + RACC
-
-# SCSS parent reference
-PARENT_REFERENCE = Literal("&")
-
-# Simple selectors
-ELEMENT_NAME = Combine(OneOrMore(IDENT | PARENT_REFERENCE)) | Literal("*")
-CLASS = Word('.', alphanums + "-_")
-ATTRIB = LBRACK + SkipTo("]") + RBRACK
-PSEUDO = Word(':', alphanums + "-_")
-
-# Selectors
-SEL_NAME = OneOrMore(ELEMENT_NAME | SEL_VAR)
-SELECTOR_FILTER = OneOrMore(SEL_VAR | HASH | CLASS | ATTRIB | PSEUDO)
-SELECTOR = (SEL_NAME + SELECTOR_FILTER) | SEL_NAME | SELECTOR_FILTER
-SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(COMBINATOR) + SELECTOR)
-SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA.suppress() + SELECTOR_GROUP)
+INTERPOLATION_VAR = Suppress("#") + LACC + VAL_STRING + RACC
 
 # Property values
-TERM = Optional(UNARY_OPERATOR.suppress()) + (URI | VAL_STRING)
-EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
-DEC_NAME = OneOrMore(NAME | SEL_VAR)
+# TERM = Optional(UNARY_OPERATOR.suppress()) + (URI | VAL_STRING)
+# EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
+EXPR = OneOrMore(SIMPLE_STRING | VAL_STRING | URI) + Optional(PRIO)
+DEC_NAME = OneOrMore(NAME | INTERPOLATION_VAR)
 DECLARATION = DEC_NAME + COLON + EXPR + Optional(SEMICOLON.suppress())
 
 # SCSS group of declarations
 DECLARESET = Forward()
 DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION) + RACC
 
+# SCSS parent reference
+PARENT_REFERENCE = Literal("&")
+
+# Selectors
+ELEMENT_NAME = Combine(OneOrMore(IDENT | PARENT_REFERENCE)) | Literal("*")
+CLASS = Word('.', alphanums + "-_")
+ATTRIB = LBRACK + SkipTo("]") + RBRACK
+PSEUDO = Word(':', alphanums + "-_")
+SEL_NAME = OneOrMore(ELEMENT_NAME | INTERPOLATION_VAR)
+
+# TODO: Bug this
+FILTER = HASH | CLASS | ATTRIB | PSEUDO
+SEL_FILTER = FILTER + Optional(INTERPOLATION_VAR)
+SELECTOR = (SEL_NAME + SEL_FILTER) | SEL_NAME | SEL_FILTER
+
+# SELECTOR = INTERPOLATION_VAR | ELEMENT_NAME | FILTER
+# SELECTOR.skipWhitespace = False
+
+SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(COMBINATOR) + SELECTOR)
+SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA.suppress() + SELECTOR_GROUP)
+
 # SCSS include
 INCLUDE_PARAMS = LPAREN + VAL_STRING + ZeroOrMore(COMMA.suppress() + VAL_STRING) + RPAREN
 INCLUDE = INCLUDE_SYM + IDENT + Optional(INCLUDE_PARAMS) + SEMICOLON.suppress()
 
 # SCSS extend
-EXTEND = EXTEND_SYM + SELECTOR + SEMICOLON.suppress()
+EXTEND = EXTEND_SYM + SELECTOR + Optional(SEMICOLON.suppress())
 
 # SCSS variable assigment
-VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + SEMICOLON.suppress()
+VAR_DEFAULT = "!default"
+VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + Optional(VAR_DEFAULT) + SEMICOLON.suppress()
 
 # Ruleset
 RULESET = Forward()

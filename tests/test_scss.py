@@ -14,9 +14,9 @@ class TestSCSS( unittest.TestCase ):
           height: 23px;
           ul { list-style-type: none; }
           li { float: left;
-            a { font-weight: bold; }
+            a .test .main{ font-weight: bold; }
           } }"""
-        test = "#navbar {\n\twidth: 80%;\n\theight: 23px}\n\n#navbar ul {\n\tlist-style-type: none}\n\n#navbar li {\n\tfloat: left}\n\n#navbar li a {\n\tfont-weight: bold}"
+        test = "#navbar {\n\twidth: 80%;\n\theight: 23px}\n\n#navbar ul {\n\tlist-style-type: none}\n\n#navbar li {\n\tfloat: left}\n\n#navbar li a.test .main {\n\tfont-weight: bold}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -43,9 +43,12 @@ class TestSCSS( unittest.TestCase ):
     def test_variables(self):
         src = """$main-color: #ce4dd6;
             $style: solid;
+            $def_test: first;
+            $def_test: second;
+            $def_test: beep-beep !default;
             #navbar { border-bottom: { color: $main-color; style: $style; } }
-            a { color: $main-color; &:hover { border-bottom: $style 1px; } }"""
-        test = "#navbar {\n\tborder-bottom-color: #ce4dd6;\n\tborder-bottom-style: solid}\n\na {\n\tcolor: #ce4dd6}\n\na:hover {\n\tborder-bottom: solid 1px}"
+            a.#{$def_test} { color: $main-color; &:hover { border-bottom: $style 1px; } }"""
+        test = "#navbar {\n\tborder-bottom-color: #ce4dd6;\n\tborder-bottom-style: solid}\n\na.second {\n\tcolor: #ce4dd6}\n\na.second:hover {\n\tborder-bottom: solid 1px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -58,10 +61,12 @@ class TestSCSS( unittest.TestCase ):
             border-bottom: 2px solid $navbar-color;
             #{enumerate(div, 1, 5)} { color: red; }
             li { float: left;
+                font: 8px/10px;
+                margin: 3px + 5px auto;
                 width: $navbar-width/$items - 10px;
                 background-color: $navbar-color - #333;
                 &:hover { background-color: $navbar-color - 10%; } } }"""
-        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #ce4dd6}\n\n#navbar div1, div2, div3, div4 {\n\tcolor: red}\n\n#navbar li {\n\tfloat: left;\n\twidth: 150px;\n\tbackground-color: #9b1aa3}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
+        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #ce4dd6}\n\n#navbar div1, div2, div3, div4 {\n\tcolor: red}\n\n#navbar li {\n\tfloat: left;\n\tfont: 8px/10px;\n\tmargin: 8px auto;\n\twidth: 150px;\n\tbackground-color: #9b1aa3}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -108,6 +113,16 @@ class TestSCSS( unittest.TestCase ):
                     b { color: red; }
                 } @else { color: black; } } """
         test = "p {\n\tborder: red;\n\tcolor: blue}\n\np b {\n\tcolor: red}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
+    def test_extend_rule(self):
+        src = """.error { border: 1px #f00; background-color: #fdd; }
+            a:hover {text-decoration: underline}
+            .hoverlink {@extend a:hover}
+            .error .intrusion { background-image: url(/image/hacked.png); }
+            .seriousError { @extend .error; border-width: 3px; }"""
+        test = ".error, .seriousError {\n\tborder: 1px #f00;\n\tbackground-color: #fdd}\n\na:hover, .hoverlink {\n\ttext-decoration: underline}\n\n.error .intrusion, .seriousError .intrusion {\n\tbackground-image: url(/image/hacked.png)}\n\n.seriousError {\n\tborder-width: 3px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 

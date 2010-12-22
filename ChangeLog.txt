@@ -1,5 +1,13 @@
 # sitegen changelog
 
+## 2010-12-22 0.0.6
+
+* Add !default support for variable assigment
+* Fix division and / bug
+* Fix @extend rule
+* Fix selector filter bug
+
+
 ## 2010-12-20 0.0.5
 
 * Add math operation

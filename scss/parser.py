@@ -75,7 +75,7 @@ class Ruleset(Node):
 
     def __init__(self, t, s):
         super(Ruleset, self).__init__(t, s)
-        ancor = self.t[0].t[0]
+        ancor = str(self.t[0].t[0])
         self.stylecheet.ruleset[ancor].add(self)
 
     def parse(self, target):
@@ -168,7 +168,7 @@ class Extend(Node):
     """ @extend at rule.
     """
     def parse(self, target):
-        name = self.t[0]
+        name = str(self.t[0])
         rulesets = self.stylecheet.ruleset.get(name)
         if rulesets:
             for rul in rulesets:
@@ -245,8 +245,9 @@ class Stylecheet(object):
         return wrap
 
     def var_assigment(self, s, l, t):
-        name, val_string = t
-        self.context[name] = val_string.value
+        name, val_string, default = t[0], t[1], False if len(t) < 3 else True
+        if not(default and self.context.get(name)):
+            self.context[name] = val_string.value
         return False
 
     def comment(self, s, l, t):
