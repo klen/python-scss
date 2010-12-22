@@ -97,14 +97,14 @@ SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA.suppress() + SELECTOR_GROUP)
 
 # SCSS include
 INCLUDE_PARAMS = LPAREN + VAL_STRING + ZeroOrMore(COMMA.suppress() + VAL_STRING) + RPAREN
-INCLUDE = INCLUDE_SYM + IDENT + Optional(INCLUDE_PARAMS) + SEMICOLON.suppress()
+INCLUDE = INCLUDE_SYM + IDENT + Optional(INCLUDE_PARAMS) + Optional(SEMICOLON.suppress())
 
 # SCSS extend
 EXTEND = EXTEND_SYM + SELECTOR + Optional(SEMICOLON.suppress())
 
 # SCSS variable assigment
 VAR_DEFAULT = "!default"
-VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + Optional(VAR_DEFAULT) + SEMICOLON.suppress()
+VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + Optional(VAR_DEFAULT) + Optional(SEMICOLON.suppress())
 
 # Ruleset
 RULESET = Forward()
@@ -124,7 +124,7 @@ RULESET << (
 MIXIN_PARAM = VARIABLE + Optional(COLON.suppress() + VAL_STRING)
 MIXIN_PARAMS = LPAREN + MIXIN_PARAM + ZeroOrMore(COMMA.suppress() + MIXIN_PARAM) + RPAREN
 MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
-    LACC + ZeroOrMore(BASE_CONTENT) + RACC)
+    LACC + ZeroOrMore(BASE_CONTENT | IF) + RACC)
 
 # Root elements
 IMPORT = IMPORT_SYM + URI + Optional(IDENT + ZeroOrMore(IDENT)) + SEMICOLON

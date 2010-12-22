@@ -114,16 +114,6 @@ class TestSCSS( unittest.TestCase ):
         out = parser.parse(src)
         self.assertEqual(test, out)
 
-    def test_control_functions(self):
-        src = """$type: monster;
-            p { border: red;
-                @if $type == monster { color: blue;
-                    b { color: red; }
-                } @else { color: black; } } """
-        test = "p {\n\tborder: red;\n\tcolor: blue}\n\np b {\n\tcolor: red}"
-        out = parser.parse(src)
-        self.assertEqual(test, out)
-
     def test_extend_rule(self):
         src = """.error { border: 1px #f00; background-color: #fdd; }
             a:hover {text-decoration: underline}
@@ -131,6 +121,20 @@ class TestSCSS( unittest.TestCase ):
             .error .intrusion { background-image: url(/image/hacked.png); }
             .seriousError { @extend .error; border-width: 3px; }"""
         test = ".error, .seriousError {\n\tborder: 1px #f00;\n\tbackground-color: #fdd}\n\na:hover, .hoverlink {\n\ttext-decoration: underline}\n\n.error .intrusion, .seriousError .intrusion {\n\tbackground-image: url(/image/hacked.png)}\n\n.seriousError {\n\tborder-width: 3px}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
+    def test_control_functions(self):
+        src = """$type: monster;
+            @mixin test($fix: 0) {
+                @if $fix { display: block; } @else { display: none; }
+            }
+            span { @include test(false) }
+            p { border: red;
+                @if $type == monster { color: blue;
+                    b { color: red; }
+                } @else { color: black; } } """
+        test = "span {\n\tdisplay: none}\n\np {\n\tborder: red;\n\tcolor: blue}\n\np b {\n\tcolor: red}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 

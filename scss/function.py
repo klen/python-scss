@@ -27,10 +27,17 @@ class Function(Node):
 class IfNode(Node):
     def parse(self, target):
         cond, body, els = self.t
-        try:
-            test = eval(cond.safe_str())
-        except SyntaxError:
+        cond = cond.safe_str()
+        ctest = cond.strip("'")
+        if ctest.isdigit():
+            test = int(ctest)
+        elif ctest.lower() == 'false':
             test = False
+        else:
+            try:
+                test = eval(cond)
+            except SyntaxError:
+                test = False
         if test:
             node = body
         else:
