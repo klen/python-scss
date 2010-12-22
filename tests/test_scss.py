@@ -9,13 +9,18 @@ from scss import parser
 class TestSCSS( unittest.TestCase ):
 
     def test_base(self):
-        src = """.test {
+        src = """
+            body { *font:13px/1.231 sans-serif; }
+            .test {
             color: red;
             &:after { content: 'blue'; }}
+            pre, code, kbd, samp {
+                font: 12px/10px;
+                font-family: monospace, sans-serif; }
             abbr[title], dfn[title] {
                 border:2px; }
             """
-        test = ".test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
+        test = "body {\n\t*font: 13px/1.231 sans-serif}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace,sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 

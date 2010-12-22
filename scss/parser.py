@@ -3,7 +3,7 @@ import ipdb as pdb
 
 from scss.base import Node
 from scss.function import Function, IfNode, ForNode
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY
+from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING
 from scss.value import Length, Color, Percentage
 
 
@@ -216,6 +216,7 @@ class Stylecheet(object):
         PERCENTAGE.setParseAction(self.getType(Percentage, style=False))
 
         DEC_NAME.setParseAction(self.getType())
+        SIMPLE_STRING.setParseAction(self.getType(Selector))
 
         VARIABLE.setParseAction(self.getType(Variable))
         VAL_STRING.setParseAction(self.getType(VarString))

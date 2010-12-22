@@ -38,10 +38,6 @@ HEXCOLOR = Literal("#") + Word(hexnums, min=3, max=6)
 EMS = NUMBER + Literal("em")
 EXS = NUMBER + Literal("ex")
 LENGTH = NUMBER + oneOf("px cm mm in pt pc")
-ANGLE = NUMBER + oneOf("deg rad grad")
-TIME = NUMBER + oneOf("ms s")
-FREQ = NUMBER + oneOf("Hz kHz")
-DIMEN = NUMBER + IDENT
 PERCENTAGE = NUMBER + Literal("%")
 URI = Literal("url(") + SkipTo(")")("path") + Literal(")")
 PRIO = "!important"
@@ -58,9 +54,9 @@ IF_OPERATOR = oneOf("== != <= >= < >")
 
 # Parse values
 FUNCTION = IDENT + LPAREN + SkipTo(")") + RPAREN
-SIMPLE_VALUE = LENGTH | PERCENTAGE | FREQ | EMS | EXS | ANGLE | TIME | NUMBER | FUNCTION | IDENT | HEXCOLOR
+SIMPLE_VALUE = LENGTH | PERCENTAGE | EMS | EXS | NUMBER | FUNCTION | IDENT | HEXCOLOR
 VALUE = SIMPLE_VALUE | VARIABLE | quotedString
-SIMPLE_STRING = Combine(SIMPLE_VALUE + OneOrMore(Optional(OPERATOR) + SIMPLE_VALUE))
+SIMPLE_STRING = SIMPLE_VALUE + OneOrMore(OPERATOR + SIMPLE_VALUE)
 
 VAL_STRING = Forward()
 PARENS = LPAREN + VAL_STRING + RPAREN
@@ -72,7 +68,7 @@ INTERPOLATION_VAR = Suppress("#") + LACC + VAL_STRING + RACC
 # TERM = Optional(UNARY_OPERATOR.suppress()) + (URI | VAL_STRING)
 # EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
 EXPR = OneOrMore(SIMPLE_STRING | VAL_STRING | URI) + Optional(PRIO)
-DEC_NAME = OneOrMore(NAME | INTERPOLATION_VAR)
+DEC_NAME = Optional("*") + OneOrMore(NAME | INTERPOLATION_VAR)
 DECLARATION = DEC_NAME + COLON + EXPR + Optional(SEMICOLON.suppress())
 
 # SCSS group of declarations
