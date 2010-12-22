@@ -10,7 +10,11 @@ class TestSCSS( unittest.TestCase ):
 
     def test_base(self):
         src = """
-            body { *font:13px/1.231 sans-serif; }
+            body {
+                $font: Georgia;
+                font-family: $font, sans-serif;
+                *font:13px/1.231 sans-serif;
+                }
             .test {
             color: red;
             &:after { content: 'blue'; }}
@@ -20,7 +24,7 @@ class TestSCSS( unittest.TestCase ):
             abbr[title], dfn[title] {
                 border:2px; }
             """
-        test = "body {\n\t*font: 13px/1.231 sans-serif}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace,sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
+        test = "body {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia,sans-serif}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace,sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
