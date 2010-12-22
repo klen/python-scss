@@ -1,4 +1,4 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex
 
 
 # Base css word and literals
@@ -73,16 +73,16 @@ DECLARATION = DEC_NAME + COLON + EXPR + Optional(SEMICOLON.suppress())
 
 # SCSS group of declarations
 DECLARESET = Forward()
-DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION) + RACC + Optional(SEMICOLON)
+DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION | COMMENT) + RACC + Optional(SEMICOLON)
 
 # SCSS parent reference
 PARENT_REFERENCE = Literal("&")
 
 # Selectors
 ELEMENT_NAME = Combine(OneOrMore(IDENT | PARENT_REFERENCE)) | Literal("*")
-CLASS = Word('.', alphanums + "-_")
 ATTRIB = LBRACK + SkipTo("]") + RBRACK
-PSEUDO = Word(':', alphanums + "-_")
+CLASS = Word('.', alphanums + "-_")
+PSEUDO = Regex(r':{1,2}[A-Za-z0-9-_]+')
 SEL_NAME = ELEMENT_NAME + Optional(INTERPOLATION_VAR)
 
 # TODO: Bug this

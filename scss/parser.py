@@ -9,6 +9,16 @@ from scss.value import Length, Color, Percentage
 class SimpleNode(Node):
     delim = ''
 
+class DeclareSet(Node):
+    def render(self, target):
+        self.declaration = self.declaration or []
+        name = self.t[0]
+        for dec in getattr(self, 'declareset', []):
+            dec.render(self)
+        for dc in self.declaration:
+            dc.t[0].t[0] = "-".join((name, dc.t[0].t[0]))
+            target.declaration.append(dc)
+
 class SelectorGroup(Node):
     """ Part of css rule.
     """
@@ -89,6 +99,7 @@ class VarString(Node):
 class Ruleset(Node):
 
     def __init__(self, t, s):
+        self.declaration = []
         super(Ruleset, self).__init__(t, s)
         ancor = str(self.t[0].t[0])
         self.stylecheet.ruleset[ancor].add(self)
@@ -107,9 +118,14 @@ class Ruleset(Node):
                 selgroup.append(psg + sg)
         self.selectorgroup = selgroup
 
+    def parse_declareset(self):
+        for ds in getattr(self, 'declareset', []):
+            ds.render(self)
+
     def __str__(self):
         out = ''
-        if hasattr(self, 'declaration'):
+        self.parse_declareset()
+        if len(self.declaration):
             out += ', '.join(str(s) for s in self.selectorgroup)
             out += ' {\n\t'
             self.declaration.sort(key=lambda x: str(x.t[0]))
@@ -118,15 +134,6 @@ class Ruleset(Node):
         if hasattr(self, 'ruleset'):
             out += ''.join(str(r) for r in self.ruleset)
         return out
-
-
-class DeclareSet(Node):
-
-    def parse(self, target):
-        for d in getattr(self, 'declaration', []):
-            if not isinstance(target, Mixin):
-                d.t[0].t.insert(0, self.t[0] + "-")
-                d.parse(target)
 
 
 class Mixinparam(Node):
@@ -221,11 +228,11 @@ class Stylecheet(object):
         VARIABLE.setParseAction(self.getType(Variable))
         VAL_STRING.setParseAction(self.getType(VarString))
         DECLARATION.setParseAction(self.getType(Declaration))
+        DECLARESET.setParseAction(self.getType(DeclareSet))
         SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
         SELECTOR.setParseAction(self.getType(SimpleNode))
         RULESET.setParseAction(self.getType(Ruleset))
 
-        DECLARESET.setParseAction(self.getType(DeclareSet))
         MIXIN_PARAM.setParseAction(self.getType(Mixinparam))
         MIXIN.setParseAction(self.getType(Mixin))
         INCLUDE.setParseAction(self.getType(Include))
