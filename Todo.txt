@@ -1,5 +1,4 @@
 Use StringIO
-Make tests run
 Add declaration sorting
 Add declaration check for dublicate
 Add ruleset chck for dublicate
