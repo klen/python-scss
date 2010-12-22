@@ -143,8 +143,9 @@ class TestSCSS( unittest.TestCase ):
     def test_for(self):
         src = """
             .test {
+                $for: 3;
                 color: blue;
-                @for $i from 1 through 3 {
+                @for $i from 1 through $for {
                     .span#{$i} { border: red; }
                 }
             }

@@ -61,6 +61,7 @@ class ForNode(Node):
     def __init__(self, t, s):
         super(ForNode, self).__init__(t, s)
         self.var, self.first, self.second, self.body = self.t
+        self.first, self.second = map(lambda x: x.value if isinstance(x, Node) else x, (self.first, self.second))
 
     def __str__(self):
         out = ''
