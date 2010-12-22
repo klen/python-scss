@@ -95,16 +95,13 @@ class Ruleset(Node):
     def __str__(self):
         out = ''
         if hasattr(self, 'declaration'):
-            out += self.render_selectors()
+            out += ', '.join(str(s) for s in self.selectorgroup)
             out += ' {\n\t'
             out += ';\n\t'.join(str(d) for d in self.declaration)
             out += '}\n\n'
         if hasattr(self, 'ruleset'):
             out += ''.join(str(r) for r in self.ruleset)
         return out
-
-    def render_selectors(self):
-        return ', '.join(str(s) for s in self.selectorgroup)
 
 
 class DeclareSet(Node):
