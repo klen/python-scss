@@ -5,8 +5,8 @@ from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo,
 IDENT = NAME = Word(alphanums + "_-")
 NUMBER = Word(nums+'-', nums + '.')
 COMMA, COLON, SEMICOLON = [Literal(c) for c in ",:;"]
-LACC, RACC, LPAREN, RPAREN, LBRACK, RBRACK = [Suppress(c) for c in "{}()[]"]
-LLACC, LRACC = [Literal(c) for c in "{}"]
+LACC, RACC, LPAREN, RPAREN = [Suppress(c) for c in "{}()"]
+LLACC, LRACC, LBRACK, RBRACK = [Literal(c) for c in "{}[]"]
 
 # Comment
 CSS_COMMENT = cStyleComment
