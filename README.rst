@@ -27,8 +27,8 @@ Using
 -----
 example: ::
 
-    from scss import parse
+    from scss import parser
     src = file.read()
-    print parse('src')
+    print parser.parse('src')
 
 
