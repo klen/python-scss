@@ -2,12 +2,15 @@ from collections import defaultdict
 
 from scss.base import Node
 from scss.function import Function, IfNode, ForNode
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING, DIV_STRING
+from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING, DIV_STRING, MEDIA
 from scss.value import Length, Color, Percentage
 
 
 class SimpleNode(Node):
     delim = ''
+
+class AtRule(Node):
+    delim = ' '
 
 class DeclareSet(Node):
     def render(self, target):
@@ -126,11 +129,12 @@ class Ruleset(Node):
         out = ''
         self.parse_declareset()
         if len(self.declaration):
+            out = '\n'
             out += ', '.join(str(s) for s in self.selectorgroup)
             out += ' {\n\t'
             self.declaration.sort(key=lambda x: str(x.t[0]))
             out += ';\n\t'.join(str(d) for d in self.declaration)
-            out += '}\n\n'
+            out += '}\n'
         if hasattr(self, 'ruleset'):
             out += ''.join(str(r) for r in self.ruleset)
         return out
@@ -164,8 +168,8 @@ class Mixin(Node):
                 node.context = ctx
                 node.parse(target)
 
-    def __len__(self):
-        return False
+    def __str__(self):
+        return ''
 
 
 class Include(Node):
@@ -215,6 +219,8 @@ class Stylecheet(object):
         CSS_COMMENT.setParseAction(self.comment)
         SCSS_COMMENT.setParseAction(lambda s, l, t: False)
 
+        MEDIA.setParseAction(self.getType(AtRule))
+
         HEXCOLOR.setParseAction(self.getType(Color, style=False))
         LENGTH.setParseAction(self.getType(Length, style=False))
         EMS.setParseAction(self.getType(Length, style=False))
@@ -247,24 +253,7 @@ class Stylecheet(object):
         FUNCTION.setParseAction(self.getType(Function))
 
     def parse(self, src):
-        self.t = STYLESHEET.parseString(src)
-
-    def render(self):
-        out = delim = ''
-        for e in self.t:
-            if not e:
-                continue
-            if isinstance(e, str):
-                if e in ";{}":
-                    out += e + '\n'
-                    delim = ''
-                else:
-                    out += delim + e
-                    delim = ' '
-            else:
-                out += str(e)
-
-        return out.strip()
+        return STYLESHEET.transformString(src).strip()
 
     def getType(self, node=Node, style=True):
         def wrap(s, l, t):
@@ -277,7 +266,7 @@ class Stylecheet(object):
         name, val_string, default = t[0], t[1], False if len(t) < 3 else True
         if not(default and self.context.get(name)):
             self.context[name] = val_string.value
-        return False
+        return ''
 
     def comment(self, s, l, t):
         if self.ignore_comment:
@@ -286,5 +275,4 @@ class Stylecheet(object):
 
 def parse( src, context=None ):
     parser = Stylecheet(context)
-    parser.parse(src)
-    return parser.render()
+    return parser.parse(src)
