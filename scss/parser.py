@@ -217,7 +217,7 @@ class Stylecheet(object):
 
         VARIABLE_ASSIGMENT.setParseAction(self.var_assigment)
         CSS_COMMENT.setParseAction(self.comment)
-        SCSS_COMMENT.setParseAction(lambda s, l, t: False)
+        SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
         MEDIA.setParseAction(self.getType(AtRule))
 
@@ -270,7 +270,7 @@ class Stylecheet(object):
 
     def comment(self, s, l, t):
         if self.ignore_comment:
-            return False
+            return ''
         return t[0]
 
 def parse( src, context=None ):

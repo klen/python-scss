@@ -15,6 +15,7 @@ class TestSCSS( unittest.TestCase ):
                 a:hover { color: #036; }
             }\n@media print {
                 @include z-base; }
+            // Test comment
             body {
                 $font: Georgia;
                 font-family: $font, sans-serif;
