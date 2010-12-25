@@ -1,6 +1,6 @@
 # sitegen changelog
 
-## 2010-12-23 0.2.1
+## 2010-12-25 0.2.3
 
 * More stable version
 * Fix comments

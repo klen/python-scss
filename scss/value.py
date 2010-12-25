@@ -1,6 +1,10 @@
 import colorsys
 
-class Color(object):
+class Value(object):
+    def __float__(self):
+        return float(self.value)
+
+class Color(Value):
     def __init__(self, t):
         self.value = t[1]
         if len(self.value) == 3:
@@ -49,31 +53,30 @@ class Color(object):
 
         return self
 
-
-class Length(object):
+class Length(Value):
     def __init__(self, t):
         self.value, self.units = t
+        if '.' in self.value:
+            self.value = self.value.rstrip('0').rstrip('.')
 
     def __str__(self):
         return "%s%s" % (self.value, self.units)
 
-    def math(self, other, op):
-        a = self.value
-        b = self.parse(other)
-        if b:
-            try:
-                res = str(eval(a + op + b))
-                return Length((res, self.units))
-            except SyntaxError:
-                pass
-        return self
+    def __float__(self):
+        return float(self.value)
 
-    def parse(self, other):
-        if isinstance(other, str):
-            return other
-        elif isinstance(other, Length):
-            return other.value
-        return False
+    def math(self, other, op):
+        if op  == "*":
+            res = float(self) * float(other)
+        elif not float(other):
+            return self
+        elif op == "+":
+            res = float(self) + float(other)
+        elif op == "-":
+            res = float(self) - float(other)
+        elif op == "/":
+            res = float(self) / float(other)
+        return Length((str(round(res, 2)), self.units))
 
 class Percentage(Length):
     pass

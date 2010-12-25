@@ -65,19 +65,18 @@ class ForNode(Node):
     def __init__(self, t, s):
         super(ForNode, self).__init__(t, s)
         self.var, self.first, self.second, self.body = self.t
-        self.first, self.second = map(lambda x: x.value if isinstance(x, Node) else x, (self.first, self.second))
 
     def __str__(self):
         out = ''
         name = self.var.t[1]
-        for i in xrange(int(self.first), int(self.second)):
+        for i in xrange(int(self.first), int(self.second)+1):
             self.body.context = {name: i}
             out += str(self.body)
         return out
 
     def parse(self, target):
         name = self.var.t[1]
-        for i in xrange(int(self.first), int(self.second)):
+        for i in xrange(int(self.first), int(self.second)+1):
             for n in self.body.t:
                 node = n.copy()
                 node.context = {name: i}

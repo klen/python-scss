@@ -1,11 +1,10 @@
 import logging
-import ipdb as pdb
 from collections import defaultdict
 
 from scss.base import Node
 from scss.function import Function, IfNode, ForNode
 from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
-from scss.value import Length, Color, Percentage
+from scss.value import Length, Color, Percentage, Value
 
 
 class SimpleNode(Node):
@@ -68,23 +67,34 @@ class Variable(Node):
             return ctx.get(name)
         return self.stylecheet.context.get(name) or '0'
 
+    def math(self, arg, op):
+        if isinstance(self.value, (int, str)):
+            return Length((str(self.value), 'px')).math(arg, op)
+        return self.value.math(arg, op)
+
     def __str__(self):
         return str(self.value)
 
-class VarString(Node):
+    def __int__(self):
+        try:
+            return int(self.value)
+        except ValueError:
+            return 0
+
+    def __float__(self):
+        try:
+            return float(self.value)
+        except ValueError:
+            return 0
+
+class VarString(Variable):
     """ Parse mathematic operation.
     """
     @staticmethod
     def math(res, arg, op):
-        if isinstance(res, int):
-            res = Length((str(res), 'px'))
-        elif isinstance(res, str):
-            if not res.isdigit():
-                return res
-            else:
-                # Create fake length
-                res = Length((res, 'px'))
-        return res.math(arg, op)
+        if isinstance(res, (Node, Value)):
+            return res.math(arg, op)
+        return Length((str(res), 'px')).math(arg, op)
 
     @property
     def value(self):
@@ -96,17 +106,10 @@ class VarString(Node):
                 op = next(it)
                 if op in "+-/*":
                     arg = next(it)
-                    if isinstance(res, (Variable, VarString)):
-                        res = res.value
-                    if isinstance(arg, (Variable, VarString)):
-                        arg = arg.value
                     res = self.math(res, arg, op)
             except StopIteration:
                 op = False
         return res
-
-    def __str__(self):
-        return str(self.value)
 
 class Ruleset(Node):
 
