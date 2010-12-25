@@ -4,7 +4,7 @@ from scss.base import Node
 class Function(Node):
 
     def enumerate(self, p):
-        return ', '.join("%s%d" % (p[0], x) for x in xrange(int(p[1]), int(p[2])))
+        return ', '.join("%s%d" % (p[0], x) for x in xrange(int(p[1]), int(p[2])+1))
 
     def __parse_params(self, params):
         result = []
