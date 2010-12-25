@@ -13,6 +13,12 @@ class SimpleNode(Node):
 class AtRule(Node):
     delim = ' '
 
+class Comment(Node):
+    def __str__(self):
+        if self.stylecheet.ignore_comment:
+            return ''
+        return "\n%s\n" % super(Comment, self).__str__()
+
 class Empty(Node):
     def __str__(self):
         return ''
@@ -223,7 +229,7 @@ class Stylecheet(object):
         self.t = None
 
         VARIABLE_ASSIGMENT.setParseAction(self.var_assigment)
-        CSS_COMMENT.setParseAction(self.comment)
+        CSS_COMMENT.setParseAction(self.getType(Comment))
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
         MEDIA.setParseAction(self.getType(AtRule))
@@ -276,11 +282,6 @@ class Stylecheet(object):
         if not(default and self.context.get(name)):
             self.context[name] = val_string.value
         return ''
-
-    def comment(self, s, l, t):
-        if self.ignore_comment:
-            return ''
-        return t[0]
 
 def parse( src, context=None ):
     parser = Stylecheet(context)

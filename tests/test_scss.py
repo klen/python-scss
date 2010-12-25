@@ -15,6 +15,7 @@ class TestSCSS( unittest.TestCase ):
                 a:hover { color: #036; }
                 @debug test;
             }\n@media print {
+                /* Css comment */
                 @include z-base; }
             // Test comment
             body {
@@ -30,7 +31,7 @@ class TestSCSS( unittest.TestCase ):
             abbr[title], dfn[title] {
                 border:2px; }
             """
-        test = "@charset utf-8;\n@import url(test);\n@media print { \na:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n }\nbody {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia,sans-serif}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace,sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
+        test = "@charset utf-8;\n@import url(test);\n@media print { \n/* Css comment */\n \na:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n }\nbody {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia,sans-serif}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace,sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -180,7 +181,7 @@ class TestSCSS( unittest.TestCase ):
                 width: $navbar-width/$items - 10px;
                 background-color: $navbar-color - #333;
                 &:hover { background-color: $navbar-color - 10%; } } }"""
-        test = "#navbar {\n\tborder-bottom: 2px solid #ce4dd6;\n\twidth: 800px}\n\n#navbar div1, div2 {\n\tcolor: red}\n\n#navbar li {\n\tbackground-color: #9b1aa3;\n\tfloat: left;\n\tfont: 8px/10px;\n\tmargin: 8.5px auto;\n\ttest: 25px;\n\twidth: 256.67px}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
+        test = "#navbar {\n\tborder-bottom: 2px solid #ce4dd6;\n\twidth: 800px}\n\n#navbar div1, div2, div3 {\n\tcolor: red}\n\n#navbar li {\n\tbackground-color: #9b1aa3;\n\tfloat: left;\n\tfont: 8px/10px;\n\tmargin: 8.5px auto;\n\ttest: 25px;\n\twidth: 256.67px}\n\n#navbar li:hover {\n\tbackground-color: #b945c0}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
