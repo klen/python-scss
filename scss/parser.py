@@ -17,7 +17,7 @@ class Comment(Node):
     def __str__(self):
         if self.stylecheet.ignore_comment:
             return ''
-        return "\n%s\n" % super(Comment, self).__str__()
+        return super(Comment, self).__str__()
 
 class Empty(Node):
     def __str__(self):

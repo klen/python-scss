@@ -1,4 +1,4 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty, lineEnd, lineStart
 
 
 # Base css word and literals
@@ -11,7 +11,7 @@ LACC, RACC, LPAREN, RPAREN = [Suppress(c) for c in "{}()"]
 LLACC, LRACC, LBRACK, RBRACK = [Literal(c) for c in "{}[]"]
 
 # Comment
-CSS_COMMENT = cStyleComment
+CSS_COMMENT = cStyleComment + Optional(lineEnd)
 SCSS_COMMENT = dblSlashComment
 COMMENT = CSS_COMMENT | SCSS_COMMENT
 
