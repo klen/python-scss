@@ -1,8 +1,9 @@
+import logging
 from collections import defaultdict
 
 from scss.base import Node
 from scss.function import Function, IfNode, ForNode
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING, DIV_STRING, MEDIA
+from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
 from scss.value import Length, Color, Percentage
 
 
@@ -11,6 +12,15 @@ class SimpleNode(Node):
 
 class AtRule(Node):
     delim = ' '
+
+class Empty(Node):
+    def __str__(self):
+        return ''
+
+class Debug(Empty):
+    def __init__(self, t, s):
+        super(Debug, self).__init__(t, s)
+        logging.debug(str(self))
 
 class DeclareSet(Node):
     def render(self, target):
@@ -37,7 +47,6 @@ class SelectorGroup(Node):
             node.context = ctx1.update(ctx2 or {}) if ctx1 else ctx2
         return node
 
-
 class Declaration(Node):
     """ Css declaration.
     """
@@ -46,7 +55,6 @@ class Declaration(Node):
         return ': '.join([
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
-
 
 class Variable(Node):
     """ Get variable value.
@@ -61,7 +69,6 @@ class Variable(Node):
 
     def __str__(self):
         return str(self.value)
-
 
 class VarString(Node):
     """ Parse mathematic operation.
@@ -98,7 +105,6 @@ class VarString(Node):
     def __str__(self):
         return str(self.value)
 
-
 class Ruleset(Node):
 
     def __init__(self, t, s):
@@ -106,6 +112,7 @@ class Ruleset(Node):
         super(Ruleset, self).__init__(t, s)
         ancor = str(self.t[0].t[0])
         self.stylecheet.ruleset[ancor].add(self)
+        # self.tab = '\t'
 
     def parse(self, target):
         super(Ruleset, self).parse(target)
@@ -135,10 +142,11 @@ class Ruleset(Node):
             self.declaration.sort(key=lambda x: str(x.t[0]))
             out += ';\n\t'.join(str(d) for d in self.declaration)
             out += '}\n'
+        # for r in getattr(self, 'ruleset', []):
+            # out += '\n'.join("%s%s" % (self.tab, l) for l in str(r).split('\n'))
         if hasattr(self, 'ruleset'):
             out += ''.join(str(r) for r in self.ruleset)
         return out
-
 
 class Mixinparam(Node):
     @property
@@ -151,8 +159,7 @@ class Mixinparam(Node):
             return self.t[1].value
         return None
 
-
-class Mixin(Node):
+class Mixin(Empty):
 
     def __init__(self, t, s=None):
         super(Mixin, self).__init__(t, s)
@@ -167,10 +174,6 @@ class Mixin(Node):
                 node = e.copy()
                 node.context = ctx
                 node.parse(target)
-
-    def __str__(self):
-        return ''
-
 
 class Include(Node):
 
@@ -192,7 +195,6 @@ class Include(Node):
         if not self.mixin is None:
             self.mixin.include(target, self.params)
 
-
 class Extend(Node):
     """ @extend at rule.
     """
@@ -204,7 +206,6 @@ class Extend(Node):
                 selgroup = SelectorGroup(
                     target.selectorgroup[0].t + rul.selectorgroup[0].t[1:])
                 rul.selectorgroup.append(selgroup)
-
 
 class Stylecheet(object):
 
@@ -220,6 +221,7 @@ class Stylecheet(object):
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
         MEDIA.setParseAction(self.getType(AtRule))
+        EMPTY.setParseAction(self.getType(Empty))
 
         HEXCOLOR.setParseAction(self.getType(Color, style=False))
         LENGTH.setParseAction(self.getType(Length, style=False))
@@ -251,6 +253,7 @@ class Stylecheet(object):
         IF_BODY.setParseAction(self.getType())
         ELSE.setParseAction(self.getType())
         FUNCTION.setParseAction(self.getType(Function))
+        DEBUG.setParseAction(self.getType(Debug))
 
     def parse(self, src):
         return STYLESHEET.transformString(src).strip()

@@ -13,6 +13,7 @@ class TestSCSS( unittest.TestCase ):
                 a:hover, a:active { outline: none; }
                 a, a:active, a:visited { color: #607890; }
                 a:hover { color: #036; }
+                @debug test;
             }\n@media print {
                 @include z-base; }
             // Test comment

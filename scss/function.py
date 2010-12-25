@@ -33,7 +33,7 @@ class IfNode(Node):
 
     def __init__(self, t, s):
         super(IfNode, self).__init__(t, s)
-        self.cond, self.body, self.els = self.t[0], self.t[1], self.t[2] if len(self.t) > 2 else None
+        self.cond, self.body, self.els = self.t
 
     def __str__(self):
         node = self.get_node()

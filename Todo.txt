@@ -1,5 +1,4 @@
 Add @debug, @warn
-Insert empty tokens (@if, @varstring and etc)
 Fix selector bug
 Add output styles
 Add declaration check for dublicate
@@ -8,6 +7,5 @@ Add rgb
 Add caching
 Add prevent mixin define
 Drop hasattr, getattr, update t patterns
-Use StringIO
 Improve perfomance
 Add interactive shell

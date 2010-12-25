@@ -1,10 +1,12 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty
 
 
 # Base css word and literals
+EMPTY = Empty()
 IDENT = NAME = Word(alphanums + "_-")
 NUMBER = Word(nums+'-', nums + '.')
 COMMA, COLON, SEMICOLON = [Literal(c) for c in ",:;"]
+OPT_SEMICOLON = Optional(SEMICOLON.suppress())
 LACC, RACC, LPAREN, RPAREN = [Suppress(c) for c in "{}()"]
 LLACC, LRACC, LBRACK, RBRACK = [Literal(c) for c in "{}[]"]
 
@@ -31,6 +33,7 @@ EXTEND_SYM = Suppress("@extend")
 IF_SYM = Suppress("@if")
 ELSE_SYM = Suppress("@else")
 FOR_SYM = Suppress("@for")
+DEBUG_SYM = Suppress("@debug")
 
 # Property values
 HASH = Word('#', alphanums + "_-")
@@ -69,11 +72,11 @@ INTERPOLATION_VAR = Suppress("#") + LACC + VAL_STRING + RACC
 # EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
 EXPR = OneOrMore(SIMPLE_STRING | DIV_STRING | VAL_STRING) + Optional(PRIO)
 DEC_NAME = Optional("*") + OneOrMore(NAME | INTERPOLATION_VAR)
-DECLARATION = DEC_NAME + COLON + EXPR + Optional(SEMICOLON.suppress())
+DECLARATION = DEC_NAME + COLON + EXPR + OPT_SEMICOLON
 
 # SCSS group of declarations
 DECLARESET = Forward()
-DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION | COMMENT) + RACC + Optional(SEMICOLON)
+DECLARESET << IDENT + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION | COMMENT) + RACC + OPT_SEMICOLON
 
 # SCSS parent reference
 PARENT_REFERENCE = Literal("&")
@@ -98,41 +101,43 @@ SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA.suppress() + SELECTOR_GROUP)
 
 # SCSS include
 INCLUDE_PARAMS = LPAREN + VAL_STRING + ZeroOrMore(COMMA.suppress() + VAL_STRING) + RPAREN
-INCLUDE = INCLUDE_SYM + IDENT + Optional(INCLUDE_PARAMS) + Optional(SEMICOLON.suppress())
+INCLUDE = INCLUDE_SYM + IDENT + Optional(INCLUDE_PARAMS) + OPT_SEMICOLON
 
 # SCSS extend
-EXTEND = EXTEND_SYM + SELECTOR + Optional(SEMICOLON.suppress())
+EXTEND = EXTEND_SYM + SELECTOR + OPT_SEMICOLON
 
 # SCSS variable assigment
 VAR_DEFAULT = "!default"
-VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + Optional(VAR_DEFAULT) + Optional(SEMICOLON.suppress())
+VARIABLE_ASSIGMENT = Suppress("$") + IDENT + COLON.suppress() + VAL_STRING + Optional(VAR_DEFAULT) + OPT_SEMICOLON
 
 # Ruleset
 RULESET = Forward()
-BASE_CONTENT = COMMENT | DECLARESET | RULESET | VARIABLE_ASSIGMENT | DECLARATION | INCLUDE
+CONTENT = COMMENT | INCLUDE | VARIABLE_ASSIGMENT | RULESET
+RULE_CONTENT = CONTENT | DECLARESET | DECLARATION
 
 # SCSS control directives
 IF_CONDITION = VALUE + Optional(IF_OPERATOR + VALUE)
-IF_BODY = LACC + ZeroOrMore(BASE_CONTENT) + RACC
-ELSE = ELSE_SYM + LACC + ZeroOrMore(BASE_CONTENT) + RACC
-IF = IF_SYM + IF_CONDITION + IF_BODY + Optional(ELSE)
-FOR_BODY = ZeroOrMore(BASE_CONTENT)
+IF_BODY = LACC + ZeroOrMore(RULE_CONTENT) + RACC
+ELSE = ELSE_SYM + LACC + ZeroOrMore(RULE_CONTENT) + RACC
+IF = IF_SYM + IF_CONDITION + IF_BODY + (ELSE | EMPTY)
+FOR_BODY = ZeroOrMore(RULE_CONTENT)
 FOR = FOR_SYM + VARIABLE + Suppress("from") + VALUE + Suppress("through") + VALUE + LACC + FOR_BODY + RACC
-CONTROL_DIR = IF | FOR
+DEBUG = DEBUG_SYM + VAL_STRING + OPT_SEMICOLON
+CONTROL_DIR = IF | FOR | DEBUG
 
 RULESET << (
     SELECTOR_TREE +
-    LACC + ZeroOrMore(BASE_CONTENT | CONTROL_DIR | EXTEND) + RACC )
+    LACC + ZeroOrMore(RULE_CONTENT | CONTROL_DIR | EXTEND) + RACC )
 
 # SCSS mixin
 MIXIN_PARAM = VARIABLE + Optional(COLON.suppress() + VAL_STRING)
 MIXIN_PARAMS = LPAREN + MIXIN_PARAM + ZeroOrMore(COMMA.suppress() + MIXIN_PARAM) + RPAREN
 MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
-    LACC + ZeroOrMore(BASE_CONTENT | CONTROL_DIR) + RACC)
+    LACC + ZeroOrMore(RULE_CONTENT | CONTROL_DIR) + RACC)
 
 # Root elements
 IMPORT = IMPORT_SYM + Combine(URI + Optional(IDENT + ZeroOrMore(IDENT)) + SEMICOLON)
-MEDIA = MEDIA_SYM + IDENT + ZeroOrMore(COMMA + IDENT) + LLACC + ZeroOrMore( BASE_CONTENT | MIXIN | CONTROL_DIR ) + LRACC
+MEDIA = MEDIA_SYM + IDENT + ZeroOrMore(COMMA + IDENT) + LLACC + ZeroOrMore( RULE_CONTENT | MIXIN | CONTROL_DIR ) + LRACC
 FONT_FACE = FONT_FACE_SYM + LLACC + DECLARATION + ZeroOrMore(SEMICOLON + DECLARATION) + LRACC
 PSEUDO_PAGE = ":" + IDENT
 PAGE = PAGE_SYM + Optional(IDENT) + Optional(PSEUDO_PAGE) + LLACC + DECLARATION + ZeroOrMore(SEMICOLON + DECLARATION) + LRACC
@@ -141,11 +146,8 @@ CHARSET = CHARSET_SYM + IDENT + SEMICOLON
 # Css stylesheet
 STYLESHEET = ZeroOrMore(
     CDC | CDO
-    | COMMENT
-    | VARIABLE_ASSIGMENT
+    | CONTENT
     | MIXIN
-    | INCLUDE
-    | RULESET
     | IF
     | FOR
     | MEDIA
