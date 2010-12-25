@@ -1,4 +1,5 @@
 import logging
+import ipdb as pdb
 from collections import defaultdict
 
 from scss.base import Node
@@ -75,7 +76,9 @@ class VarString(Node):
     """
     @staticmethod
     def math(res, arg, op):
-        if isinstance(res, str):
+        if isinstance(res, int):
+            res = Length((str(res), 'px'))
+        elif isinstance(res, str):
             if not res.isdigit():
                 return res
             else:
