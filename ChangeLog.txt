@@ -1,12 +1,13 @@
 # sitegen changelog
 
-## 2010-12-25 0.2.10
+## 2010-12-25 0.2.11
 
 * Not ignore css comments by default
 * More stable version
 * Fix comments
 * Fix enumerate
 * Fix @for
+* Fix vars
 
 ## 2010-12-22 0.1.1
 

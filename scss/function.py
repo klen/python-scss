@@ -4,7 +4,7 @@ from scss.base import Node
 class Function(Node):
 
     def enumerate(self, p):
-        return ', '.join("%s%d" % (p[0], x) for x in xrange(int(p[1]), int(p[2])+1))
+        return ', '.join("%s%d" % (p[0], x) for x in xrange(int(float(p[1])), int(float(p[2])+1)))
 
     def copy(self, ctx):
         return self.__parse(ctx)
@@ -70,18 +70,19 @@ class ForNode(Node):
         super(ForNode, self).__init__(t, s)
         self.var, self.first, self.second, self.body = self.t
 
-    def __str__(self):
-        out = ''
+    def copy(self, ctx):
+        return self
+
+    def __parse(self):
         name = self.var.t[1]
         for i in xrange(int(self.first), int(self.second)+1):
-            node = self.body.copy({name: i})
-            out += str(node)
-        return out
+            yield self.body.copy({name: i})
+
+    def __str__(self):
+        return ''.join(str(n) for n in self.__parse())
 
     def parse(self, target):
-        name = self.var.t[1]
-        for i in xrange(int(self.first), int(self.second)+1):
-            node = self.body.copy({name: i})
+        for node in self.__parse():
             for n in node.t:
                 if not isinstance(n, str):
                     n.parse(target)

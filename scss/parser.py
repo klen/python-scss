@@ -4,7 +4,7 @@ from collections import defaultdict
 from scss.base import Node
 from scss.function import Function, IfNode, ForNode
 from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
-from scss.value import Length, Color, Percentage, Value
+from scss.value import Length, Color, Percentage
 
 
 class SimpleNode(Node):
@@ -58,6 +58,25 @@ class Declaration(Node):
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
 
+class VarDef(Node):
+    """ Variable definition.
+    """
+    def __init__(self, t, s):
+        super(VarDef, self).__init__(t, s)
+        self.value = t[1]
+        if not(len(t) == 3 and s.context.get(t[0])):
+            s.context[t[0]] = self.value
+
+    def __str__(self):
+        return ''
+
+    def parse(self, targe):
+        pass
+
+    def copy(self, ctx):
+        self.value.context = ctx
+        return self
+
 class Variable(Node):
     """ Get variable value.
     """
@@ -106,6 +125,9 @@ class VarString(Variable):
 
     @property
     def value(self):
+        for n in self.t:
+            if isinstance(n, Variable):
+                n.context = self.context
         it = iter(self.t)
         res = next(it)
         op = True
@@ -116,7 +138,6 @@ class VarString(Variable):
                     arg = next(it)
                     if isinstance(res, str):
                         res = Length((res, 'px'))
-                    res.context = self.context
                     res = res.math(arg, op)
                 else:
                     break
@@ -208,10 +229,11 @@ class Mixin(Empty):
         test = map(lambda x, y: (x, y), getattr(self, 'mixinparam', []), params)
         ctx = dict(( mp.name, v or mp.default ) for mp, v in test if mp)
 
-        for e in self.t:
-            if isinstance(e, Node):
-                node = e.copy(ctx)
-                node.parse(target)
+        if not isinstance(target, Mixin):
+            for e in self.t:
+                if isinstance(e, Node):
+                    node = e.copy(ctx)
+                    node.parse(target)
 
 class Include(Node):
 
@@ -254,7 +276,6 @@ class Stylecheet(object):
         self.ruleset = defaultdict(set)
         self.t = None
 
-        VARIABLE_ASSIGMENT.setParseAction(self.var_assigment)
         CSS_COMMENT.setParseAction(self.getType(Comment))
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
@@ -271,6 +292,7 @@ class Stylecheet(object):
         SIMPLE_STRING.setParseAction(self.getType(SimpleNode))
         DIV_STRING.setParseAction(self.getType(SimpleNode))
 
+        VARIABLE_ASSIGMENT.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))
         VAL_STRING.setParseAction(self.getType(VarString))
         DECLARATION.setParseAction(self.getType(Declaration))
@@ -302,12 +324,6 @@ class Stylecheet(object):
                 return node(t, self)
             return node(t)
         return wrap
-
-    def var_assigment(self, s, l, t):
-        name, val_string, default = t[0], t[1], False if len(t) < 3 else True
-        if not(default and self.context.get(name)):
-            self.context[name] = val_string.value
-        return ''
 
 def parse( src, context=None ):
     parser = Stylecheet(context)

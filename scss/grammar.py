@@ -1,4 +1,4 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty, lineEnd, lineStart
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty, lineEnd
 
 
 # Base css word and literals
@@ -121,7 +121,7 @@ IF_BODY = LACC + ZeroOrMore(RULE_CONTENT) + RACC
 ELSE = ELSE_SYM + LACC + ZeroOrMore(RULE_CONTENT) + RACC
 IF = IF_SYM + IF_CONDITION + IF_BODY + (ELSE | EMPTY)
 FOR_BODY = ZeroOrMore(RULE_CONTENT)
-FOR = FOR_SYM + VARIABLE + Suppress("from") + VALUE + Suppress("through") + VALUE + LACC + FOR_BODY + RACC
+FOR = FOR_SYM + VARIABLE + Suppress("from") + VALUE + (Suppress("through") | Suppress("to")) + VALUE + LACC + FOR_BODY + RACC
 DEBUG = DEBUG_SYM + VAL_STRING + OPT_SEMICOLON
 CONTROL_DIR = IF | FOR | DEBUG
 

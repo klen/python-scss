@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.dirname(BASEDIR))
 from scss import parser
 
 class TestSCSS( unittest.TestCase ):
+
     def test_base(self):
         src = """@charset utf-8;\n@import url(test);\n@mixin z-base {
                 a:hover, a:active { outline: none; }
@@ -90,7 +91,7 @@ class TestSCSS( unittest.TestCase ):
         self.assertEqual(test, out)
 
     def test_mixin_arg(self):
-        src = """@mixin rounded($side, $radius: 10px) {
+        src = """@mixin rounded($side, $radius: 10px, $dummy: false) {
             border-#{$side}-radius: $radius;
             -moz-border-radius-#{$side}: $radius;
             -webkit-border-#{$side}-radius: $radius; }
