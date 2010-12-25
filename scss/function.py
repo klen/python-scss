@@ -6,28 +6,32 @@ class Function(Node):
     def enumerate(self, p):
         return ', '.join("%s%d" % (p[0], x) for x in xrange(int(p[1]), int(p[2])+1))
 
-    def __parse_params(self, params):
+    def copy(self, ctx):
+        return self.__parse(ctx)
+
+    def __parse(self, ctx=dict()):
+        name, params = self.t
+        if hasattr(self, name):
+            try:
+                return getattr(self, name)(self.__parse_params(params, ctx))
+            except:
+                pass
+        return "%s(%s)" % (name, params)
+
+    def __parse_params(self, params, ctx=dict()):
         result = []
         for p in map(lambda x: x.strip(), params.split(',')):
             if p.startswith('$'):
                 name = p[1:]
-                ctx = self.getContext()
-                if ctx and ctx.get(name):
-                    p = ctx.get(name)
-                p = self.stylecheet.context.get(name) or '0'
+                p = ctx.get(name) or self.stylecheet.context.get(name) or '0'
                 if not isinstance(p, str):
                     p = p.value
             result.append(p)
         return result
 
     def __str__(self):
-        name, params = self.t
-        if hasattr(self, name):
-            try:
-                return getattr(self, name)(self.__parse_params(params))
-            except:
-                pass
-        return "%s(%s)" % (name, params)
+        return self.__parse()
+
 
 class IfNode(Node):
 
@@ -70,14 +74,14 @@ class ForNode(Node):
         out = ''
         name = self.var.t[1]
         for i in xrange(int(self.first), int(self.second)+1):
-            self.body.context = {name: i}
-            out += str(self.body)
+            node = self.body.copy({name: i})
+            out += str(node)
         return out
 
     def parse(self, target):
         name = self.var.t[1]
         for i in xrange(int(self.first), int(self.second)+1):
-            for n in self.body.t:
-                node = n.copy()
-                node.context = {name: i}
-                node.parse(target)
+            node = self.body.copy({name: i})
+            for n in node.t:
+                if not isinstance(n, str):
+                    n.parse(target)

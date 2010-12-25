@@ -7,7 +7,6 @@ class Node(object):
     def __init__(self, t, s=None):
         self.t = list(t)
         self.stylecheet = s
-        self.parent = self.context = None
         for e in self.t:
             if isinstance(e, Node):
                 e.parse(self)
@@ -17,18 +16,19 @@ class Node(object):
         if not hasattr(target, name):
             setattr(target, name, list())
         getattr(target, name).append(self)
-        self.parent = target
 
-    def copy(self):
-        return self.__class__(
-            [ n.copy() if isinstance(n, Node) else n for n in self.t ],
-            self.stylecheet
-        )
-
-    def getContext(self):
-        if not self.context and self.parent:
-            return self.parent.getContext()
-        return self.context
+    def copy(self, ctx=None):
+        result = []
+        for n in self.t:
+            if isinstance(n, Node):
+                test = n.copy(ctx)
+                if hasattr(test, '__iter__'):
+                    result += test
+                else:
+                    result.append(test)
+            else:
+                result.append(n)
+        return self.__class__(result, self.stylecheet)
 
     def __str__(self):
         return self.delim.join(str(e) for e in self.t)

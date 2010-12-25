@@ -45,13 +45,9 @@ class SelectorGroup(Node):
         test = str(other)
         if '&' in test:
             stest = str(self)
-            node = SelectorGroup(test.replace('&', stest).split())
+            return SelectorGroup(test.replace('&', stest).split())
         else:
-            node = SelectorGroup(self.t + other.t)
-        ctx1, ctx2 = self.getContext(), other.getContext()
-        if ctx1 or ctx2:
-            node.context = ctx1.update(ctx2 or {}) if ctx1 else ctx2
-        return node
+            return SelectorGroup(self.t + other.t)
 
 class Declaration(Node):
     """ Css declaration.
@@ -65,12 +61,21 @@ class Declaration(Node):
 class Variable(Node):
     """ Get variable value.
     """
+    def __init__(self, t, s):
+        super(Variable, self).__init__(t, s)
+        self.context = None
+
+    def copy(self, ctx=None):
+        self.context = ctx
+        if isinstance(self.value, Node):
+            return self.value.copy(ctx)
+        return self.value
+
     @property
     def value(self):
         name = self.t[1]
-        ctx = self.getContext()
-        if ctx and ctx.get(name):
-            return ctx.get(name)
+        if self.context and self.context.get(name):
+            return self.context.get(name)
         return self.stylecheet.context.get(name) or '0'
 
     def math(self, arg, op):
@@ -96,11 +101,8 @@ class Variable(Node):
 class VarString(Variable):
     """ Parse mathematic operation.
     """
-    @staticmethod
-    def math(res, arg, op):
-        if isinstance(res, (Node, Value)):
-            return res.math(arg, op)
-        return Length((str(res), 'px')).math(arg, op)
+    def math(self, arg, op):
+        return self.value.math(arg, op)
 
     @property
     def value(self):
@@ -112,7 +114,12 @@ class VarString(Variable):
                 op = next(it)
                 if op in "+-/*":
                     arg = next(it)
-                    res = self.math(res, arg, op)
+                    if isinstance(res, str):
+                        res = Length((res, 'px'))
+                    res.context = self.context
+                    res = res.math(arg, op)
+                else:
+                    break
             except StopIteration:
                 op = False
         return res
@@ -125,11 +132,10 @@ class Ruleset(Node):
         super(Ruleset, self).__init__(t, s)
         self.ancor = str(self.t[0].t[0])
         self.stylecheet.ruleset[self.ancor].add(self)
-        self.selectorgroup = self.normalize(self.selectorgroup)
 
     @staticmethod
     def normalize(t):
-        """ Path only for enumerate.
+        """ Patch only for enumerate.
         """
         result = []
         for e in t:
@@ -204,8 +210,7 @@ class Mixin(Empty):
 
         for e in self.t:
             if isinstance(e, Node):
-                node = e.copy()
-                node.context = ctx
+                node = e.copy(ctx)
                 node.parse(target)
 
 class Include(Node):

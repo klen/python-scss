@@ -7,7 +7,6 @@ sys.path.insert(0, os.path.dirname(BASEDIR))
 from scss import parser
 
 class TestSCSS( unittest.TestCase ):
-
     def test_base(self):
         src = """@charset utf-8;\n@import url(test);\n@mixin z-base {
                 a:hover, a:active { outline: none; }
@@ -127,6 +126,33 @@ class TestSCSS( unittest.TestCase ):
         out = parser.parse(src)
         self.assertEqual(test, out)
 
+    def test_operations_and_functions(self):
+        src = """
+        #navbar {
+            $navbar-width: 800px;
+            $items: 1 + 2;
+            $navbar-color: #ce4dd6;
+            width: $navbar-width;
+            border-bottom: 2px solid $navbar-color;
+
+            #{enumerate(div, 1, $items)} {
+                * html & {
+                    color: blue }
+                color: red; }
+            }
+
+            li {
+                background-color: $navbar-color - #333;
+                float: left;
+                font: 8px/10px;
+                margin: 3px + 5.5px auto;
+                test: 5px + (4px * (2 + $items));
+                width: $navbar-width/$items - 10px;
+                &:hover { background-color: $navbar-color - 10%; } }"""
+        test = "#navbar {\n\tborder-bottom: 2px solid #ce4dd6;\n\twidth: 800px}\n\n#navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar * html div1, #navbar * html div2, #navbar * html div3 {\n\tcolor: blue}\n\nli {\n\tbackground-color: #9b1aa3;\n\tfloat: left;\n\tfont: 8px/10px;\n\tmargin: 8.5px auto;\n\ttest: 25px;\n\twidth: 256.67px}\n\nli:hover {\n\tbackground-color: #b945c0}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+
     def test_mixin(self):
         src = """
         @mixin font {
@@ -152,41 +178,17 @@ class TestSCSS( unittest.TestCase ):
 
     def test_for(self):
         src = """
+            @mixin test($src:2px){
+                width: $src + 5px;
+            }
             .test {
-                $for: 4;
                 color: blue;
-                @for $i from 1 through $for {
-                    .span-#{$i} { width: $i*40 - 10px; }
+                @for $i from 1 through 4 {
+                    .span-#{$i}{ @include test($i); }
                 }
             }
         """
-        test = ".test {\n\tcolor: blue}\n\n.test .span-1 {\n\twidth: 30px}\n\n.test .span-2 {\n\twidth: 70px}\n\n.test .span-3 {\n\twidth: 110px}\n\n.test .span-4 {\n\twidth: 150px}"
-        out = parser.parse(src)
-        self.assertEqual(test, out)
-
-    def test_operations_and_functions(self):
-        src = """
-        #navbar {
-            $navbar-width: 800px;
-            $items: 1 + 2;
-            $navbar-color: #ce4dd6;
-            width: $navbar-width;
-            border-bottom: 2px solid $navbar-color;
-
-            p, #{enumerate(div, 1, $items)} {
-                * html & {
-                    color: blue }
-                color: red; }
-            }
-
-            li { float: left;
-                 font: 8px/10px;
-                 test: 5px + (4px * (2 + $items));
-                 margin: 3px + 5.5px auto;
-                 width: $navbar-width/$items - 10px;
-                 background-color: $navbar-color - #333;
-                 &:hover { background-color: $navbar-color - 10%; } }"""
-        test = "#navbar {\n\tborder-bottom: 2px solid #ce4dd6;\n\twidth: 800px}\n\n#navbar p, #navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar * html p, #navbar * html div1, #navbar * html div2, #navbar * html div3 {\n\tcolor: blue}\n\nli {\n\tbackground-color: #9b1aa3;\n\tfloat: left;\n\tfont: 8px/10px;\n\tmargin: 8.5px auto;\n\ttest: 25px;\n\twidth: 256.67px}\n\nli:hover {\n\tbackground-color: #b945c0}"
+        test = ".test {\n\tcolor: blue}\n\n.test .span-1 {\n\twidth: 6px}\n\n.test .span-2 {\n\twidth: 7px}\n\n.test .span-3 {\n\twidth: 8px}\n\n.test .span-4 {\n\twidth: 9px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
