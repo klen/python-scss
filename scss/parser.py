@@ -121,10 +121,31 @@ class Ruleset(Node):
 
     def __init__(self, t, s):
         self.declaration = []
+        t = self.normalize(t)
         super(Ruleset, self).__init__(t, s)
-        ancor = str(self.t[0].t[0])
-        self.stylecheet.ruleset[ancor].add(self)
-        # self.tab = '\t'
+        self.ancor = str(self.t[0].t[0])
+        self.stylecheet.ruleset[self.ancor].add(self)
+        self.selectorgroup = self.normalize(self.selectorgroup)
+
+    @staticmethod
+    def normalize(t):
+        """ Path only for enumerate.
+        """
+        result = []
+        for e in t:
+            if isinstance(e, SelectorGroup):
+                test = str(e)
+                if ',' in test:
+                    for x in test.split(','):
+                        result.append(SelectorGroup([x.strip()]))
+                else:
+                    result.append(e)
+            else:
+                result.append(e)
+        return result
+
+    def __repr__(self):
+        return str(self)
 
     def parse(self, target):
         super(Ruleset, self).parse(target)
@@ -137,13 +158,7 @@ class Ruleset(Node):
         selgroup = list()
         for psg in target.selectorgroup:
             for sg in self.selectorgroup:
-                test = str(sg)
-                # Enumerate path
-                if ',' in test:
-                    for x in test.split(','):
-                        selgroup.append(psg + SelectorGroup([x.strip()]))
-                else:
-                    selgroup.append(psg + sg)
+                selgroup.append(psg + sg)
         self.selectorgroup = selgroup
 
     def parse_declareset(self):
