@@ -137,7 +137,13 @@ class Ruleset(Node):
         selgroup = list()
         for psg in target.selectorgroup:
             for sg in self.selectorgroup:
-                selgroup.append(psg + sg)
+                test = str(sg)
+                # Enumerate path
+                if ',' in test:
+                    for x in test.split(','):
+                        selgroup.append(psg + SelectorGroup([x.strip()]))
+                else:
+                    selgroup.append(psg + sg)
         self.selectorgroup = selgroup
 
     def parse_declareset(self):
