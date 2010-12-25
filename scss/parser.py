@@ -215,7 +215,7 @@ class Extend(Node):
 
 class Stylecheet(object):
 
-    def __init__(self, context = None, mixin = None, ignore_comment=True):
+    def __init__(self, context = None, mixin = None, ignore_comment=False):
         self.context = context or dict()
         self.ignore_comment = ignore_comment
         self.mix = mixin or dict()
