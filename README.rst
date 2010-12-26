@@ -4,6 +4,7 @@ python-scss
 ############
 
 Python-scss is scss parser. See http://sass-lang.com for more information about scss syntax.
+This is part of zeta-library_.
 
 .. contents::
 
@@ -31,4 +32,4 @@ example: ::
     src = file.read()
     print parser.parse('src')
 
-
+.. _zeta-library: http://github.com/klen/zeta-library
