@@ -65,7 +65,8 @@ class VarDef(Node):
         super(VarDef, self).__init__(t, s)
         self.value = t[1]
         if not(len(t) == 3 and s.context.get(t[0])):
-            s.context[t[0]] = self.value.copy()
+            # s.context[t[0]] = self.value.copy()
+            s.context[t[0]] = self.value
 
     def __str__(self):
         return ''
@@ -117,9 +118,6 @@ class Variable(Node):
 class VarString(Variable):
     """ Parse mathematic operation.
     """
-    def math(self, arg, op):
-        return self.value.math(arg, op)
-
     @property
     def value(self):
         for n in self.t:

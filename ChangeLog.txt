@@ -1,6 +1,6 @@
 # sitegen changelog
                     
-## 2010-12-26 0.2.12
+## 2010-12-26 0.2.13
 
 * Fix var definition
 

@@ -136,7 +136,7 @@ class TestSCSS( unittest.TestCase ):
             width: $navbar-width;
             border-bottom: 2px solid $navbar-color;
 
-            #{enumerate(div, 1, $items)} {
+            #{enumerate("div", 1, $items)} {
                 * html & {
                     color: blue }
                 color: red; }
@@ -180,7 +180,8 @@ class TestSCSS( unittest.TestCase ):
     def test_for(self):
         src = """
             @mixin test($src:2px){
-                width: $src + 5px;
+                $width: $src + 5px;
+                width: $width;
             }
             $test: 9;
             $for: $test - 5;

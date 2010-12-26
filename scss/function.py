@@ -21,6 +21,7 @@ class Function(Node):
     def __parse_params(self, params, ctx=dict()):
         result = []
         for p in map(lambda x: x.strip(), params.split(',')):
+            p = p.strip('"\'')
             if p.startswith('$'):
                 name = p[1:]
                 p = ctx.get(name) or self.stylecheet.context.get(name) or '0'
