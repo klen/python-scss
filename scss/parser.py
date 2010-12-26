@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from scss.base import Node
 from scss.function import Function, IfNode, ForNode
-from scss.grammar import STYLESHEET, VARIABLE_ASSIGMENT, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SIMPLE_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
+from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
 from scss.value import Length, Color, Percentage
 
 
@@ -57,6 +57,7 @@ class Declaration(Node):
         return ': '.join([
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
+
 
 class VarDef(Node):
     """ Variable definition.
@@ -114,6 +115,11 @@ class Variable(Node):
             return float(self.value)
         except ValueError:
             return 0
+
+class SepValString(Node):
+    delim = ', '
+    def math(self, arg, op):
+        return self
 
 class VarString(Variable):
     """ Parse mathematic operation.
@@ -284,10 +290,10 @@ class Stylecheet(object):
         PERCENTAGE.setParseAction(self.getType(Percentage, style=False))
 
         DEC_NAME.setParseAction(self.getType())
-        SIMPLE_STRING.setParseAction(self.getType(SimpleNode))
+        SEP_VAL_STRING.setParseAction(self.getType(SepValString))
         DIV_STRING.setParseAction(self.getType(SimpleNode))
 
-        VARIABLE_ASSIGMENT.setParseAction(self.getType(VarDef))
+        VAR_DEFINITION.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))
         VAL_STRING.setParseAction(self.getType(VarString))
         DECLARATION.setParseAction(self.getType(Declaration))

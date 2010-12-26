@@ -1,3 +1,4 @@
+Add true function params parsing
 Add @debug, @warn
 Fix selector bug
 Add output styles
@@ -5,7 +6,6 @@ Add declaration check for dublicate
 Add ruleset check for dublicate
 Add rgb
 Add caching
-Add prevent mixin define
 Drop hasattr, getattr, update t patterns
 Improve perfomance
 Add interactive shell
