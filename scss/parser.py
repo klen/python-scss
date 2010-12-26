@@ -65,7 +65,7 @@ class VarDef(Node):
         super(VarDef, self).__init__(t, s)
         self.value = t[1]
         if not(len(t) == 3 and s.context.get(t[0])):
-            s.context[t[0]] = self.value
+            s.context[t[0]] = self.value.copy()
 
     def __str__(self):
         return ''
@@ -106,10 +106,7 @@ class Variable(Node):
         return str(self.value)
 
     def __int__(self):
-        try:
-            return int(self.value)
-        except ValueError:
-            return 0
+        return int(float(self))
 
     def __float__(self):
         try:

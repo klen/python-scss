@@ -182,9 +182,11 @@ class TestSCSS( unittest.TestCase ):
             @mixin test($src:2px){
                 width: $src + 5px;
             }
+            $test: 9;
+            $for: $test - 5;
             .test {
                 color: blue;
-                @for $i from 1 through 4 {
+                @for $i from 1 through $for {
                     .span-#{$i}{ @include test($i); }
                 }
             }
