@@ -4,7 +4,7 @@ from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo,
 # Base css word and literals
 EMPTY = Empty()
 IDENT = NAME = Word(alphanums + "_-")
-NUMBER = Word(nums+'-', nums + '.')
+NUMBER = Word(nums+'-.')
 COMMA, COLON, SEMICOLON = [Literal(c) for c in ",:;"]
 OPT_SEMICOLON = Optional(SEMICOLON.suppress())
 LACC, RACC, LPAREN, RPAREN = [Suppress(c) for c in "{}()"]
