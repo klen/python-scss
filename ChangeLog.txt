@@ -1,5 +1,10 @@
 # sitegen changelog
                     
+## 2010-12-27 0.2.16
+
+* Fix number minus bug
+
+
 ## 2010-12-26 0.2.15
 
 * Fix var definition

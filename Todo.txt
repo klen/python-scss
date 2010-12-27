@@ -1,11 +1,11 @@
 Add true function params parsing
-Add @debug, @warn
+Add caching using pickle save default flag
+Fix variable minus bug
 Fix selector bug
+Add @debug, @warn
 Add output styles
 Add declaration check for dublicate
 Add ruleset check for dublicate
 Add rgb
-Add caching
 Drop hasattr, getattr, update t patterns
-Improve perfomance
 Add interactive shell
