@@ -1,14 +1,15 @@
 import colorsys
 
-class Value(object):
-    def __float__(self):
-        return float(self.value)
 
-class Color(Value):
+class Color(object):
+
     def __init__(self, t):
         self.value = t[1]
         if len(self.value) == 3:
             self.value = ''.join(v*2 for v in self.value)
+
+    def __float__(self):
+        return float(self.value)
 
     def __str__(self):
         v = self.value
@@ -53,17 +54,19 @@ class Color(Value):
 
         return self
 
-class Length(Value):
+
+class Length(object):
+
     def __init__(self, t):
         self.value, self.units = t
         if '.' in self.value:
             self.value = self.value.rstrip('0').rstrip('.')
 
-    def __str__(self):
-        return "%s%s" % (self.value, self.units)
-
     def __float__(self):
         return float(self.value)
+
+    def __str__(self):
+        return "%s%s" % (self.value, self.units)
 
     def math(self, other, op):
         if op  == "*":

@@ -36,3 +36,16 @@ class Node(object):
     def safe_str(self):
         return self.delim.join(
             (e if not e.isalnum() else "'%s'" % e) if isinstance(e, str) else "'%s'" % str(e) for e in self.t)
+
+
+class Empty(Node):
+    def __str__(self):
+        return ''
+
+
+class SimpleNode(Node):
+    delim = ''
+
+
+class AtRule(Node):
+    delim = ' '

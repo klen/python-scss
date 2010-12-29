@@ -1,5 +1,12 @@
 # sitegen changelog
-                    
+
+## 2010-12-27 0.3.0
+
+* Add precache scss files
+* Move tests in scss
+* Add pscss console command
+
+
 ## 2010-12-27 0.2.16
 
 * Fix number minus bug

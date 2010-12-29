@@ -1,17 +1,13 @@
 import logging
+import cPickle
+import os.path
 from collections import defaultdict
 
-from scss.base import Node
-from scss.function import Function, IfNode, ForNode
+from scss.base import Node, Empty, AtRule, SimpleNode
+from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef, Variable, VarString
 from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
 from scss.value import Length, Color, Percentage
 
-
-class SimpleNode(Node):
-    delim = ''
-
-class AtRule(Node):
-    delim = ' '
 
 class Comment(Node):
     def __str__(self):
@@ -19,18 +15,19 @@ class Comment(Node):
             return ''
         return super(Comment, self).__str__()
 
-class Empty(Node):
-    def __str__(self):
-        return ''
 
 class Debug(Empty):
     def __init__(self, t, s):
         super(Debug, self).__init__(t, s)
         logging.debug(str(self))
 
+
 class DeclareSet(Node):
+    def __init__(self, t, s):
+        self.declaration = []
+        super(DeclareSet, self).__init__(t, s)
+
     def render(self, target):
-        self.declaration = self.declaration or []
         name = self.t[0]
         for dec in getattr(self, 'declareset', []):
             dec.render(self)
@@ -38,9 +35,13 @@ class DeclareSet(Node):
             dc.t[0].t[0] = "-".join((name, dc.t[0].t[0]))
             target.declaration.append(dc)
 
+
 class SelectorGroup(Node):
     """ Part of css rule.
     """
+    def increase(self, other):
+        return SelectorGroup(self.t + other.t[1:])
+
     def __add__(self, other):
         test = str(other)
         if '&' in test:
@@ -48,6 +49,7 @@ class SelectorGroup(Node):
             return SelectorGroup(test.replace('&', stest).split())
         else:
             return SelectorGroup(self.t + other.t)
+
 
 class Declaration(Node):
     """ Css declaration.
@@ -59,101 +61,16 @@ class Declaration(Node):
             ' '.join(str(e) for e in expr)])
 
 
-class VarDef(Node):
-    """ Variable definition.
-    """
-    def __init__(self, t, s):
-        super(VarDef, self).__init__(t, s)
-        self.value = t[1]
-        if not(len(t) == 3 and s.context.get(t[0])):
-            # s.context[t[0]] = self.value.copy()
-            s.context[t[0]] = self.value
-
-    def __str__(self):
-        return ''
-
-    def parse(self, targe):
-        pass
-
-    def copy(self, ctx):
-        self.value.context = ctx
-        return self
-
-class Variable(Node):
-    """ Get variable value.
-    """
-    def __init__(self, t, s):
-        super(Variable, self).__init__(t, s)
-        self.context = None
-
-    def copy(self, ctx=None):
-        self.context = ctx
-        if isinstance(self.value, Node):
-            return self.value.copy(ctx)
-        return self.value
-
-    @property
-    def value(self):
-        name = self.t[1]
-        if self.context and self.context.get(name):
-            return self.context.get(name)
-        return self.stylecheet.context.get(name) or '0'
-
-    def math(self, arg, op):
-        if isinstance(self.value, (int, str)):
-            return Length((str(self.value), 'px')).math(arg, op)
-        return self.value.math(arg, op)
-
-    def __str__(self):
-        return str(self.value)
-
-    def __int__(self):
-        return int(float(self))
-
-    def __float__(self):
-        try:
-            return float(self.value)
-        except ValueError:
-            return 0
-
-class SepValString(Node):
-    delim = ', '
-    def math(self, arg, op):
-        return self
-
-class VarString(Variable):
-    """ Parse mathematic operation.
-    """
-    @property
-    def value(self):
-        for n in self.t:
-            if isinstance(n, Variable):
-                n.context = self.context
-        it = iter(self.t)
-        res = next(it)
-        op = True
-        while op:
-            try:
-                op = next(it)
-                if op in "+-/*":
-                    arg = next(it)
-                    if isinstance(res, str):
-                        res = Length((res, 'px'))
-                    res = res.math(arg, op)
-                else:
-                    break
-            except StopIteration:
-                op = False
-        return res
-
 class Ruleset(Node):
 
     def __init__(self, t, s):
         self.declaration = []
+        self.selectorgroup = []
+        self.ruleset = []
         t = self.normalize(t)
         super(Ruleset, self).__init__(t, s)
         self.ancor = str(self.t[0].t[0])
-        self.stylecheet.ruleset[self.ancor].add(self)
+        s.rset[self.ancor].add(self)
 
     @staticmethod
     def normalize(t):
@@ -179,7 +96,7 @@ class Ruleset(Node):
         super(Ruleset, self).parse(target)
         if isinstance(target, Ruleset):
             self.parse_ruleset(target)
-            for r in getattr(self, 'ruleset', []):
+            for r in self.ruleset:
                 r.parse_ruleset(target)
 
     def parse_ruleset(self, target):
@@ -205,9 +122,9 @@ class Ruleset(Node):
             out += '}\n'
         # for r in getattr(self, 'ruleset', []):
             # out += '\n'.join("%s%s" % (self.tab, l) for l in str(r).split('\n'))
-        if hasattr(self, 'ruleset'):
-            out += ''.join(str(r) for r in self.ruleset)
+        out += ''.join(str(r) for r in self.ruleset)
         return out
+
 
 class Mixinparam(Node):
     @property
@@ -220,62 +137,17 @@ class Mixinparam(Node):
             return self.t[1].value
         return None
 
-class Mixin(Empty):
-
-    def __init__(self, t, s=None):
-        super(Mixin, self).__init__(t, s)
-        s.mix[self.t[0]] = self
-
-    def include(self, target, params):
-        test = map(lambda x, y: (x, y), getattr(self, 'mixinparam', []), params)
-        ctx = dict(( mp.name, v or mp.default ) for mp, v in test if mp)
-
-        if not isinstance(target, Mixin):
-            for e in self.t:
-                if isinstance(e, Node):
-                    node = e.copy(ctx)
-                    node.parse(target)
-
-class Include(Node):
-
-    def __init__(self, t, s):
-        super(Include, self).__init__(t, s)
-        self.mixin = s.mix.get(t[0])
-        self.params = t[1:]
-
-    def __str__(self):
-        out = ''
-        if not self.mixin is None:
-            node = Node([])
-            self.parse(node)
-            for r in getattr(node, 'ruleset', []):
-                out += str(r)
-        return out
-
-    def parse(self, target):
-        if not self.mixin is None:
-            self.mixin.include(target, self.params)
-
-class Extend(Node):
-    """ @extend at rule.
-    """
-    def parse(self, target):
-        name = str(self.t[0])
-        rulesets = self.stylecheet.ruleset.get(name)
-        if rulesets:
-            for rul in rulesets:
-                selgroup = SelectorGroup(
-                    target.selectorgroup[0].t + rul.selectorgroup[0].t[1:])
-                rul.selectorgroup.append(selgroup)
 
 class Stylecheet(object):
 
-    def __init__(self, context = None, mixin = None, ignore_comment=False):
-        self.context = context or dict()
+    def __init__(self, cache = None, ignore_comment=False):
+        self.cache = cache or dict(
+            ctx = dict(),
+            mix = dict(),
+            rset = defaultdict(set),
+            out = ''
+        )
         self.ignore_comment = ignore_comment
-        self.mix = mixin or dict()
-        self.ruleset = defaultdict(set)
-        self.t = None
 
         CSS_COMMENT.setParseAction(self.getType(Comment))
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
@@ -316,8 +188,61 @@ class Stylecheet(object):
         FUNCTION.setParseAction(self.getType(Function))
         DEBUG.setParseAction(self.getType(Debug))
 
+    def get_var(self, name):
+        rec = self.cache['ctx'].get(name)
+        if rec:
+            return rec[0]
+
+    def set_var(self, name, value, default=False):
+        if not(default and self.get_var(name)):
+            self.cache['ctx'][name] = value, default
+
+    @property
+    def mixctx(self):
+        return self.cache['mix']
+
+    @property
+    def rset(self):
+        return self.cache['rset']
+
+    def __str__(self):
+        return self.cache['out']
+
+    def dump(self):
+        return cPickle.dumps(self.cache)
+
+    def loads(self, src):
+        self.cache['out'] = STYLESHEET.transformString(src).strip()
+        return self.cache
+
+    def update(self, cache):
+        self.cache['out'] += cache.get('out')
+        self.mixctx.update(cache.get('mix'))
+        self.rset.update(cache.get('rset'))
+        for name, rec in cache['ctx'].items():
+            self.set_var(name, *rec)
+
+    def load(self, f, precache=False):
+        name, ext = os.path.splitext(f.name)
+        cache_path = '.'.join((name, 'ccss'))
+        if os.path.exists(cache_path):
+            ptime = os.path.getmtime(cache_path)
+            ttime = os.path.getmtime(f.name)
+            if ptime > ttime:
+                dump = open(cache_path, 'rb').read()
+                self.update(cPickle.loads(dump))
+                return self.cache
+
+        src = f.read()
+        self.loads(src)
+        if precache:
+            f = open(cache_path, 'wb')
+            f.write(self.dump())
+        return self.cache
+
     def parse(self, src):
-        return STYLESHEET.transformString(src).strip()
+        self.loads(src)
+        return str(self)
 
     def getType(self, node=Node, style=True):
         def wrap(s, l, t):
@@ -326,6 +251,17 @@ class Stylecheet(object):
             return node(t)
         return wrap
 
-def parse( src, context=None ):
-    parser = Stylecheet(context)
+
+def parse( src, cache=None ):
+    """ Parse from string.
+    """
+    parser = Stylecheet(cache)
     return parser.parse(src)
+
+
+def load(path, cache=None, precache=False):
+    """ Parse from file.
+    """
+    parser = Stylecheet(cache)
+    cache = parser.load(path, precache=precache)
+    return str(parser)

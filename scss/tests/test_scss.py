@@ -1,38 +1,47 @@
-import os.path
-import sys
 import unittest
 
-BASEDIR = os.path.realpath(os.path.dirname(__file__))
-sys.path.insert(0, os.path.dirname(BASEDIR))
 from scss import parser
+
 
 class TestSCSS( unittest.TestCase ):
 
     def test_base(self):
-        src = """@charset utf-8;\n@import url(test);\n@mixin z-base {
+        src = """
+            @charset utf-8;
+            @import url(test);
+
+            @mixin z-base {
                 a:hover, a:active { outline: none; }
                 a, a:active, a:visited { color: #607890; }
                 a:hover { color: #036; }
-                @debug test;
-            }\n@media print {
+                @debug test; }
+
+            @media print {
                 @include z-base; }
+
             // Test comment
             /* Css comment */
             body {
-                margin-bottom: .5em;
                 $font: Georgia;
+
+                margin-bottom: .5em;
                 font-family: $font, sans-serif;
                 *font:13px/1.231 sans-serif; }
+
             .test {
-            color: red;
-            &:after { content: 'blue'; }}
+                color: red;
+                &:after {
+                    content: 'blue'; }}
+
             pre, code, kbd, samp {
                 font: 12px/10px;
                 font-family: monospace, sans-serif; }
+
             abbr[title], dfn[title] {
                 border:2px; }
+
             """
-        test = "@charset utf-8;\n@import url(test);\n@media print { \na:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n }/* Css comment */ \n\nbody {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia, sans-serif;\n\tmargin-bottom: .5em}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace, sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
+        test = "@charset utf-8;\n            @import url(test);\n\n            @media print { \na:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n }/* Css comment */ \n\nbody {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia, sans-serif;\n\tmargin-bottom: .5em}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace, sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 
@@ -178,27 +187,3 @@ class TestSCSS( unittest.TestCase ):
         test = ".global {\n\tborder: red;\n\tfont-family: inherit;\n\tfont-size: 100%;\n\tfont-style: inherit;\n\tfont-weight: inherit;\n\tvertical-align: baseline}\n\n#navbar li {\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px;\n\tborder-top-radius: 10px}\n\n#footer {\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px;\n\tborder-top-radius: 10px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
-
-    def test_for(self):
-        src = """
-            @mixin test($src:2px){
-                $width: $src + 5px;
-                width: $width;
-            }
-            $test: 9;
-            $for: $test - 5;
-            .test {
-                color: blue;
-                @for $i from 1 through $for {
-                    .span-#{$i}{ @include test($i); }
-                }
-            }
-        """
-        test = ".test {\n\tcolor: blue}\n\n.test .span-1 {\n\twidth: 6px}\n\n.test .span-2 {\n\twidth: 7px}\n\n.test .span-3 {\n\twidth: 8px}\n\n.test .span-4 {\n\twidth: 9px}"
-        out = parser.parse(src)
-        self.assertEqual(test, out)
-
-
-if __name__ == "__main__":
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestSCSS)
-    unittest.TextTestRunner(verbosity=2).run(suite)

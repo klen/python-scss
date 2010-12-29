@@ -40,6 +40,12 @@ META_DATA = dict(
     packages=find_packages(),
 
     install_requires = [ 'pyparsing' ],
+
+    entry_points={
+        'console_scripts': [
+            'pscss = scss.tool:main',
+        ]
+    },
 )
 
 

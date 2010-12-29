@@ -109,7 +109,7 @@ EXTEND = EXTEND_SYM + SELECTOR + OPT_SEMICOLON
 
 # SCSS variable assigment
 VAR_DEFAULT = "!default"
-VAR_DEFINITION = Suppress("$") + IDENT + COLON.suppress() + (SEP_VAL_STRING | VAL_STRING ) + Optional(VAR_DEFAULT) + OPT_SEMICOLON
+VAR_DEFINITION = Suppress("$") + IDENT + COLON.suppress() + (SEP_VAL_STRING | VAL_STRING ) + (VAR_DEFAULT | EMPTY) + OPT_SEMICOLON
 
 # Ruleset
 RULESET = Forward()
