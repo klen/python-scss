@@ -1,5 +1,10 @@
 # sitegen changelog
 
+## 2011-01-24 0.3.1
+
+* Ignore recursion
+
+
 ## 2010-12-27 0.3.0
 
 * Add precache scss files

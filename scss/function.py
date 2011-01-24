@@ -53,8 +53,8 @@ class Variable(Node):
     def __float__(self):
         try:
             return float(self.value)
-        except ValueError:
-            return 0
+        except (ValueError, RuntimeError):
+            return 0.0
 
 
 class SepValString(Node):

@@ -8,7 +8,7 @@ install: remove _install clean
 
 register: _register clean
 
-upload: _upload clean
+upload: _upload install
 
 _upload:
 	python setup.py sdist upload
@@ -23,4 +23,4 @@ _install:
 	sudo pip install -U .
 
 test:
-	python $(MODULE)/tests/__init__.py
+	python tests/test_$(MODULE).py
