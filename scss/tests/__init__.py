@@ -1,5 +1,6 @@
 import unittest
 
+
 def all_tests_suite():
     return unittest.TestLoader().loadTestsFromNames([
         'scss.tests.test_for',
@@ -14,6 +15,7 @@ def main():
     runner = unittest.TextTestRunner()
     suite = all_tests_suite()
     runner.run(suite)
+
 
 if __name__ == '__main__':
     import os.path

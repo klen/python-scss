@@ -53,7 +53,7 @@ class Variable(Node):
     def __float__(self):
         try:
             return float(self.value)
-        except (ValueError, RuntimeError):
+        except ValueError:
             return 0.0
 
 

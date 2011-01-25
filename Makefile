@@ -23,4 +23,4 @@ _install:
 	sudo pip install -U .
 
 test:
-	python tests/test_$(MODULE).py
+	python $(MODULE)/tests/__init__.py
