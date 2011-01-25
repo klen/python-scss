@@ -1,5 +1,5 @@
 from scss.base import Node, Empty
-from scss.value import Length
+from scss.value import Length, Color
 
 
 class VarDef(Empty):
@@ -147,10 +147,17 @@ class Extend(Node):
                     rul.selectorgroup.append(sg.increase(rul.selectorgroup[0]))
 
 
-class Function(Node):
+class Function(Variable):
 
     def enumerate(self, p):
         return ', '.join("%s%d" % (p[0], x) for x in xrange(int(float(p[1])), int(float(p[2])+1)))
+
+    @property
+    def value(self):
+        return self.__parse(self.ctx)
+
+    def rgb(self, p):
+        return Color(( '#', ''.join('%x' % int(x) for x in p) ))
 
     def copy(self, ctx=None):
         return self.__parse(ctx)
@@ -177,7 +184,7 @@ class Function(Node):
         return result
 
     def __str__(self):
-        return self.__parse()
+        return str(self.__parse())
 
 
 class IfNode(Node):

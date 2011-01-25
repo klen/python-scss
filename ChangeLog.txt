@@ -1,8 +1,9 @@
 # sitegen changelog
 
-## 2011-01-25 0.3.2
+## 2011-01-25 0.3.3
 
 * Fix tests
+* Add rgb(  ) support
 
 
 ## 2011-01-24 0.3.1
