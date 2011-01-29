@@ -3,7 +3,7 @@ import cPickle
 import os.path
 from collections import defaultdict
 
-from scss.base import Node, Empty, AtRule, SimpleNode
+from scss.base import Node, Empty, SimpleNode
 from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef, Variable, VarString
 from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
 from scss.value import Length, Color, Percentage
@@ -152,7 +152,7 @@ class Stylecheet(object):
         CSS_COMMENT.setParseAction(self.getType(Comment))
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
-        MEDIA.setParseAction(self.getType(AtRule))
+        MEDIA.setParseAction(self.getType(Node))
         EMPTY.setParseAction(self.getType(Empty))
 
         HEXCOLOR.setParseAction(self.getType(Color, style=False))

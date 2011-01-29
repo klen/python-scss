@@ -1,6 +1,5 @@
-
 class Node(object):
-    """ Base node for css object.
+    """ Base node for scss objects.
     """
     delim = ' '
 
@@ -45,7 +44,3 @@ class Empty(Node):
 
 class SimpleNode(Node):
     delim = ''
-
-
-class AtRule(Node):
-    delim = ' '
