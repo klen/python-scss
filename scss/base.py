@@ -18,15 +18,14 @@ class Node(object):
 
     def copy(self, ctx=None):
         result = []
-        for n in self.t:
-            if isinstance(n, Node):
-                test = n.copy(ctx)
-                if hasattr(test, '__iter__'):
-                    result += test
-                else:
-                    result.append(test)
-            else:
-                result.append(n)
+        for e in self.t:
+            if isinstance(e, Node):
+                e = e.copy(ctx)
+                if hasattr(e, '__iter__'):
+                    result += e
+                    continue
+            result.append(e)
+
         return self.__class__(result, self.stylecheet)
 
     def __str__(self):
