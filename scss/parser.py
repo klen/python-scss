@@ -1,5 +1,5 @@
-import logging
 import cPickle
+import logging
 import os.path
 from collections import defaultdict
 
@@ -28,11 +28,11 @@ class DeclareSet(Node):
         super(DeclareSet, self).__init__(t, s)
 
     def render(self, target):
-        name = self.t[0]
+        name = self.data[0]
         for dec in getattr(self, 'declareset', []):
             dec.render(self)
         for dc in self.declaration:
-            dc.t[0].t[0] = "-".join((name, dc.t[0].t[0]))
+            dc.data[0].data[0] = "-".join((name, dc.data[0].data[0]))
             target.declaration.append(dc)
 
 
@@ -40,7 +40,7 @@ class SelectorGroup(Node):
     """ Part of css rule.
     """
     def increase(self, other):
-        return SelectorGroup(self.t + other.t[1:])
+        return SelectorGroup(self.data + other.data[1:])
 
     def __add__(self, other):
         test = str(other)
@@ -48,14 +48,14 @@ class SelectorGroup(Node):
             stest = str(self)
             return SelectorGroup(test.replace('&', stest).split())
         else:
-            return SelectorGroup(self.t + other.t)
+            return SelectorGroup(self.data + other.data)
 
 
 class Declaration(Node):
     """ Css declaration.
     """
     def __str__(self):
-        name, expr = self.t[0].t, self.t[2:]
+        name, expr = self.data[0].data, self.data[2:]
         return ': '.join([
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
@@ -69,7 +69,7 @@ class Ruleset(Node):
         self.ruleset = []
         t = self.normalize(t)
         super(Ruleset, self).__init__(t, s)
-        self.ancor = str(self.t[0].t[0])
+        self.ancor = str(self.data[0].data[0])
         s.rset[self.ancor].add(self)
 
     @staticmethod
@@ -96,8 +96,6 @@ class Ruleset(Node):
         super(Ruleset, self).parse(target)
         if isinstance(target, Ruleset):
             self.parse_ruleset(target)
-            for r in self.ruleset:
-                r.parse_ruleset(target)
 
     def parse_ruleset(self, target):
         selgroup = list()
@@ -105,6 +103,9 @@ class Ruleset(Node):
             for sg in self.selectorgroup:
                 selgroup.append(psg + sg)
         self.selectorgroup = selgroup
+
+        for r in self.ruleset:
+            r.parse_ruleset(target)
 
     def parse_declareset(self):
         for ds in getattr(self, 'declareset', []):
@@ -117,11 +118,11 @@ class Ruleset(Node):
             out = '\n'
             out += ', '.join(str(s) for s in self.selectorgroup)
             out += ' {\n\t'
-            self.declaration.sort(key=lambda x: str(x.t[0]))
+            self.declaration.sort(key=lambda x: str(x.data[0]))
             out += ';\n\t'.join(str(d) for d in self.declaration)
             out += '}\n'
         # for r in getattr(self, 'ruleset', []):
-            # out += '\n'.join("%s%s" % (self.tab, l) for l in str(r).split('\n'))
+            # out += '\n'.join("%s%s" % (self.dataab, l) for l in str(r).split('\n'))
         out += ''.join(str(r) for r in self.ruleset)
         return out
 
@@ -129,16 +130,18 @@ class Ruleset(Node):
 class Mixinparam(Node):
     @property
     def name(self):
-        return self.t[0].t[1]
+        return self.data[0].data[1]
 
     @property
     def default(self):
-        if len(self.t) > 1:
-            return self.t[1].value
+        if len(self.data) > 1:
+            return self.data[1].value
         return None
 
 
 class Stylecheet(object):
+
+    defvalue = Length(('0', 'px'))
 
     def __init__(self, cache = None, ignore_comment=False):
         self.cache = cache or dict(
@@ -190,8 +193,7 @@ class Stylecheet(object):
 
     def get_var(self, name):
         rec = self.cache['ctx'].get(name)
-        if rec:
-            return rec[0]
+        return rec[0] if rec else self.defvalue
 
     def set_var(self, name, value, default=False):
         if not(default and self.get_var(name)):

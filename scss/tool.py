@@ -1,7 +1,9 @@
 """Command-line tool to parse scss file.
 """
 import sys
+
 from scss import parser
+
 
 def main():
     if len(sys.argv) == 1:

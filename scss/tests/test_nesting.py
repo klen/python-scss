@@ -11,6 +11,10 @@ class TestSCSS( unittest.TestCase ):
                 margin: 2em 0;
                 td.ln {
                     text-align: right;
+
+                    li {
+                        color: red;
+                    }
                 }
             }
 
@@ -22,7 +26,7 @@ class TestSCSS( unittest.TestCase ):
                 }
             }
             """
-        test = "table.hl {\n\tmargin: 2em 0}\n\ntable.hl td.ln {\n\ttext-align: right}\n\nli {\n\tfont-family: serif;\n\tfont-size: 1.2em;\n\tfont-weight: bold}"
+        test = "table.hl {\n\tmargin: 2em 0}\n\ntable.hl td.ln {\n\ttext-align: right}\n\ntable.hl td.ln li {\n\tcolor: red}\n\nli {\n\tfont-family: serif;\n\tfont-size: 1.2em;\n\tfont-weight: bold}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 

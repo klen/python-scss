@@ -11,9 +11,6 @@ class VarDef(Empty):
         default = not isinstance(default, Empty)
         s.set_var(name, self.value, default)
 
-    def parse(self, target):
-        pass
-
     def copy(self, ctx=None):
         self.value.ctx = ctx
         return self
@@ -34,10 +31,12 @@ class Variable(Node):
 
     @property
     def value(self):
-        name = self.t[1]
+        """ Return variable value.
+        """
+        name = self.data[1]
         if self.ctx and self.ctx.get(name):
             return self.ctx.get(name)
-        return self.stylecheet.get_var(name) or '0'
+        return self.stylecheet.get_var(name)
 
     def math(self, arg, op):
         if isinstance(self.value, (int, str)):
@@ -71,11 +70,11 @@ class VarString(Variable):
     @property
     def value(self):
 
-        for n in self.t:
+        for n in self.data:
             if isinstance(n, Variable):
                 n.ctx = self.ctx
 
-        it = iter(self.t)
+        it = iter(self.data)
         res = next(it)
         op = True
         while op:
@@ -106,7 +105,7 @@ class Mixin(Empty):
         ctx = dict(( mp.name, v or mp.default ) for mp, v in test if mp)
 
         if not isinstance(target, Mixin):
-            for e in self.t:
+            for e in self.data:
                 if isinstance(e, Node):
                     node = e.copy(ctx)
                     node.parse(target)
@@ -139,7 +138,7 @@ class Extend(Node):
     """ @extend at rule.
     """
     def parse(self, target):
-        name = str(self.t[0])
+        name = str(self.data[0])
         rulesets = self.stylecheet.rset.get(name)
         if rulesets:
             for rul in rulesets:
@@ -152,18 +151,18 @@ class Function(Variable):
     def enumerate(self, p):
         return ', '.join("%s%d" % (p[0], x) for x in xrange(int(float(p[1])), int(float(p[2])+1)))
 
+    def rgb(self, p):
+        return Color(( '#', ''.join('%x' % int(x) for x in p) ))
+
     @property
     def value(self):
         return self.__parse(self.ctx)
-
-    def rgb(self, p):
-        return Color(( '#', ''.join('%x' % int(x) for x in p) ))
 
     def copy(self, ctx=None):
         return self.__parse(ctx)
 
     def __parse(self, ctx=dict()):
-        name, params = self.t
+        name, params = self.data
         if hasattr(self, name):
             try:
                 return getattr(self, name)(self.__parse_params(params, ctx))
@@ -177,7 +176,7 @@ class Function(Variable):
             p = p.strip('"\'')
             if p.startswith('$'):
                 name = p[1:]
-                p = ctx.get(name) or self.stylecheet.get_var(name) or '0'
+                p = ctx.get(name) or self.stylecheet.get_var(name)
                 if not isinstance(p, str):
                     p = p.value
             result.append(p)
@@ -191,7 +190,7 @@ class IfNode(Node):
 
     def __init__(self, t, s):
         super(IfNode, self).__init__(t, s)
-        self.cond, self.body, self.els = self.t
+        self.cond, self.body, self.els = self.data
 
     def __str__(self):
         node = self.get_node()
@@ -215,20 +214,20 @@ class IfNode(Node):
     def parse(self, target):
         node = self.get_node()
         if node:
-            for n in node.t:
+            for n in node.data:
                 n.parse(target)
 
 
 class ForNode(Node):
     def __init__(self, t, s):
         super(ForNode, self).__init__(t, s)
-        self.var, self.first, self.second, self.body = self.t
+        self.var, self.first, self.second, self.body = self.data
 
     def copy(self, ctx=None):
         return self
 
     def __parse(self):
-        name = self.var.t[1]
+        name = self.var.data[1]
         for i in xrange(int(self.first), int(self.second)+1):
             yield self.body.copy({name: i})
 
@@ -237,6 +236,6 @@ class ForNode(Node):
 
     def parse(self, target):
         for node in self.__parse():
-            for n in node.t:
+            for n in node.data:
                 if not isinstance(n, str):
                     n.parse(target)

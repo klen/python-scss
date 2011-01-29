@@ -1,4 +1,7 @@
-# sitegen changelog
+## 2011-01-28 0.3.4
+
+* Fix nesting
+
 
 ## 2011-01-25 0.3.3
 

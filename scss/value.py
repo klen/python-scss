@@ -81,5 +81,6 @@ class Length(object):
             res = float(self) / float(other)
         return Length((str(round(res, 2)), self.units))
 
+
 class Percentage(Length):
     pass
