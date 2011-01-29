@@ -7,7 +7,7 @@ class TestSCSS( unittest.TestCase ):
 
     def test_variables(self):
         src = """
-            $blue: #3bbfce;
+            $blue: #3bbfce !default;
             $test: rgb(120, 35, 64);
             $margin: 16px;
 

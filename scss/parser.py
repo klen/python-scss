@@ -196,7 +196,7 @@ class Stylecheet(object):
         return rec[0] if rec else self.defvalue
 
     def set_var(self, name, value, default=False):
-        if not(default and self.get_var(name)):
+        if not(default and self.cache['ctx'].get(name)):
             self.cache['ctx'][name] = value, default
 
     @property

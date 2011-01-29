@@ -1,5 +1,4 @@
 import unittest
-import ipdb as pdb
 
 from scss import parser
 
