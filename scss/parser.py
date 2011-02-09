@@ -5,8 +5,13 @@ from collections import defaultdict
 
 from scss.base import Node, Empty, SimpleNode
 from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef, Variable, VarString
-from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY
+from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE
 from scss.value import Length, Color, Percentage
+
+
+class SemiNode(Node):
+    def __str__(self):
+        return super(SemiNode, self).__str__() + ';'
 
 
 class Comment(Node):
@@ -59,6 +64,19 @@ class Declaration(Node):
         return ': '.join([
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
+
+
+class FontFace(Node):
+    def __init__(self, t, s):
+        self.declaration = []
+        super(FontFace, self).__init__(t, s)
+
+    def __str__(self):
+        out = '\n@font-face {\n\t'
+        self.declaration.sort(key=lambda x: str(x.data[0]))
+        out += ';\n\t'.join(str(d) for d in self.declaration)
+        out += '}\n'
+        return out
 
 
 class Ruleset(Node):
@@ -156,6 +174,7 @@ class Stylecheet(object):
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
         MEDIA.setParseAction(self.getType(Node))
+        CHARSET.setParseAction(self.getType(SemiNode))
         EMPTY.setParseAction(self.getType(Empty))
 
         HEXCOLOR.setParseAction(self.getType(Color, style=False))
@@ -176,6 +195,7 @@ class Stylecheet(object):
         SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
         SELECTOR.setParseAction(self.getType(SimpleNode))
         RULESET.setParseAction(self.getType(Ruleset))
+        FONT_FACE.setParseAction(self.getType(FontFace))
 
         MIXIN_PARAM.setParseAction(self.getType(Mixinparam))
         MIXIN.setParseAction(self.getType(Mixin))
@@ -225,7 +245,7 @@ class Stylecheet(object):
             self.set_var(name, *rec)
 
     def load(self, f, precache=False):
-        name, ext = os.path.splitext(f.name)
+        name = os.path.splitext(f.name)[0]
         cache_path = '.'.join((name, 'ccss'))
         if os.path.exists(cache_path):
             ptime = os.path.getmtime(cache_path)

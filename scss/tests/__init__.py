@@ -8,6 +8,7 @@ def all_tests_suite():
         'scss.tests.test_nesting',
         'scss.tests.test_files',
         'scss.tests.test_scss',
+        'scss.tests.test_font_face',
     ])
 
 
