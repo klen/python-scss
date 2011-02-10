@@ -5,8 +5,8 @@ from collections import defaultdict
 
 from scss.base import Node, Empty, SimpleNode
 from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef, Variable, VarString
-from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
-from scss.value import Length, Color, Percentage, StrValue
+from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
+from scss.value import Length, Color, StrValue
 
 
 class SemiNode(Node):
@@ -179,9 +179,6 @@ class Stylecheet(object):
 
         HEXCOLOR.setParseAction(self.getType(Color, style=False))
         LENGTH.setParseAction(self.getType(Length, style=False))
-        EMS.setParseAction(self.getType(Length, style=False))
-        EXS.setParseAction(self.getType(Length, style=False))
-        PERCENTAGE.setParseAction(self.getType(Percentage, style=False))
         quotedString.setParseAction(self.getType(StrValue, style=False))
 
         DEC_NAME.setParseAction(self.getType())

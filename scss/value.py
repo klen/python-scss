@@ -47,12 +47,12 @@ class Color(Value):
             res = self.rgb_to_hex(*res)
             return Color(('#', res))
 
-        elif isinstance(other, Percentage):
+        elif isinstance(other, Length):
             a = self.hex_to_hsv(self.value)
             if op == "-":
-                br = a[2] - (a[2] * (float(other.value)/100))
+                br = a[2] - (a[2] * other.value)
             else:
-                br = a[2] + (a[2] * (float(other.value)/100))
+                br = a[2] + (a[2] * other.value)
             res = colorsys.hsv_to_rgb(a[0], a[1], br)
             res = self.rgb_to_hex(*map(
                 lambda x: min(x*256, 255), res))
@@ -65,14 +65,17 @@ class Length(Value):
 
     def __init__(self, t):
         super(Length, self).__init__(t)
-        if '.' in self.value:
-            self.value = self.value.rstrip('0').rstrip('.')
+        self.value = float(self.value)
+        if self.units == '%':
+            self.value = self.value / 100.00
 
     def __float__(self):
-        return float(self.value)
+        return self.value
 
     def __str__(self):
-        return "%s%s" % (self.value, self.units)
+        value = float(self) * 100 if self.units == "%" else float(self)
+        value = ("%0.03f" % value).strip('0').rstrip('.')
+        return "%s%s" % (value, self.units)
 
     def math(self, other, op):
         if op  == "*":
@@ -85,11 +88,7 @@ class Length(Value):
             res = float(self) - float(other)
         elif op == "/":
             res = float(self) / float(other)
-        return Length((str(round(res, 2)), self.units))
-
-
-class Percentage(Length):
-    pass
+        return Length((res, self.units))
 
 
 class StrValue(Value):
