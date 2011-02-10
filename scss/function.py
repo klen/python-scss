@@ -1,5 +1,7 @@
 from scss.base import Node, Empty
-from scss.value import Length, Color
+from scss.value import Length, Color, Value
+
+from scss.grammar import VAL_STRING
 
 
 class VarDef(Empty):
@@ -64,9 +66,19 @@ class SepValString(Node):
         return self
 
 
+class VarStringMeta(type):
+    def __call__(mcs, *args):
+        data = args[0]
+        if len(data) == 1 and isinstance( data[0], ( Node, Value ) ):
+            return data[0]
+        return super(VarStringMeta, mcs).__call__(*args)
+
+
 class VarString(Variable):
     """ Parse mathematic operation.
     """
+    __metaclass__ = VarStringMeta
+
     @property
     def value(self):
 
@@ -76,6 +88,11 @@ class VarString(Variable):
 
         it = iter(self.data)
         res = next(it)
+        if res == '-':
+            res = next(it)
+            if isinstance(res, Variable):
+                res = res.value
+            res = Length(('0', res.units)).math(res, '-')
         op = True
         while op:
             try:
@@ -148,11 +165,14 @@ class Extend(Node):
 
 class Function(Variable):
 
-    def enumerate(self, p):
-        return ', '.join("%s%d" % (p[0], x) for x in xrange(int(float(p[1])), int(float(p[2])+1)))
+    def enumerate(self, pm):
+        return ', '.join("%s%d" % (str( pm[0] ).strip("'"), x) for x in xrange(int(float(pm[1])), int(float(pm[2])+1)))
 
-    def rgb(self, p):
-        return Color(( '#', ''.join('%x' % int(x) for x in p) ))
+    def rgb(self, pm):
+        return Color(( '#', ''.join('%x' % int(x) for x in pm) ))
+
+    def rgba(self, pm):
+        return 'rgba(%s)' % ', '.join(str(p) for p in pm)
 
     @property
     def value(self):
@@ -163,24 +183,11 @@ class Function(Variable):
 
     def __parse(self, ctx=dict()):
         name, params = self.data
+        params = [p[0][0] for p in VAL_STRING.scanString(params)]
         if hasattr(self, name):
-            try:
-                return getattr(self, name)(self.__parse_params(params, ctx))
-            except AttributeError:
-                pass
+            return getattr(self, name)(params)
+        params = ''.join(str(p) for p in params)
         return "%s(%s)" % (name, params)
-
-    def __parse_params(self, params, ctx=dict()):
-        result = []
-        for p in map(lambda x: x.strip(), params.split(',')):
-            p = p.strip('"\'')
-            if p.startswith('$'):
-                name = p[1:]
-                p = ctx.get(name) or self.stylecheet.get_var(name)
-                if not isinstance(p, str):
-                    p = p.value
-            result.append(p)
-        return result
 
     def __str__(self):
         return str(self.__parse())

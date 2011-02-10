@@ -5,8 +5,8 @@ from collections import defaultdict
 
 from scss.base import Node, Empty, SimpleNode
 from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef, Variable, VarString
-from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, DIV_STRING, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE
-from scss.value import Length, Color, Percentage
+from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, PERCENTAGE, EMS, EXS, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
+from scss.value import Length, Color, Percentage, StrValue
 
 
 class SemiNode(Node):
@@ -153,7 +153,7 @@ class Mixinparam(Node):
     @property
     def default(self):
         if len(self.data) > 1:
-            return self.data[1].value
+            return self.data[1]
         return None
 
 
@@ -182,10 +182,11 @@ class Stylecheet(object):
         EMS.setParseAction(self.getType(Length, style=False))
         EXS.setParseAction(self.getType(Length, style=False))
         PERCENTAGE.setParseAction(self.getType(Percentage, style=False))
+        quotedString.setParseAction(self.getType(StrValue, style=False))
 
         DEC_NAME.setParseAction(self.getType())
         SEP_VAL_STRING.setParseAction(self.getType(SepValString))
-        DIV_STRING.setParseAction(self.getType(SimpleNode))
+        TERM.setParseAction(self.getType(SimpleNode))
 
         VAR_DEFINITION.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))

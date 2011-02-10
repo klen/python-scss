@@ -42,7 +42,7 @@ EMS = NUMBER + Literal("em")
 EXS = NUMBER + Literal("ex")
 LENGTH = NUMBER + oneOf("px cm mm in pt pc")
 PERCENTAGE = NUMBER + Literal("%")
-URI = Literal("url(") + SkipTo(")")("path") + Literal(")")
+PATH = Word(alphanums + "_-/.", alphanums + "_-./?#&")
 PRIO = "!important"
 
 # SCSS Variables
@@ -55,23 +55,24 @@ UNARY_OPERATOR = oneOf("- +")
 IF_OPERATOR = oneOf("== != <= >= < >")
 
 # Parse values
-FUNCTION = IDENT + LPAREN + SkipTo(")") + RPAREN
-SIMPLE_VALUE = LENGTH | PERCENTAGE | EMS | EXS | NUMBER | FUNCTION | IDENT | HEXCOLOR | URI | quotedString
+FUNCTION = IDENT + LPAREN + SkipTo(')') + RPAREN
+SIMPLE_VALUE = FUNCTION | LENGTH | PERCENTAGE | EMS | EXS | NUMBER | PATH | IDENT | HEXCOLOR | quotedString
 VALUE = SIMPLE_VALUE | VARIABLE
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 
 
 VAL_STRING = Forward()
 PARENS = LPAREN + VAL_STRING + RPAREN
-VAL_STRING << ((VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + (VALUE | PARENS)))
-SEP_VAL_STRING = VAL_STRING + OneOrMore(COMMA.suppress() + VAL_STRING)
+VAL_STRING << ( Optional('-') + (VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARENS )))
 
 INTERPOLATION_VAR = Suppress("#") + LACC + VAL_STRING + RACC
 
 # Property values
 # TERM = Optional(UNARY_OPERATOR.suppress()) + (URI | VAL_STRING)
 # EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
-EXPR = OneOrMore(DIV_STRING | SEP_VAL_STRING | VAL_STRING) + Optional(PRIO)
+SEP_VAL_STRING = VAL_STRING + OneOrMore(COMMA.suppress() + VAL_STRING)
+TERM = ( DIV_STRING | VAL_STRING ) + Optional(COMMA)
+EXPR = OneOrMore(TERM) + Optional(PRIO)
 DEC_NAME = Optional("*") + OneOrMore(NAME | INTERPOLATION_VAR)
 DECLARATION = DEC_NAME + COLON + EXPR + OPT_SEMICOLON
 
@@ -137,7 +138,7 @@ MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
     LACC + ZeroOrMore(RULE_CONTENT | CONTROL_DIR) + RACC)
 
 # Root elements
-IMPORT = IMPORT_SYM + Combine(URI + Optional(IDENT + ZeroOrMore(IDENT)) + SEMICOLON)
+# IMPORT = IMPORT_SYM + Combine(URI + Optional(IDENT + ZeroOrMore(IDENT)) + SEMICOLON)
 MEDIA = MEDIA_SYM + IDENT + ZeroOrMore(COMMA + IDENT) + LLACC + ZeroOrMore( RULE_CONTENT | MIXIN | CONTROL_DIR ) + LRACC
 FONT_FACE = FONT_FACE_SYM + LLACC + ZeroOrMore(DECLARATION) + LRACC
 PSEUDO_PAGE = ":" + IDENT

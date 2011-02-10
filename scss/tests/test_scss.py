@@ -161,7 +161,7 @@ class TestSCSS( unittest.TestCase ):
                 test: 5px + (4px * (2 + $items));
                 width: $navbar-width/$items - 10px;
                 &:hover { background-color: $navbar-color - 10%; } }"""
-        test = '#navbar {\n\tborder-bottom: 2px solid #ce4dd6;\n\twidth: 800px}\n\n#navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar * html div1, #navbar * html div2, #navbar * html div3 {\n\tcolor: blue}\n\nli {\n\tbackground-color: #9b1aa3;\n\tfloat: left;\n\tfont: 8px/10px "Verdana", monospace;\n\tmargin: 8.5px auto;\n\ttest: 25px;\n\twidth: 256.67px}\n\nli:hover {\n\tbackground-color: #b945c0}'
+        test = "#navbar {\n\tborder-bottom: 2px solid #ce4dd6;\n\twidth: 800px}\n\n#navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar * html div1, #navbar * html div2, #navbar * html div3 {\n\tcolor: blue}\n\nli {\n\tbackground-color: #9b1aa3;\n\tfloat: left;\n\tfont: 8px/10px 'Verdana', monospace;\n\tmargin: 8.5px auto;\n\ttest: 25px;\n\twidth: 256.67px}\n\nli:hover {\n\tbackground-color: #b945c0}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 

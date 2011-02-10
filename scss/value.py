@@ -1,7 +1,11 @@
 import colorsys
 
 
-class Color(object):
+class Value(object):
+    pass
+
+
+class Color(Value):
 
     def __init__(self, t):
         self.value = t[1]
@@ -55,7 +59,7 @@ class Color(object):
         return self
 
 
-class Length(object):
+class Length(Value):
 
     def __init__(self, t):
         self.value, self.units = t
@@ -84,3 +88,18 @@ class Length(object):
 
 class Percentage(Length):
     pass
+
+
+class StrValue(Value):
+
+    def __init__(self, t):
+        self.value = t[0].strip('\'"')
+
+    def __float__(self):
+        return 0.0
+
+    def __str__(self):
+        return "'%s'" % self.value
+
+    def math(self, other, op):
+        return StrValue([ self.value + str( other ).strip("'") ])

@@ -20,6 +20,9 @@ class Node(object):
         t = [e.copy(ctx) if isinstance(e, Node) else e for e in self.data]
         return self.__class__(t, self.stylecheet)
 
+    def math(self, arg, op):
+        return self
+
     def __str__(self):
         return self.delim.join(str(e) for e in self.data)
 
