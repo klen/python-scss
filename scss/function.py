@@ -59,7 +59,7 @@ class Variable(Node):
 
 
 class SepValString(Node):
-    """ Separeted value.
+    """ Separated value.
     """
     delim = ', '
     def math(self, arg, op):
@@ -86,13 +86,14 @@ class VarString(Variable):
             if isinstance(n, Variable):
                 n.ctx = self.ctx
 
+        if self.data[0] == '-':
+            res = self.data[1]
+            while isinstance(res, Variable):
+                res = res.value
+            self.data.insert(0, Length(('0', res.units)))
+
         it = iter(self.data)
         res = next(it)
-        if res == '-':
-            res = next(it)
-            if isinstance(res, Variable):
-                res = res.value
-            res = Length(('0', res.units)).math(res, '-')
         op = True
         while op:
             try:
@@ -164,6 +165,10 @@ class Extend(Node):
 
 
 class Function(Variable):
+    def __init__(self, t, s):
+        super(Function, self).__init__(t, s)
+        self.name, params = self.data
+        self.params = [p[0][0] for p in VAL_STRING.scanString(params)]
 
     def enumerate(self, pm):
         return ', '.join("%s%d" % (str( pm[0] ).strip("'"), x) for x in xrange(int(float(pm[1])), int(float(pm[2])+1)))
@@ -182,12 +187,10 @@ class Function(Variable):
         return self.__parse(ctx)
 
     def __parse(self, ctx=dict()):
-        name, params = self.data
-        params = [p[0][0] for p in VAL_STRING.scanString(params)]
-        if hasattr(self, name):
-            return getattr(self, name)(params)
-        params = ''.join(str(p) for p in params)
-        return "%s(%s)" % (name, params)
+        if hasattr(self, self.name):
+            return getattr(self, self.name)(self.params)
+        params = ''.join(str(p) for p in self.params)
+        return "%s(%s)" % (self.name, params)
 
     def __str__(self):
         return str(self.__parse())

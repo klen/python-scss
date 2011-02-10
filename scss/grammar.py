@@ -1,9 +1,9 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty, lineEnd
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty, lineEnd, alphas
 
 
 # Base css word and literals
 EMPTY = Empty()
-IDENT = NAME = Word(alphanums + "_-")
+IDENT = NAME = Word(alphas + '_-', alphanums + "_-")
 NUMBER = Combine(Optional("-") + Word(nums+'.'))
 COMMA, COLON, SEMICOLON = [Literal(c) for c in ",:;"]
 OPT_SEMICOLON = Optional(SEMICOLON.suppress())
@@ -57,13 +57,13 @@ IF_OPERATOR = oneOf("== != <= >= < >")
 # Parse values
 FUNCTION = IDENT + LPAREN + SkipTo(')') + RPAREN
 SIMPLE_VALUE = FUNCTION | LENGTH | PERCENTAGE | EMS | EXS | NUMBER | PATH | IDENT | HEXCOLOR | quotedString
-VALUE = SIMPLE_VALUE | VARIABLE
+VALUE = Optional('-') + ( SIMPLE_VALUE | VARIABLE )
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 
 
 VAL_STRING = Forward()
 PARENS = LPAREN + VAL_STRING + RPAREN
-VAL_STRING << ( Optional('-') + (VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARENS )))
+VAL_STRING << ((VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARENS )))
 
 INTERPOLATION_VAR = Suppress("#") + LACC + VAL_STRING + RACC
 

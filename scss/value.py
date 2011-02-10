@@ -2,13 +2,15 @@ import colorsys
 
 
 class Value(object):
-    pass
+    def __init__(self, t):
+        self.value, self.units = t
 
 
 class Color(Value):
 
     def __init__(self, t):
-        self.value = t[1]
+        super(Color, self).__init__(t)
+        self.units, self.value = self.value, self.units
         if len(self.value) == 3:
             self.value = ''.join(v*2 for v in self.value)
 
@@ -19,7 +21,7 @@ class Color(Value):
         v = self.value
         if v[0] == v[1] and v[2] == v[3] and v[4] == v[5]:
             v = ''.join((v[0], v[2], v[4]))
-        return "#%s" % v
+        return ''.join(( self.units, v ))
 
     @staticmethod
     def rgb_to_hex(*rgb):
@@ -62,7 +64,7 @@ class Color(Value):
 class Length(Value):
 
     def __init__(self, t):
-        self.value, self.units = t
+        super(Length, self).__init__(t)
         if '.' in self.value:
             self.value = self.value.rstrip('0').rstrip('.')
 

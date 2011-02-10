@@ -18,6 +18,7 @@ class TestSCSS( unittest.TestCase ):
                 background-color: $test + 5%;
                 background-image: url('/test/' + $image);
                 color: $blue - 9%;
+                margin: 0 ( -$margin * 2 ) 12px;
             }
 
             .border {
@@ -29,6 +30,6 @@ class TestSCSS( unittest.TestCase ):
                 font: -1.5em;
             }
             """
-        test = ".content-navigation {\n\tbackground-color: #7e2443;\n\tbackground-image: url('/test/test.png');\n\tborder-color: #3bbfce;\n\tcolor: #35adbb}\n\n.border {\n\tborder-color: #3bbfce;\n\tcolor: rgba(120, 35, 64, .4);\n\tfont: -1.5em;\n\tmargin: 8px;\n\tpadding: 8px;\n\tpadding-left: -14px}"
+        test = ".content-navigation {\n\tbackground-color: #7e2443;\n\tbackground-image: url('/test/test.png');\n\tborder-color: #3bbfce;\n\tcolor: #35adbb;\n\tmargin: 0 -32px 12px}\n\n.border {\n\tborder-color: #3bbfce;\n\tcolor: rgba(120, 35, 64, .4);\n\tfont: -1.5em;\n\tmargin: 8px;\n\tpadding: 8px;\n\tpadding-left: -14px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
