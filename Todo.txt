@@ -1,11 +1,10 @@
+Move var from node to value and add op parsing
+Drop copy all nodes ( only vars )
 Add caching using pickle save default flag
-Add true function params parsing
-Fix variable minus bug
 Fix selector bug
 Add @debug, @warn
 Add output styles
 Add declaration check for dublicate
 Add ruleset check for dublicate
-Add rgb
 Drop hasattr, getattr, update t patterns
 Add interactive shell

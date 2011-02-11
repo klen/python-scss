@@ -19,6 +19,7 @@ class Node(object):
     def copy(self, ctx=None):
         t = [e.copy(ctx) if isinstance(e, Node) else e for e in self.data]
         return self.__class__(t, self.stylecheet)
+        # return self
 
     def math(self, arg, op):
         return self

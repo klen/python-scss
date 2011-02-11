@@ -1,7 +1,6 @@
 from scss.base import Node, Empty
-from scss.value import Length, Color, Value
-
 from scss.grammar import VAL_STRING
+from scss.value import Length, Color, Value
 
 
 class VarDef(Empty):
@@ -86,13 +85,26 @@ class VarString(Variable):
             if isinstance(n, Variable):
                 n.ctx = self.ctx
 
+        it = iter(self.data)
+        # result = res = next(it)
+        # first = 0
+        # while True:
+            # try:
+                # op = FNCT.get(res, None)
+                # if op:
+                    # second = next(it)
+                    # result = op(first, second)
+                # first, res = res, next(it)
+            # except StopIteration:
+                # break
+        # return result
+
+
         if self.data[0] == '-':
             res = self.data[1]
             while isinstance(res, Variable):
                 res = res.value
             self.data.insert(0, Length(('0', res.units)))
-
-        it = iter(self.data)
         res = next(it)
         op = True
         while op:
