@@ -1,4 +1,5 @@
-Move var from node to value and add op parsing
+Move function to values
+IF node add real compare operators
 Drop copy all nodes ( only vars )
 Add caching using pickle save default flag
 Fix selector bug

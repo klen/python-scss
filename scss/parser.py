@@ -3,18 +3,22 @@ import logging
 import os.path
 from collections import defaultdict
 
-from scss.base import Node, Empty, SimpleNode
-from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef, Variable, VarString
+from scss.base import Node, Empty, ParseNode
+from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef
 from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
-from scss.value import Length, Color, StrValue
+from scss.value import Length, Color, StrValue, VarString, Variable
 
 
-class SemiNode(Node):
+class SimNode(Node):
+    delim = ' '
+
+
+class SemiNode(SimNode):
     def __str__(self):
         return super(SemiNode, self).__str__() + ';'
 
 
-class Comment(Node):
+class Comment(SimNode):
     def __str__(self):
         if self.stylecheet.ignore_comment:
             return ''
@@ -27,7 +31,7 @@ class Debug(Empty):
         logging.debug(str(self))
 
 
-class DeclareSet(Node):
+class DeclareSet(ParseNode):
     def __init__(self, t, s):
         self.declaration = []
         super(DeclareSet, self).__init__(t, s)
@@ -41,7 +45,7 @@ class DeclareSet(Node):
             target.declaration.append(dc)
 
 
-class SelectorGroup(Node):
+class SelectorGroup(ParseNode):
     """ Part of css rule.
     """
     def increase(self, other):
@@ -56,7 +60,7 @@ class SelectorGroup(Node):
             return SelectorGroup(self.data + other.data)
 
 
-class Declaration(Node):
+class Declaration(ParseNode):
     """ Css declaration.
     """
     def __str__(self):
@@ -66,7 +70,7 @@ class Declaration(Node):
             ' '.join(str(e) for e in expr)])
 
 
-class FontFace(Node):
+class FontFace(ParseNode):
     def __init__(self, t, s):
         self.declaration = []
         super(FontFace, self).__init__(t, s)
@@ -79,7 +83,7 @@ class FontFace(Node):
         return out
 
 
-class Ruleset(Node):
+class Ruleset(ParseNode):
 
     def __init__(self, t, s):
         self.declaration = []
@@ -145,7 +149,7 @@ class Ruleset(Node):
         return out
 
 
-class Mixinparam(Node):
+class Mixinparam(ParseNode):
     @property
     def name(self):
         return self.data[0].data[1]
@@ -173,7 +177,7 @@ class Stylecheet(object):
         CSS_COMMENT.setParseAction(self.getType(Comment))
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
-        MEDIA.setParseAction(self.getType(Node))
+        MEDIA.setParseAction(self.getType(SimNode))
         CHARSET.setParseAction(self.getType(SemiNode))
         EMPTY.setParseAction(self.getType(Empty))
 
@@ -183,7 +187,7 @@ class Stylecheet(object):
 
         DEC_NAME.setParseAction(self.getType())
         SEP_VAL_STRING.setParseAction(self.getType(SepValString))
-        TERM.setParseAction(self.getType(SimpleNode))
+        TERM.setParseAction(self.getType())
 
         VAR_DEFINITION.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))
@@ -191,7 +195,7 @@ class Stylecheet(object):
         DECLARATION.setParseAction(self.getType(Declaration))
         DECLARESET.setParseAction(self.getType(DeclareSet))
         SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
-        SELECTOR.setParseAction(self.getType(SimpleNode))
+        SELECTOR.setParseAction(self.getType())
         RULESET.setParseAction(self.getType(Ruleset))
         FONT_FACE.setParseAction(self.getType(FontFace))
 
@@ -202,10 +206,10 @@ class Stylecheet(object):
 
         IF.setParseAction(self.getType(IfNode))
         FOR.setParseAction(self.getType(ForNode))
-        FOR_BODY.setParseAction(self.getType())
-        IF_CONDITION.setParseAction(self.getType())
-        IF_BODY.setParseAction(self.getType())
-        ELSE.setParseAction(self.getType())
+        FOR_BODY.setParseAction(self.getType(ParseNode))
+        IF_CONDITION.setParseAction(self.getType(ParseNode))
+        IF_BODY.setParseAction(self.getType(ParseNode))
+        ELSE.setParseAction(self.getType(ParseNode))
         FUNCTION.setParseAction(self.getType(Function))
         DEBUG.setParseAction(self.getType(Debug))
 

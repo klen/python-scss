@@ -1,6 +1,6 @@
-from scss.base import Node, Empty
+from scss.base import Node, Empty, ParseNode
 from scss.grammar import VAL_STRING
-from scss.value import Length, Color, Value
+from scss.value import Color, Variable
 
 
 class VarDef(Empty):
@@ -17,112 +17,13 @@ class VarDef(Empty):
         return self
 
 
-class Variable(Node):
-    """ Get variable value.
-    """
-    def __init__(self, t, s):
-        super(Variable, self).__init__(t, s)
-        self.ctx = None
-
-    def copy(self, ctx=None):
-        self.ctx = ctx
-        if isinstance(self.value, Node):
-            return self.value.copy(ctx)
-        return self.value
-
-    @property
-    def value(self):
-        """ Return variable value.
-        """
-        name = self.data[1]
-        if self.ctx and self.ctx.get(name):
-            return self.ctx.get(name)
-        return self.stylecheet.get_var(name)
-
-    def math(self, arg, op):
-        if isinstance(self.value, (int, str)):
-            return Length((str(self.value), 'px')).math(arg, op)
-        return self.value.math(arg, op)
-
-    def __str__(self):
-        return str(self.value)
-
-    def __int__(self):
-        return int(float(self))
-
-    def __float__(self):
-        try:
-            return float(self.value)
-        except ValueError:
-            return 0.0
-
-
 class SepValString(Node):
     """ Separated value.
     """
     delim = ', '
-    def math(self, arg, op):
-        return self
 
 
-class VarStringMeta(type):
-    def __call__(mcs, *args):
-        data = args[0]
-        if len(data) == 1 and isinstance( data[0], ( Node, Value ) ):
-            return data[0]
-        return super(VarStringMeta, mcs).__call__(*args)
-
-
-class VarString(Variable):
-    """ Parse mathematic operation.
-    """
-    __metaclass__ = VarStringMeta
-
-    @property
-    def value(self):
-
-        for n in self.data:
-            if isinstance(n, Variable):
-                n.ctx = self.ctx
-
-        it = iter(self.data)
-        # result = res = next(it)
-        # first = 0
-        # while True:
-            # try:
-                # op = FNCT.get(res, None)
-                # if op:
-                    # second = next(it)
-                    # result = op(first, second)
-                # first, res = res, next(it)
-            # except StopIteration:
-                # break
-        # return result
-
-
-        if self.data[0] == '-':
-            res = self.data[1]
-            while isinstance(res, Variable):
-                res = res.value
-            self.data.insert(0, Length(('0', res.units)))
-        res = next(it)
-        op = True
-        while op:
-            try:
-                op = next(it)
-                if op in "+-/*":
-                    arg = next(it)
-                    if isinstance(res, str):
-                        res = Length((res, 'px'))
-                    res = res.math(arg, op)
-                else:
-                    break
-            except StopIteration:
-                op = False
-        return res
-
-
-class Mixin(Empty):
+class Mixin(ParseNode):
     """ @mixin class.
     """
 
@@ -140,8 +41,12 @@ class Mixin(Empty):
                     node = e.copy(ctx)
                     node.parse(target)
 
+    def __str__(self):
+        return ''
 
-class Include(Node):
+
+
+class Include(ParseNode):
     """ @include class.
     """
 
@@ -164,7 +69,7 @@ class Include(Node):
             self.mixin.include(target, self.params)
 
 
-class Extend(Node):
+class Extend(ParseNode):
     """ @extend at rule.
     """
     def parse(self, target):
@@ -186,7 +91,7 @@ class Function(Variable):
         return ', '.join("%s%d" % (str( pm[0] ).strip("'"), x) for x in xrange(int(float(pm[1])), int(float(pm[2])+1)))
 
     def rgb(self, pm):
-        return Color(( '#', ''.join('%x' % int(x) for x in pm) ))
+        return Color(( '#', ''.join('%x' % int(float(x)) for x in pm) ))
 
     def rgba(self, pm):
         return 'rgba(%s)' % ', '.join(str(p) for p in pm)
@@ -208,7 +113,7 @@ class Function(Variable):
         return str(self.__parse())
 
 
-class IfNode(Node):
+class IfNode(ParseNode):
 
     def __init__(self, t, s):
         super(IfNode, self).__init__(t, s)
@@ -221,15 +126,16 @@ class IfNode(Node):
         return ''
 
     def get_node(self):
-        self.cond = self.cond.safe_str()
-        ctest = self.cond.strip("'")
+        cond = self.cond.delim.join(
+            (e if not e.isalnum() else "'%s'" % e) if isinstance(e, str) else "'%s'" % str(e) for e in self.cond.data)
+        ctest = cond.strip("'")
         if ctest.isdigit():
             return self.body if int(ctest) else self.els
         elif ctest.lower() == 'false':
             return self.els
         else:
             try:
-                return self.body if eval(self.cond) else self.els
+                return self.body if eval(cond) else self.els
             except SyntaxError:
                 return self.els
 
@@ -240,7 +146,7 @@ class IfNode(Node):
                 n.parse(target)
 
 
-class ForNode(Node):
+class ForNode(ParseNode):
     def __init__(self, t, s):
         super(ForNode, self).__init__(t, s)
         self.var, self.first, self.second, self.body = self.data
@@ -250,7 +156,7 @@ class ForNode(Node):
 
     def __parse(self):
         name = self.var.data[1]
-        for i in xrange(int(self.first), int(self.second)+1):
+        for i in xrange(int(float( self.first )), int(float( self.second ))+1):
             yield self.body.copy({name: i})
 
     def __str__(self):
