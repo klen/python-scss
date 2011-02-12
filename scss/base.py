@@ -39,3 +39,18 @@ class Empty(Node):
     def __str__(self):
         return ''
     safe_str = __str__
+
+
+class SepValString(Node):
+    """ Separated value.
+    """
+    delim = ', '
+
+
+class SimNode(Node):
+    delim = ' '
+
+
+class SemiNode(SimNode):
+    def __str__(self):
+        return super(SemiNode, self).__str__() + ';'

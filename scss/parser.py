@@ -3,19 +3,10 @@ import logging
 import os.path
 from collections import defaultdict
 
-from scss.base import Node, Empty, ParseNode
-from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, SepValString, VarDef
+from scss.base import Node, Empty, ParseNode, SimNode, SemiNode, SepValString
+from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
 from scss.value import Length, Color, StrValue, VarString, Variable
-
-
-class SimNode(Node):
-    delim = ' '
-
-
-class SemiNode(SimNode):
-    def __str__(self):
-        return super(SemiNode, self).__str__() + ';'
 
 
 class Comment(SimNode):

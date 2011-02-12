@@ -17,12 +17,6 @@ class VarDef(Empty):
         return self
 
 
-class SepValString(Node):
-    """ Separated value.
-    """
-    delim = ', '
-
-
 class Mixin(ParseNode):
     """ @mixin class.
     """
