@@ -1,7 +1,7 @@
 import colorsys
 import operator
 
-from scss.base import CopyNode, Node
+from scss.base import Node
 
 
 FNCT = {
@@ -133,7 +133,7 @@ class BooleanValue(Value):
         return 'true' if self.value else 'false'
 
 
-class Variable(CopyNode, Value):
+class Variable(Node, Value):
     """ Get variable value.
     """
     def __init__(self, t, s):
@@ -142,7 +142,7 @@ class Variable(CopyNode, Value):
 
     def copy(self, ctx=None):
         self.ctx = ctx
-        if isinstance(self.value, CopyNode):
+        if isinstance(self.value, Node):
             return self.value.copy(ctx)
         return self.value
 
@@ -168,7 +168,7 @@ class Variable(CopyNode, Value):
 class VarStringMeta(type):
     def __call__(mcs, *args):
         data = args[0]
-        if len(data) == 1 and isinstance( data[0], ( CopyNode, Value ) ):
+        if len(data) == 1 and isinstance( data[0], ( Node, Value ) ):
             return data[0]
         return super(VarStringMeta, mcs).__call__(*args)
 

@@ -8,7 +8,7 @@ class Node(object):
     def parse(self, e):
         pass
 
-    def copy(self):
+    def copy(self, ctx=None):
         return self
 
     def __str__(self):

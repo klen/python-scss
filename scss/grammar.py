@@ -65,8 +65,6 @@ VAL_STRING << ((VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARENS ))
 INTERPOLATION_VAR = Suppress("#") + LACC + VAL_STRING + RACC
 
 # Property values
-# TERM = Optional(UNARY_OPERATOR.suppress()) + (URI | VAL_STRING)
-# EXPR = TERM + ZeroOrMore(Optional(OPERATOR) + TERM) + Optional(PRIO)
 SEP_VAL_STRING = VAL_STRING + OneOrMore(COMMA.suppress() + VAL_STRING)
 TERM = ( DIV_STRING | VAL_STRING ) + Optional(COMMA)
 EXPR = OneOrMore(TERM) + Optional(PRIO)

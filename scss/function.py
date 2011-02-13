@@ -1,4 +1,4 @@
-from scss.base import CopyNode, Empty, ParseNode
+from scss.base import Node, Empty, ParseNode
 from scss.grammar import VAL_STRING
 from scss.value import ColorValue, Variable
 
@@ -31,7 +31,7 @@ class Mixin(ParseNode):
 
         if not isinstance(target, Mixin):
             for e in self.data:
-                if isinstance(e, CopyNode):
+                if isinstance(e, ParseNode):
                     node = e.copy(ctx)
                     node.parse(target)
 
@@ -50,13 +50,11 @@ class Include(ParseNode):
         self.params = t[1:]
 
     def __str__(self):
-        out = ''
         if not self.mixin is None:
-            node = CopyNode([])
-            self.parse(node)
-            for r in getattr(node, 'ruleset', []):
-                out += str(r)
-        return out
+            node = Node([])
+            self.mixin.include(node, self.params)
+            if hasattr(node, 'ruleset'):
+                return ''.join(str(r) for r in getattr(node, 'ruleset'))
 
     def parse(self, target):
         if not self.mixin is None:
