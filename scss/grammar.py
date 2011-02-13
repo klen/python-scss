@@ -38,7 +38,7 @@ DEBUG_SYM = Suppress("@debug")
 # Property values
 HASH = Word('#', alphanums + "_-")
 HEXCOLOR = Literal("#") + Word(hexnums, min=3, max=6)
-LENGTH = NUMBER + oneOf("em ex px cm mm in pt pc %")
+NUMBER_VALUE = NUMBER + oneOf("em ex px cm mm in pt pc %")
 PATH = Word(alphanums + "_-/.", alphanums + "_-./?#&")
 PRIO = "!important"
 
@@ -53,7 +53,7 @@ IF_OPERATOR = oneOf("== != <= >= < >")
 
 # Parse values
 FUNCTION = IDENT + LPAREN + SkipTo(')') + RPAREN
-SIMPLE_VALUE = FUNCTION | LENGTH | NUMBER | PATH | IDENT | HEXCOLOR | quotedString
+SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | NUMBER | PATH | IDENT | HEXCOLOR | quotedString
 VALUE = Optional('-') + ( SIMPLE_VALUE | VARIABLE )
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 

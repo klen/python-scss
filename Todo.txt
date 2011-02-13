@@ -1,4 +1,6 @@
 Move function to values
+Add boolean values parse
+Enable verbose stacktrace
 IF node add real compare operators
 Drop copy all nodes ( only vars )
 Add caching using pickle save default flag

@@ -1,7 +1,7 @@
 import colorsys
 import operator
 
-from scss.base import Node
+from scss.base import CopyNode, Node
 
 
 FNCT = {
@@ -33,10 +33,10 @@ class Value(object):
     __rmul__ = __mul__
 
 
-class Color(Value):
+class ColorValue(Value):
 
     def __init__(self, t):
-        super(Color, self).__init__()
+        super(ColorValue, self).__init__()
         self.units, self.value = t
         if len(self.value) == 3:
             self.value = ''.join(v*2 for v in self.value)
@@ -67,14 +67,14 @@ class Color(Value):
 
     @classmethod
     def _do_op(cls, self, other, op):
-        if isinstance(other, Color):
+        if isinstance(other, ColorValue):
             res = map(
                 lambda x, y: max(min(255, op(x, y)), 0),
                 self.hex_to_rgb(self.value),
                 self.hex_to_rgb(other.value))
             res = self.rgb_to_hex(*res)
 
-        elif isinstance(other, Length):
+        elif isinstance(other, NumberValue):
             a = self.hex_to_hsv(self.value)
             br = op(a[2], (a[2] * other.value))
             res = colorsys.hsv_to_rgb(a[0], a[1], br)
@@ -87,10 +87,10 @@ class Color(Value):
         return cls(('#', res))
 
 
-class Length(Value):
+class NumberValue(Value):
 
     def __init__(self, t):
-        super(Length, self).__init__()
+        super(NumberValue, self).__init__()
         self.value, self.units = t
         self.value = float(self.value) / 100.00 if self.units == '%' else float(self.value)
 
@@ -109,10 +109,10 @@ class Length(Value):
         return cls((value, self.units))
 
 
-class StrValue(Value):
+class StringValue(Value):
 
     def __init__(self, t):
-        super(StrValue, self).__init__()
+        super(StringValue, self).__init__()
         self.value = t[0].strip('\'"')
 
     def __str__(self):
@@ -123,7 +123,17 @@ class StrValue(Value):
         return cls((op(self.value, str(other).strip("'")),))
 
 
-class Variable(Node, Value):
+class BooleanValue(Value):
+
+    def __init__(self, t):
+        super(BooleanValue, self).__init__()
+        self.value = True if t[0] == 'true' else False
+
+    def __str__(self):
+        return 'true' if self.value else 'false'
+
+
+class Variable(CopyNode, Value):
     """ Get variable value.
     """
     def __init__(self, t, s):
@@ -132,7 +142,7 @@ class Variable(Node, Value):
 
     def copy(self, ctx=None):
         self.ctx = ctx
-        if isinstance(self.value, Node):
+        if isinstance(self.value, CopyNode):
             return self.value.copy(ctx)
         return self.value
 
@@ -158,7 +168,7 @@ class Variable(Node, Value):
 class VarStringMeta(type):
     def __call__(mcs, *args):
         data = args[0]
-        if len(data) == 1 and isinstance( data[0], ( Node, Value ) ):
+        if len(data) == 1 and isinstance( data[0], ( CopyNode, Value ) ):
             return data[0]
         return super(VarStringMeta, mcs).__call__(*args)
 
@@ -174,10 +184,10 @@ class VarString(Variable):
             value = value.value
         if isinstance(value, str):
             if value.isdigit():
-                return Length((value, 'px'))
-            return StrValue((value,))
+                return NumberValue((value, 'px'))
+            return StringValue((value,))
         if isinstance(value, int):
-            return Length((value, 'px'))
+            return NumberValue((value, 'px'))
         return value
 
     @property
@@ -192,7 +202,7 @@ class VarString(Variable):
 
         if FNCT.get(self.data[0], None):
             v = self.prepare( self.data[1] )
-            self.data.insert(0, Length((0, v.units)))
+            self.data.insert(0, NumberValue((0, v.units)))
 
         it = iter(self.data)
         first, res = next(it), next(it)

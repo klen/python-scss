@@ -41,7 +41,7 @@ class TestSCSS( unittest.TestCase ):
                 border:2px; }
 
             """
-        test = "@charset utf-8;\n            @import url(test);\n\n            @media print { \na:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n }/* Css comment */ \n\nbody {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia, sans-serif;\n\tmargin-bottom: .5em}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace, sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
+        test = "@charset utf-8;\n            @import url(test);\n\n            @media print { \na:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n }/* Css comment */\n\nbody {\n\t*font: 13px/1.231 sans-serif;\n\tfont-family: Georgia, sans-serif;\n\tmargin-bottom: .5em}\n\n.test {\n\tcolor: red}\n\n.test:after {\n\tcontent: 'blue'}\n\npre, code, kbd, samp {\n\tfont: 12px/10px;\n\tfont-family: monospace, sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}"
         out = parser.parse(src)
         self.assertEqual(test, out)
 

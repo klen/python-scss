@@ -1,6 +1,4 @@
 class Node(object):
-    """ Base node for scss objects.
-    """
     delim = ''
 
     def __init__(self, t, s=None):
@@ -10,15 +8,21 @@ class Node(object):
     def parse(self, e):
         pass
 
-    def copy(self, ctx=None):
-        t = [e.copy(ctx) if isinstance(e, Node) else e for e in self.data]
-        return self.__class__(t, self.stylecheet)
+    def copy(self):
+        return self
 
     def __str__(self):
         return self.delim.join(str(e) for e in self.data)
 
 
-class ParseNode(Node):
+class CopyNode(Node):
+
+    def copy(self, ctx=None):
+        t = [e.copy(ctx) if isinstance(e, Node) else e for e in self.data]
+        return self.__class__(t, self.stylecheet)
+
+
+class ParseNode(CopyNode):
 
     delim = ' '
 
@@ -38,7 +42,6 @@ class ParseNode(Node):
 class Empty(Node):
     def __str__(self):
         return ''
-    safe_str = __str__
 
 
 class SepValString(Node):
@@ -47,10 +50,10 @@ class SepValString(Node):
     delim = ', '
 
 
-class SimNode(Node):
+class SimpleNode(Node):
     delim = ' '
 
 
-class SemiNode(SimNode):
+class SemiNode(SimpleNode):
     def __str__(self):
         return super(SemiNode, self).__str__() + ';'

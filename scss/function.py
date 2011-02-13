@@ -1,6 +1,6 @@
-from scss.base import Node, Empty, ParseNode
+from scss.base import CopyNode, Empty, ParseNode
 from scss.grammar import VAL_STRING
-from scss.value import Color, Variable
+from scss.value import ColorValue, Variable
 
 
 class VarDef(Empty):
@@ -31,7 +31,7 @@ class Mixin(ParseNode):
 
         if not isinstance(target, Mixin):
             for e in self.data:
-                if isinstance(e, Node):
+                if isinstance(e, CopyNode):
                     node = e.copy(ctx)
                     node.parse(target)
 
@@ -52,7 +52,7 @@ class Include(ParseNode):
     def __str__(self):
         out = ''
         if not self.mixin is None:
-            node = Node([])
+            node = CopyNode([])
             self.parse(node)
             for r in getattr(node, 'ruleset', []):
                 out += str(r)
@@ -85,7 +85,7 @@ class Function(Variable):
         return ', '.join("%s%d" % (str( pm[0] ).strip("'"), x) for x in xrange(int(float(pm[1])), int(float(pm[2])+1)))
 
     def rgb(self, pm):
-        return Color(( '#', ''.join('%x' % int(float(x)) for x in pm) ))
+        return ColorValue(( '#', ''.join('%x' % int(float(x)) for x in pm) ))
 
     def rgba(self, pm):
         return 'rgba(%s)' % ', '.join(str(p) for p in pm)

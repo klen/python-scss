@@ -3,13 +3,13 @@ import logging
 import os.path
 from collections import defaultdict
 
-from scss.base import Node, Empty, ParseNode, SimNode, SemiNode, SepValString
+from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
 from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
-from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, LENGTH, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
-from scss.value import Length, Color, StrValue, VarString, Variable
+from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
+from scss.value import NumberValue, ColorValue, StringValue, VarString, Variable
 
 
-class Comment(SimNode):
+class Comment(Node):
     def __str__(self):
         if self.stylecheet.ignore_comment:
             return ''
@@ -154,7 +154,7 @@ class Mixinparam(ParseNode):
 
 class Stylecheet(object):
 
-    defvalue = Length(('0', 'px'))
+    defvalue = NumberValue(('0', 'px'))
 
     def __init__(self, cache = None, ignore_comment=False):
         self.cache = cache or dict(
@@ -165,30 +165,35 @@ class Stylecheet(object):
         )
         self.ignore_comment = ignore_comment
 
+        # Comments
         CSS_COMMENT.setParseAction(self.getType(Comment))
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
-        MEDIA.setParseAction(self.getType(SimNode))
+        # At rules
+        MEDIA.setParseAction(self.getType(SimpleNode))
         CHARSET.setParseAction(self.getType(SemiNode))
+        FONT_FACE.setParseAction(self.getType(FontFace))
         EMPTY.setParseAction(self.getType(Empty))
 
-        HEXCOLOR.setParseAction(self.getType(Color, style=False))
-        LENGTH.setParseAction(self.getType(Length, style=False))
-        quotedString.setParseAction(self.getType(StrValue, style=False))
-
-        DEC_NAME.setParseAction(self.getType())
-        SEP_VAL_STRING.setParseAction(self.getType(SepValString))
-        TERM.setParseAction(self.getType())
+        # Values and variables
+        HEXCOLOR.setParseAction(ColorValue)
+        NUMBER_VALUE.setParseAction(NumberValue)
+        quotedString.setParseAction(StringValue)
 
         VAR_DEFINITION.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))
+        SEP_VAL_STRING.setParseAction(self.getType(SepValString))
         VAL_STRING.setParseAction(self.getType(VarString))
+
+        # Declarations
+        DEC_NAME.setParseAction(self.getType())
+        TERM.setParseAction(self.getType())
         DECLARATION.setParseAction(self.getType(Declaration))
+
         DECLARESET.setParseAction(self.getType(DeclareSet))
         SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
         SELECTOR.setParseAction(self.getType())
         RULESET.setParseAction(self.getType(Ruleset))
-        FONT_FACE.setParseAction(self.getType(FontFace))
 
         MIXIN_PARAM.setParseAction(self.getType(Mixinparam))
         MIXIN.setParseAction(self.getType(Mixin))
@@ -205,10 +210,14 @@ class Stylecheet(object):
         DEBUG.setParseAction(self.getType(Debug))
 
     def get_var(self, name):
+        """ Get variable from global stylesheet context.
+        """
         rec = self.cache['ctx'].get(name)
         return rec[0] if rec else self.defvalue
 
     def set_var(self, name, value, default=False):
+        """ Set variable to global stylesheet context.
+        """
         if not(default and self.cache['ctx'].get(name)):
             self.cache['ctx'][name] = value, default
 
@@ -227,10 +236,14 @@ class Stylecheet(object):
         return cPickle.dumps(self.cache)
 
     def loads(self, src):
+        """ Parse string and return self cache.
+        """
         self.cache['out'] = STYLESHEET.transformString(src).strip()
         return self.cache
 
     def update(self, cache):
+        """ Update self cache from other.
+        """
         self.cache['out'] += cache.get('out')
         self.mixctx.update(cache.get('mix'))
         self.rset.update(cache.get('rset'))
@@ -259,7 +272,7 @@ class Stylecheet(object):
         self.loads(src)
         return str(self)
 
-    def getType(self, node=Node, style=True):
+    def getType(self, node=CopyNode, style=True):
         def wrap(s, l, t):
             if style:
                 return node(t, self)
