@@ -7,12 +7,6 @@ class Node(object):
     def __init__(self, t, s=None):
         self.data, self.stylecheet = t, s
 
-    def parse(self, e):
-        pass
-
-    def copy(self, ctx=None):
-        return self
-
     def __str__(self):
         return self.delim.join(str(e) for e in self.data)
 
@@ -20,7 +14,9 @@ class Node(object):
 class CopyNode(Node):
 
     def copy(self, ctx=None):
-        t = ParseResults([ e.copy(ctx) if isinstance(e, Node) else e for e in self.data ])
+        t = ParseResults([
+            e.copy(ctx) if hasattr(e, 'copy') else e for e in self.data
+        ])
         return self.__class__(t, self.stylecheet)
 
 
@@ -31,7 +27,7 @@ class ParseNode(CopyNode):
     def __init__(self, t, s=None):
         super(ParseNode, self).__init__(t, s)
         for e in self.data:
-            if isinstance(e, ParseNode):
+            if hasattr(e, 'parse'):
                 e.parse(self)
 
     def parse(self, e):
