@@ -142,7 +142,7 @@ class Variable(Node, Value):
 
     def copy(self, ctx=None):
         self.ctx = ctx
-        if isinstance(self.value, Node):
+        if hasattr(self.value, 'copy'):
             return self.value.copy(ctx)
         return self.value
 
