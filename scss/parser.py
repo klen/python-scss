@@ -3,6 +3,8 @@ import logging
 import os.path
 from collections import defaultdict
 
+from pyparsing import ParseResults
+
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
 from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT
@@ -40,13 +42,13 @@ class SelectorGroup(ParseNode):
     """ Part of css rule.
     """
     def increase(self, other):
-        return SelectorGroup(self.data + other.data[1:])
+        return SelectorGroup(ParseResults( list( self.data ) + other.data[1:] ))
 
     def __add__(self, other):
         test = str(other)
         if '&' in test:
             stest = str(self)
-            return SelectorGroup(test.replace('&', stest).split())
+            return SelectorGroup(ParseResults( test.replace('&', stest).split() ))
         else:
             return SelectorGroup(self.data + other.data)
 
@@ -95,7 +97,7 @@ class Ruleset(ParseNode):
                 test = str(e)
                 if ',' in test:
                     for x in test.split(','):
-                        result.append(SelectorGroup([x.strip()]))
+                        result.append(SelectorGroup(ParseResults( [x.strip()] )))
                 else:
                     result.append(e)
             else:

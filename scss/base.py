@@ -1,9 +1,11 @@
+from pyparsing import ParseResults
+
+
 class Node(object):
     delim = ''
 
     def __init__(self, t, s=None):
-        self.data = list(t)
-        self.stylecheet = s
+        self.data, self.stylecheet = t, s
 
     def parse(self, e):
         pass
@@ -18,7 +20,7 @@ class Node(object):
 class CopyNode(Node):
 
     def copy(self, ctx=None):
-        t = [e.copy(ctx) if isinstance(e, Node) else e for e in self.data]
+        t = ParseResults([ e.copy(ctx) if isinstance(e, Node) else e for e in self.data ])
         return self.__class__(t, self.stylecheet)
 
 
