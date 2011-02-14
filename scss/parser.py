@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
 from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
-from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString
+from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT
 from scss.value import NumberValue, ColorValue, StringValue, VarString, Variable
 
 
@@ -171,6 +171,7 @@ class Stylecheet(object):
 
         # At rules
         MEDIA.setParseAction(self.getType(SimpleNode))
+        IMPORT.setParseAction(self.getType(SemiNode))
         CHARSET.setParseAction(self.getType(SemiNode))
         FONT_FACE.setParseAction(self.getType(FontFace))
         EMPTY.setParseAction(self.getType(Empty))
@@ -238,7 +239,8 @@ class Stylecheet(object):
     def loads(self, src):
         """ Parse string and return self cache.
         """
-        self.cache['out'] = STYLESHEET.transformString(src).strip()
+        # self.cache['out'] = ''.join(str(e) for e in STYLESHEET.parseString(src, parseAll=True)).strip()
+        self.cache['out'] = STYLESHEET.transformString(src.strip()).strip()
         return self.cache
 
     def update(self, cache):

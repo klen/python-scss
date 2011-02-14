@@ -56,4 +56,4 @@ class SimpleNode(Node):
 
 class SemiNode(SimpleNode):
     def __str__(self):
-        return super(SemiNode, self).__str__() + ';'
+        return super(SemiNode, self).__str__() + ';\n'
