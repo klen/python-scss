@@ -8,36 +8,34 @@ class VarDef(Empty):
     """
     def __init__(self, t, s):
         super(VarDef, self).__init__(t, s)
-        name, self.value, default = t
+        name, self.value, default = self.data
         default = not isinstance(default, Empty)
-        s.set_var(name, self.value, default)
+        self.stylecheet.set_var(name, self.value, default)
 
     def copy(self, ctx=None):
         self.value.ctx = ctx
         return self
 
 
-class Mixin(ParseNode):
+class Mixin(ParseNode, Empty):
     """ @mixin class.
     """
 
     def __init__(self, t, s=None):
         super(Mixin, self).__init__(t, s)
-        s.mixctx[t[0]] = self
+        self.stylecheet.mixctx[t[0]] = self
 
     def include(self, target, params):
+        if isinstance(target, Mixin):
+            return
+
         test = map(lambda x, y: (x, y), getattr(self, 'mixinparam', []), params)
         ctx = dict(( mp.name, v or mp.default ) for mp, v in test if mp)
 
-        if not isinstance(target, Mixin):
-            for e in self.data:
-                if isinstance(e, ParseNode):
-                    node = e.copy(ctx)
-                    node.parse(target)
-
-    def __str__(self):
-        return ''
-
+        for e in self.data:
+            if isinstance(e, ParseNode):
+                node = e.copy(ctx)
+                node.parse(target)
 
 
 class Include(ParseNode):
