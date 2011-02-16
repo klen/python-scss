@@ -122,15 +122,15 @@ Examples
 
     ...produces::
 
-    .error, .seriousError {
-        background-color: #fdd;
-        border: 1px #f00}
+        .error, .seriousError {
+            background-color: #fdd;
+            border: 1px #f00}
 
-    .error .intrusion, .seriousError .intrusion {
-        background-image: url('/image/hacked.png')}
+        .error .intrusion, .seriousError .intrusion {
+            background-image: url('/image/hacked.png')}
 
-    .seriousError {
-        border-width: 3px}
+        .seriousError {
+            border-width: 3px}
 
 
 
