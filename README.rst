@@ -123,14 +123,14 @@ Examples
     ...produces::
 
     .error, .seriousError {
-            background-color: #fdd;
-            border: 1px #f00}
+        background-color: #fdd;
+        border: 1px #f00}
 
     .error .intrusion, .seriousError .intrusion {
-            background-image: url('/image/hacked.png')}
+        background-image: url('/image/hacked.png')}
 
     .seriousError {
-            border-width: 3px}
+        border-width: 3px}
 
 
 
