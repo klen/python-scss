@@ -30,7 +30,7 @@ class DeclareSet(ParseNode):
         super(DeclareSet, self).__init__(t, s)
 
     def render(self, target):
-        name = self.data[0]
+        name = str(self.data[0])
         for dec in getattr(self, 'declareset', []):
             dec.render(self)
         for dc in self.declaration:
