@@ -1,3 +1,4 @@
 .ropeproject
+docs/_*
 *.pyc
 compass
