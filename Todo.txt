@@ -3,8 +3,9 @@ Add boolean values parse
 Enable verbose stacktrace
 IF node add real compare operators
 Drop copy all nodes ( only vars )
-Add caching using pickle save default flag
+Change sorting declaration and add option for this
 Fix selector bug
+Add caching using pickle save default flag
 Add @debug, @warn
 Add output styles
 Add declaration check for dublicate
