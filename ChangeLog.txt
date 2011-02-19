@@ -3,7 +3,8 @@ Changes
 
 ## 2011-02-19 0.5.0
 -------------------
-* Add rgba support
+* Add full rgba support
+* Add red, green, blue, mix functions
 
 ## 2011-02-18 0.4.9
 -------------------

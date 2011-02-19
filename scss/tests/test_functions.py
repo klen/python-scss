@@ -33,3 +33,18 @@ class TestSCSS( unittest.TestCase ):
         out = parser.parse(src)
         self.assertEqual(test, out)
 
+    def test_rgb_functions(self):
+        src = """
+            $color: rgba(23, 45, 67, .4)
+            $color2: #fdc;
+            .test {
+                red: red($color);
+                blue: blue($color);
+                green: green($color);
+                mix: mix(#f00, #00f, 25%);
+            }
+        """
+        test = ".test {\n\tblue: 67;\n\tgreen: 45;\n\tmix: #3f00bf;\n\tred: 23}"
+        out = parser.parse(src)
+        self.assertEqual(test, out)
+

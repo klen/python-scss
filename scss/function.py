@@ -1,17 +1,49 @@
 import math
-from scss.value import ColorValue
+from scss.value import ColorValue, NumberValue
 
 def unknown(name, *args):
     return "%s(%s)" % ( name, ', '.join(str(a) for a in args) )
 
 def _rgb(r, g, b):
+    """ Converts an rgb(red, green, blue) triplet into a color.
+    """
     return _rgba(r, g, b, 1.0)
 
 def _rgba(r, g, b, a):
+    """ Converts an rgba(red, green, blue, alpha) quadruplet into a color.
+    """
     return ColorValue(( float(r), float(g), float(b), float(a) ))
 
-def _rgba2(*args):
-    pass
+def _red(color):
+    """ Gets the red component of a color.
+    """
+    return NumberValue(color.value[0])
+
+def _green(color):
+    """ Gets the green component of a color.
+    """
+    return NumberValue(color.value[1])
+
+def _blue(color):
+    """ Gets the blue component of a color.
+    """
+    return NumberValue(color.value[2])
+
+def _mix(color1, color2, weight=0.5):
+    """ Mixes two colors together.
+    """
+    weight = float(weight)
+    c1 = color1.value
+    c2 = color2.value
+    p = 0.0 if weight < 0 else 1.0 if weight > 1 else weight
+    w = p * 2 - 1
+    a = c1[3] - c2[3]
+
+    w1 = ((w if (w * a == -1) else (w + a) / (1 + w * a)) + 1) / 2.0
+    w2 = 1 - w1
+    q = [ w1, w1, w1, p ]
+    r = [ w2, w2, w2, 1 - p ]
+    return ColorValue([ c1[i] * q[i] + c2[i] * r[i] for i in range(4) ])
 
 def _enumerate(s, b, e):
     return ', '.join(
@@ -111,22 +143,10 @@ def _complement(*args):
 def _invert(*args):
     pass
 
-def _mix(*args):
-    pass
-
 def _hsl(*args):
     pass
 
 def _hsla(*args):
-    pass
-
-def _red(*args):
-    pass
-
-def _green(*args):
-    pass
-
-def _blue(*args):
     pass
 
 def _alpha(*args):
@@ -184,7 +204,6 @@ FUNCTION = {
 
     # RGB Functions
     'rgb:3': _rgb,
-    'rgba:2': _rgba2,
     'rgba:4': _rgba,
     'red:1': _red,
     'green:1': _green,

@@ -65,7 +65,7 @@ class ColorValue(Value):
             if v[0] == v[1] and v[2] == v[3] and v[4] == v[5]:
                 v = v[0] + v[2] + v[4]
             return '#%s' % v
-        return 'rgba(%02d,%02d,%02d,%.2f)' % self.value
+        return 'rgba(%d,%d,%d,%.2f)' % self.value
 
     @classmethod
     def _do_op(cls, self, other, op):
@@ -78,7 +78,7 @@ class ColorValue(Value):
 
         elif isinstance(other, NumberValue):
             a = colorsys.rgb_to_hsv(*self.value[:3])
-            br = op(a[2], (a[2] * other.value))
+            br = op(a[2], (a[2] * float(other)))
             res = colorsys.hsv_to_rgb(a[0], a[1], br)
             res = res + ( 1.0, )
 
@@ -92,22 +92,29 @@ class NumberValue(Value):
 
     def __init__(self, t):
         super(NumberValue, self).__init__()
-        self.value, self.units = t
-        self.value = float(self.value) / 100.00 if self.units == '%' else float(self.value)
+        if t is None:
+            self.value, self.units = 0.0, ''
+        elif isinstance(t, (int, float, str)):
+            self.value, self.units = float(t), ''
+        elif isinstance(t, NumberValue):
+            self.value, self.units = t.value, t.units
+        else:
+            self.value, self.units = t
+            self.value = float(self.value)
 
     def __float__(self):
-        return self.value
+        return self.value / 100.0 if self.units == '%' else self.value
 
     def __str__(self):
-        value = ("%0.03f" % ( self.value * 100.00 if self.units == '%' else self.value )).strip('0').rstrip('.') or 0
+        value = ("%0.03f" % self.value).strip('0').rstrip('.') or 0
         return "%s%s" % (value, self.units)
 
     @classmethod
     def _do_op(cls, self, other, op):
         value = op(float(self), float(other))
         if self.units == '%':
-            value = value * 100
-        return cls((value, self.units))
+            value = value * 100.0
+        return cls((value, self.units or other.units))
 
 
 class StringValue(Value):
@@ -185,10 +192,10 @@ class VarString(Variable):
             value = value.value
         if isinstance(value, str):
             if value.isdigit():
-                return NumberValue((value, 'px'))
+                return NumberValue(value)
             return StringValue((value,))
         if isinstance(value, int):
-            return NumberValue((value, 'px'))
+            return NumberValue(value)
         return value
 
     @property
@@ -202,8 +209,7 @@ class VarString(Variable):
             return self.data[0]
 
         if FNCT.get(self.data[0], None):
-            v = self.prepare( self.data[1] )
-            self.data.insert(0, NumberValue((0, v.units)))
+            self.data.insert(0, NumberValue(0))
 
         it = iter(self.data)
         first, res = next(it), next(it)

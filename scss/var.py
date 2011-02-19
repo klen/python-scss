@@ -1,7 +1,7 @@
 from scss.base import Node, Empty, ParseNode
-from scss.grammar import VAL_STRING
-from scss.value import ColorValue, Variable
 from scss.function import FUNCTION, unknown
+from scss.grammar import VAL_STRING
+from scss.value import Variable
 
 
 class VarDef(Empty):
@@ -76,13 +76,11 @@ class Function(Variable):
     def __init__(self, t, s):
         super(Function, self).__init__(t, s)
         self.name, params = self.data
-        self.params = tuple( p[0][0] for p in VAL_STRING.scanString(params) )
-
-    def rgb(self, pm):
-        return ColorValue(( '#', ''.join('%x' % int(float(x)) for x in pm) ))
-
-    def rgba(self, pm):
-        return 'rgba(%s)' % ', '.join(str(p) for p in pm)
+        self.params = list()
+        for value in ( p[0][0] for p in VAL_STRING.scanString(params) ):
+            while isinstance(value, Variable):
+                value = value.value
+            self.params.append(value)
 
     @property
     def value(self):

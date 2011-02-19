@@ -11,7 +11,7 @@ class TestSCSS( unittest.TestCase ):
                 $width: $src + 5px;
                 width: $width;
             }
-            $test: 9;
+            $test: 9px;
             $for: $test - 5;
             .test {
                 color: blue;
