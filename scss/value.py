@@ -1,35 +1,25 @@
 import colorsys
-import operator
 
+from scss import OPRT, CONV_FACTOR
 from scss.base import Node
-
-
-FNCT = {
-    '^': operator.__pow__,
-    '+': operator.__add__,
-    '-': operator.__sub__,
-    '*': operator.__mul__,
-    '/': operator.__div__,
-    '!': operator.__neg__,
-}
 
 class Value(object):
     @classmethod
     def _do_op(cls, first, second, op):
         return op(first.value, second.value)
     def __add__(self, other):
-        return self._do_op(self, other, operator.__add__)
+        return self._do_op(self, other, OPRT['+'])
     __radd__ = __add__
     def __div__(self, other):
-        return self._do_op(self, other, operator.__div__)
+        return self._do_op(self, other, OPRT['/'])
     def __rdiv__(self, other):
-        return self._do_op(other, self, operator.__div__)
+        return self._do_op(other, self, OPRT['/'])
     def __sub__(self, other):
-        return self._do_op(self, other, operator.__sub__)
+        return self._do_op(self, other, OPRT['-'])
     def __rsub__(self, other):
-        return self._do_op(other, self, operator.__sub__)
+        return self._do_op(other, self, OPRT['-'])
     def __mul__(self, other):
-        return self._do_op(self, other, operator.__mul__)
+        return self._do_op(self, other, OPRT['*'])
     __rmul__ = __mul__
 
 
@@ -39,6 +29,21 @@ hex2rgba = {
     4: lambda c: (int(c[0]*2, 16), int(c[1]*2, 16), int(c[2]*2, 16), int(c[3]*2, 16)),
     3: lambda c: (int(c[0]*2, 16), int(c[1]*2, 16), int(c[2]*2, 16), 1.0),
 }
+
+
+def hsl_op(op, color, h, s, l):
+    other = (float(h), float(l), float(s))
+    self = colorsys.rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))
+    res = colorsys.hls_to_rgb(*map(op, self, other))
+    return ColorValue(( res[0] * 255.0, res[1] * 255.0, res[2] * 255.0, color.value[3] ))
+
+
+def rgba_op(op, color, r, g, b, a):
+    other = (float(r), float(g), float(b), float(a))
+    res = ColorValue(map(op, color.value, other))
+    if float(a) == color.value[3] == 1:
+        res.value = (res.value[0], res.value[1], res.value[2], 1.0)
+    return res
 
 
 class ColorValue(Value):
@@ -70,22 +75,13 @@ class ColorValue(Value):
     @classmethod
     def _do_op(cls, self, other, op):
         if isinstance(other, ColorValue):
-            res = map(
-                    lambda x, y: max(min(255, op(x, y)), 0),
-                    self.value,
-                    other.value)
-            res[3] = 1.0
+            return rgba_op(op, self, *other.value)
 
         elif isinstance(other, NumberValue):
-            a = colorsys.rgb_to_hsv(*self.value[:3])
-            br = op(a[2], (a[2] * float(other)))
-            res = colorsys.hsv_to_rgb(a[0], a[1], br)
-            res = res + ( 1.0, )
+            return hsl_op(op, self, 0, float(other), 0)
 
         else:
             return self
-
-        return cls(res)
 
 
 class NumberValue(Value):
@@ -99,11 +95,11 @@ class NumberValue(Value):
         elif isinstance(t, NumberValue):
             self.value, self.units = t.value, t.units
         else:
-            self.value, self.units = t
+            self.value, self.units = t[0], t[1] if len(t) > 1 else ''
             self.value = float(self.value)
 
     def __float__(self):
-        return self.value / 100.0 if self.units == '%' else self.value
+        return self.value * CONV_FACTOR.get(self.units, 1.0)
 
     def __str__(self):
         value = ("%0.03f" % self.value).strip('0').rstrip('.') or 0
@@ -112,8 +108,11 @@ class NumberValue(Value):
     @classmethod
     def _do_op(cls, self, other, op):
         value = op(float(self), float(other))
-        if self.units == '%':
-            value = value * 100.0
+        try:
+            value /= CONV_FACTOR.get(self.units or other.units, 1.0)
+        except Exception, e:
+            import ipdb; ipdb.set_trace() ### XXX Breakpoint ###
+
         return cls((value, self.units or other.units))
 
 
@@ -121,21 +120,37 @@ class StringValue(Value):
 
     def __init__(self, t):
         super(StringValue, self).__init__()
-        self.value = t[0].strip('\'"')
+        if isinstance(t, str):
+            self.value = t
+        elif isinstance(t, StringValue):
+            self.value = t.value
+        else:
+            self.value = str(t[0]).strip('\'"')
 
     def __str__(self):
-        return "'%s'" % self.value
+        return "%s" % self.value
 
     @classmethod
     def _do_op(cls, self, other, op):
-        return cls((op(self.value, str(other).strip("'")),))
+        return cls(op(self.value, str(other).strip("'")))
+
+
+class QuotedStringValue(StringValue):
+
+    def __str__(self):
+        return "'%s'" % self.value
 
 
 class BooleanValue(Value):
 
     def __init__(self, t):
         super(BooleanValue, self).__init__()
-        self.value = True if t[0] == 'true' else False
+        if t is None:
+            self.value = False
+        elif isinstance(t, bool):
+            self.value = t
+        else:
+            self.value = True if t[0] == 'true' else False
 
     def __str__(self):
         return 'true' if self.value else 'false'
@@ -144,6 +159,7 @@ class BooleanValue(Value):
 class Variable(Node, Value):
     """ Get variable value.
     """
+
     def __init__(self, t, s):
         super(Variable, self).__init__(t, s)
         self.ctx = None
@@ -173,29 +189,23 @@ class Variable(Node, Value):
             return 0.0
 
 
-class VarStringMeta(type):
+class VarMeta(type):
     def __call__(mcs, *args):
         data = args[0]
-        if len(data) == 1 and isinstance( data[0], ( Node, Value ) ):
+        if len(data) == 1 and isinstance( data[0], ( Node, Value, str ) ):
             return data[0]
-        return super(VarStringMeta, mcs).__call__(*args)
+        return super(VarMeta, mcs).__call__(*args)
 
 
 class VarString(Variable):
     """ Parse mathematic operation.
     """
-    __metaclass__ = VarStringMeta
+    __metaclass__ = VarMeta
 
     @staticmethod
     def prepare(value):
         while isinstance(value, Variable):
             value = value.value
-        if isinstance(value, str):
-            if value.isdigit():
-                return NumberValue(value)
-            return StringValue((value,))
-        if isinstance(value, int):
-            return NumberValue(value)
         return value
 
     @property
@@ -205,17 +215,14 @@ class VarString(Variable):
             if isinstance(n, Variable):
                 n.ctx = self.ctx
 
-        if len(self.data) == 1:
-            return self.data[0]
-
-        if FNCT.get(self.data[0], None):
+        if OPRT.get(self.data[0], None):
             self.data.insert(0, NumberValue(0))
 
         it = iter(self.data)
         first, res = next(it), next(it)
         while True:
             try:
-                op = FNCT.get(res, None)
+                op = OPRT.get(res, None)
                 if op:
                     second = next(it)
                     first = op(self.prepare( first ), self.prepare( second ))

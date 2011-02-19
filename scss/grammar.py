@@ -38,7 +38,7 @@ DEBUG_SYM = Suppress("@debug")
 # Property values
 HASH = Word('#', alphanums + "_-")
 HEXCOLOR = Suppress("#") + Word(hexnums, min=3, max=8)
-NUMBER_VALUE = NUMBER + oneOf("em ex px cm mm in pt pc %")
+NUMBER_VALUE = NUMBER + oneOf("em ex px cm mm in pt pc deg %")
 PATH = Word(alphanums + "_-/.", alphanums + "_-./?#&")
 PRIO = "!important"
 
@@ -52,13 +52,13 @@ UNARY_OPERATOR = oneOf("- +")
 IF_OPERATOR = oneOf("== != <= >= < >")
 
 # Parse values
-FUNCTION = IDENT + LPAREN + SkipTo(')') + RPAREN
+VAL_STRING = Forward()
+FUNCTION = IDENT + LPAREN + VAL_STRING + ZeroOrMore(COMMA.suppress() + VAL_STRING) + RPAREN
 SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | NUMBER | PATH | IDENT | HEXCOLOR | quotedString
 VALUE = Optional('-') + ( SIMPLE_VALUE | VARIABLE )
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 
 
-VAL_STRING = Forward()
 PARENS = LPAREN + VAL_STRING + RPAREN
 VAL_STRING << ((VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARENS )))
 
@@ -133,6 +133,7 @@ MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
 IMPORT = IMPORT_SYM + FUNCTION + OPT_SEMICOLON
 MEDIA = MEDIA_SYM + IDENT + ZeroOrMore(COMMA + IDENT) + LLACC + ZeroOrMore( RULE_CONTENT | MIXIN | CONTROL_DIR ) + LRACC
 FONT_FACE = FONT_FACE_SYM + LLACC + ZeroOrMore(DECLARATION) + LRACC
+VARIABLES = ( Literal("@variables") | Literal('@vars') ) + LLACC + ZeroOrMore(VAR_DEFINITION) + RACC
 PSEUDO_PAGE = ":" + IDENT
 PAGE = PAGE_SYM + Optional(IDENT) + Optional(PSEUDO_PAGE) + LLACC + ZeroOrMore(DECLARATION) + LRACC
 CHARSET = CHARSET_SYM + IDENT + OPT_SEMICOLON
@@ -149,4 +150,7 @@ STYLESHEET = ZeroOrMore(
     | IF
     | FOR
     | IMPORT
+    | VARIABLES
+    | DECLARATION
+    | VAL_STRING
 )

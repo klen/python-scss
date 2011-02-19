@@ -3,8 +3,15 @@ Changes
 
 ## 2011-02-19 0.5.0
 -------------------
-* Add full rgba support
-* Add red, green, blue, mix functions
+* Real conversion between numbers ( 10px + 2em = 36px )
+* Add full rgba, hsl, hsla support
+* Add red, green, blue, mix rgba functions
+* Add hue, saturation, lightness, adjust_hue, lighten, darken, saturate, desaturate, grayscale, complement hsl functions
+* Add alpha, opacity, rgba, opacify, fade-in, fade-out, transparentize
+* Add quote, unqoute string functions
+* Add percentage, round, floor, ceil, abs number functions
+* Add comparable, unitless, unit, type-of functions
+* Add interactive mode
 
 ## 2011-02-18 0.4.9
 -------------------

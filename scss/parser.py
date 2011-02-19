@@ -5,10 +5,10 @@ from collections import defaultdict
 
 from pyparsing import ParseResults
 
-from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
+from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, SelectorGroup
+from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, NUMBER, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES
+from scss.value import NumberValue, ColorValue, VarString, Variable, QuotedStringValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
-from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT
-from scss.value import NumberValue, ColorValue, StringValue, VarString, Variable
 
 
 class Comment(Node):
@@ -36,21 +36,6 @@ class DeclareSet(ParseNode):
         for dc in self.declaration:
             dc.data[0].data[0] = "-".join((name, dc.data[0].data[0]))
             target.declaration.append(dc)
-
-
-class SelectorGroup(ParseNode):
-    """ Part of css rule.
-    """
-    def increase(self, other):
-        return SelectorGroup(ParseResults( list( self.data ) + other.data[1:] ))
-
-    def __add__(self, other):
-        test = str(other)
-        if '&' in test:
-            stest = str(self)
-            return SelectorGroup(ParseResults( test.replace('&', stest).split() ))
-        else:
-            return SelectorGroup(self.data + other.data)
 
 
 class Declaration(ParseNode):
@@ -82,7 +67,7 @@ class Ruleset(ParseNode):
         self.declaration = []
         self.selectorgroup = []
         self.ruleset = []
-        t = self.normalize(t)
+        t = list( self.normalize(t) )
         super(Ruleset, self).__init__(t, s)
         self.ancor = str(self.data[0].data[0])
         s.rset[self.ancor].add(self)
@@ -91,18 +76,14 @@ class Ruleset(ParseNode):
     def normalize(t):
         """ Patch only for enumerate.
         """
-        result = []
         for e in t:
             if isinstance(e, SelectorGroup):
                 test = str(e)
                 if ',' in test:
                     for x in test.split(','):
-                        result.append(SelectorGroup(ParseResults( [x.strip()] )))
-                else:
-                    result.append(e)
-            else:
-                result.append(e)
-        return result
+                        yield SelectorGroup(ParseResults( [x.strip()] ))
+                    continue
+            yield e
 
     def __repr__(self):
         return str(self)
@@ -156,7 +137,7 @@ class Mixinparam(ParseNode):
 
 class Stylecheet(object):
 
-    defvalue = NumberValue(('0', 'px'))
+    defvalue = NumberValue(0)
 
     def __init__(self, cache = None, ignore_comment=False):
         self.cache = cache or dict(
@@ -177,11 +158,13 @@ class Stylecheet(object):
         CHARSET.setParseAction(self.getType(SemiNode))
         FONT_FACE.setParseAction(self.getType(FontFace))
         EMPTY.setParseAction(self.getType(Empty))
+        VARIABLES.setParseAction(Empty)
 
         # Values and variables
         HEXCOLOR.setParseAction(ColorValue)
         NUMBER_VALUE.setParseAction(NumberValue)
-        quotedString.setParseAction(StringValue)
+        NUMBER.setParseAction(NumberValue)
+        quotedString.setParseAction(QuotedStringValue)
 
         VAR_DEFINITION.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))

@@ -1,7 +1,6 @@
 from scss.base import Node, Empty, ParseNode
 from scss.function import FUNCTION, unknown
-from scss.grammar import VAL_STRING
-from scss.value import Variable
+from scss.value import Variable, NumberValue
 
 
 class VarDef(Empty):
@@ -75,9 +74,9 @@ class Extend(ParseNode):
 class Function(Variable):
     def __init__(self, t, s):
         super(Function, self).__init__(t, s)
-        self.name, params = self.data
+        self.name, params = self.data[0], self.data[1:]
         self.params = list()
-        for value in ( p[0][0] for p in VAL_STRING.scanString(params) ):
+        for value in params:
             while isinstance(value, Variable):
                 value = value.value
             self.params.append(value)
@@ -143,7 +142,7 @@ class ForNode(ParseNode):
     def __parse(self):
         name = self.var.data[1]
         for i in xrange(int(float( self.first )), int(float( self.second ))+1):
-            yield self.body.copy({name: i})
+            yield self.body.copy({name: NumberValue(i)})
 
     def __str__(self):
         return ''.join(str(n) for n in self.__parse())
@@ -151,5 +150,5 @@ class ForNode(ParseNode):
     def parse(self, target):
         for node in self.__parse():
             for n in node.data:
-                if not isinstance(n, str):
+                if hasattr(n, 'parse'):
                     n.parse(target)

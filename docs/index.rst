@@ -23,21 +23,15 @@ Support
 -------
 Python-scss has most of the funcitonality in Sass SCSS_ 3.2 ...it supports:
 
-    * **Compass**: Compass 0.11 Support
     * **Nested rules**
     * **Keyword arguments**
     * **Mixins**: `@mixin`, `@include`
-    * **Functions**: `@function`, `@return`
     * **Inheritance**: `@extend`
-    * **Conditions**: `@if`, `@else if`, `@else`
-    * **Loops**: `@for`, `@each`
+    * **Conditions**: `@if`, `@else`
+    * **Loops**: `@for`
     * **Variables**: `$`, `@variables`, `@vars`
-    * **Sprites**: `sprite-map()`, `sprite()`, `sprite-position()`, `sprite-url()`, ...
-    * **Images**: `image-url()`, `image-width()`, `image-height()`, ...
-    * **Embedded (inline) images**: `inline-image()`
     * **Colors handling**: `adjust-color()`, `scale-color()`, `opacify()`/`transparentize()`, `lighten()`/`darken()`, `mix()`, ...
     * **Math functions**: `sin()`, `cos()`, `tan()`, `round()`, `ceil()`, `floor()`, `pi()`, ...
-    * **CSS Compression**: `@option compress:yes;`
 
 
 Requirements

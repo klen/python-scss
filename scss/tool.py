@@ -1,26 +1,50 @@
-"""Command-line tool to parse scss file.
+""" Command-line tool to parse scss file.
 """
 import sys
 
+import getopt
 from scss import parser
 
 
 def main():
-    if len(sys.argv) == 1:
+    opts, args = getopt.getopt(sys.argv[1:], 'ti')
+    opts = dict(opts)
+
+    if '-i' in opts or '--interactive' in opts:
+        p = parser.Stylecheet()
+        print 'SCSS interactive mode.'
+        print 'Ctrl+D or quit for exit'
+        while True:
+            try:
+                s = raw_input('>>> ').strip()
+                if s == 'quit':
+                    raise EOFError
+                print p.parse(s)
+            except EOFError:
+                break
+
+        sys.exit()
+
+    elif not args:
         infile = sys.stdin
         outfile = sys.stdout
-    elif len(sys.argv) == 2:
-        infile = open(sys.argv[1], 'rb')
+
+    elif len(args) == 1:
+        infile = open(args[0], 'rb')
         outfile = sys.stdout
-    elif len(sys.argv) == 3:
-        infile = open(sys.argv[1], 'rb')
-        outfile = open(sys.argv[2], 'wb')
+
+    elif len(args) == 3:
+        infile = open(args[0], 'rb')
+        outfile = open(args[1], 'wb')
+
     else:
-        raise SystemExit(sys.argv[0] + " [infile [outfile]]")
+        raise SystemExit("scss [-i, --interactive] [infile [outfile]]")
+
     try:
         result = parser.load(infile, precache=True)
     except ValueError, e:
         raise SystemExit(e)
+
     outfile.write(result)
 
 
