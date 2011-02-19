@@ -10,3 +10,9 @@ Usage
 #. **From command line**: ::
 
     scss test.scss
+
+#. **In interactive mode**: ::
+
+    scss -i
+
+    >>> 25px + 1.5em

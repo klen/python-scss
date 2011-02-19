@@ -96,3 +96,16 @@ Examples
 
         .seriousError {
             border-width: 3px}
+
+#. **Interactive mode**
+    Example::
+
+	$ python scss.py --interactive
+	>>> 25px + 1.5em
+        44.5px
+        >>> lighten(rgba(130,130,130,.4),10%)
+        rgba(155,155,155,0.40)
+        >>> .rule { test: red; }
+        .rule {
+            test: red }
+	>>> _

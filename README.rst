@@ -134,17 +134,28 @@ Examples
         .seriousError {
             border-width: 3px}
 
+#. **Interactive mode**
+    Example::
+
+	$ python scss.py --interactive
+	>>> 25px + 1.5em
+        44.5px
+        >>> lighten(rgba(130,130,130,.4),10%)
+        rgba(155,155,155,0.40)
+        >>> .rule { test: red; }
+        .rule {
+            test: red }
+	>>> _
 
 
 Features
 --------
-Currently it implements @mixin, @include, @if, @for. From sass function ready only 'enumerate',
-color sass function be done in future, but now supported color lighten operation ex: color: #456 + 10%
+Currently it implements @mixin, @include, @if, @for. All SCSS functions ready.
 For @import support with python-scss you may use zeta-library_ - my analog compass, with included js and css framework.
 Zeta-library support @import only by file path, ex: @import url(path/child.scss), but zeta support css, scss and js imports( require ),
 is solution for control all your static files ( css, scss, js )
 
-Your feedback is welcome.
+**Your feedback is welcome**
 
 
 .. _zeta-library: http://github.com/klen/zeta-library

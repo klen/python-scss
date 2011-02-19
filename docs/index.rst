@@ -12,8 +12,7 @@ This is part of zeta-library_.
 
 Features
 --------
-Currently it implements @mixin, @include, @if, @for. From sass function ready only 'enumerate',
-color sass function be done in future, but now supported color lighten operation ex: color: #456 + 10%
+Currently it implements @mixin, @include, @if, @for. All sass function supported.
 For @import support with python-scss you may use zeta-library_ - my analog compass, with included js and css framework.
 Zeta-library support @import only by file path, ex: @import url(path/child.scss), but zeta support css, scss and js imports( require ),
 is solution for control all your static files ( css, scss, js )
