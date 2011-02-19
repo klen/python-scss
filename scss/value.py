@@ -33,58 +33,59 @@ class Value(object):
     __rmul__ = __mul__
 
 
+hex2rgba = {
+    8: lambda c: (int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16), int(c[6:8], 16)),
+    6: lambda c: (int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16), 1.0),
+    4: lambda c: (int(c[0]*2, 16), int(c[1]*2, 16), int(c[2]*2, 16), int(c[3]*2, 16)),
+    3: lambda c: (int(c[0]*2, 16), int(c[1]*2, 16), int(c[2]*2, 16), 1.0),
+}
+
+
 class ColorValue(Value):
 
     def __init__(self, t):
         super(ColorValue, self).__init__()
-        self.units, self.value = t
-        if len(self.value) == 3:
-            self.value = ''.join(v*2 for v in self.value)
 
-    def __float__(self):
-        return float(self.value)
+        if t is None:
+            self.value = (0, 0, 0, 1)
+
+        elif isinstance(t, (list, tuple)):
+            c = t[:4]
+            r = 255.0, 255.0, 255.0, 1.0
+            c = [ 0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4) ]
+            self.value = tuple(c)
+
+        else:
+            val = t[0]
+            self.value = hex2rgba[len(val)](val)
 
     def __str__(self):
-        v = self.value
-        if v[0] == v[1] and v[2] == v[3] and v[4] == v[5]:
-            v = ''.join((v[0], v[2], v[4]))
-        return ''.join(( self.units, v ))
-
-    @staticmethod
-    def rgb_to_hex(*rgb):
-        return '%02x%02x%02x' % rgb
-
-    @staticmethod
-    def hex_to_rgb(h):
-        lv = len(h)
-        return tuple(int(h[i:i+lv/3], 16) for i in range(0, lv, lv/3))
-
-    @staticmethod
-    def hex_to_hsv(h):
-        lv = len(h)
-        return colorsys.rgb_to_hsv(
-            *tuple(int(h[i:i+lv/3], 16)/256.0 for i in range(0, lv, lv/3)))
+        if self.value[3] == 1:
+            v = '%02x%02x%02x' % self.value[:3]
+            if v[0] == v[1] and v[2] == v[3] and v[4] == v[5]:
+                v = v[0] + v[2] + v[4]
+            return '#%s' % v
+        return 'rgba(%02d,%02d,%02d,%.2f)' % self.value
 
     @classmethod
     def _do_op(cls, self, other, op):
         if isinstance(other, ColorValue):
             res = map(
-                lambda x, y: max(min(255, op(x, y)), 0),
-                self.hex_to_rgb(self.value),
-                self.hex_to_rgb(other.value))
-            res = self.rgb_to_hex(*res)
+                    lambda x, y: max(min(255, op(x, y)), 0),
+                    self.value,
+                    other.value)
+            res[3] = 1.0
 
         elif isinstance(other, NumberValue):
-            a = self.hex_to_hsv(self.value)
+            a = colorsys.rgb_to_hsv(*self.value[:3])
             br = op(a[2], (a[2] * other.value))
             res = colorsys.hsv_to_rgb(a[0], a[1], br)
-            res = self.rgb_to_hex(*map(
-                lambda x: min(x*256, 255), res))
+            res = res + ( 1.0, )
 
         else:
             return self
 
-        return cls(('#', res))
+        return cls(res)
 
 
 class NumberValue(Value):

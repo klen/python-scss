@@ -1,6 +1,14 @@
 Changes
 =======
 
+## 2011-02-19 0.5.0
+-------------------
+* Add rgba support
+
+## 2011-02-18 0.4.9
+-------------------
+* Rename compile script from pscss to scss
+
 ## 2011-02-16 0.4.8
 -------------------
 * Fix pseudo selector bug

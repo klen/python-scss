@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to python-scss's documentation!
-=======================================
+Python-scss
+===========
 
-Python-scss is scss compiler for python. See http://sass-lang.com for more information about scss syntax.
+Python-scss is SCSS_ compiler for python.
 This is part of zeta-library_.
 
 
@@ -17,6 +17,27 @@ color sass function be done in future, but now supported color lighten operation
 For @import support with python-scss you may use zeta-library_ - my analog compass, with included js and css framework.
 Zeta-library support @import only by file path, ex: @import url(path/child.scss), but zeta support css, scss and js imports( require ),
 is solution for control all your static files ( css, scss, js )
+
+
+Support
+-------
+Python-scss has most of the funcitonality in Sass SCSS_ 3.2 ...it supports:
+
+    * **Compass**: Compass 0.11 Support
+    * **Nested rules**
+    * **Keyword arguments**
+    * **Mixins**: `@mixin`, `@include`
+    * **Functions**: `@function`, `@return`
+    * **Inheritance**: `@extend`
+    * **Conditions**: `@if`, `@else if`, `@else`
+    * **Loops**: `@for`, `@each`
+    * **Variables**: `$`, `@variables`, `@vars`
+    * **Sprites**: `sprite-map()`, `sprite()`, `sprite-position()`, `sprite-url()`, ...
+    * **Images**: `image-url()`, `image-width()`, `image-height()`, ...
+    * **Embedded (inline) images**: `inline-image()`
+    * **Colors handling**: `adjust-color()`, `scale-color()`, `opacify()`/`transparentize()`, `lighten()`/`darken()`, `mix()`, ...
+    * **Math functions**: `sin()`, `cos()`, `tan()`, `round()`, `ceil()`, `floor()`, `pi()`, ...
+    * **CSS Compression**: `@option compress:yes;`
 
 
 Requirements
@@ -71,3 +92,4 @@ Licensed under a `GNU lesser general public license`_.
 
 .. _zeta-library: http://github.com/klen/zeta-library
 .. _GNU lesser general public license: http://www.gnu.org/copyleft/lesser.html
+.. _SCSS: http://sass-lang.com

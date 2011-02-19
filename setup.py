@@ -43,7 +43,7 @@ META_DATA = dict(
 
     entry_points={
         'console_scripts': [
-            'pscss = scss.tool:main',
+            'scss = scss.tool:main',
         ]
     },
 )

@@ -37,7 +37,7 @@ DEBUG_SYM = Suppress("@debug")
 
 # Property values
 HASH = Word('#', alphanums + "_-")
-HEXCOLOR = Literal("#") + Word(hexnums, min=3, max=6)
+HEXCOLOR = Suppress("#") + Word(hexnums, min=3, max=8)
 NUMBER_VALUE = NUMBER + oneOf("em ex px cm mm in pt pc %")
 PATH = Word(alphanums + "_-/.", alphanums + "_-./?#&")
 PRIO = "!important"

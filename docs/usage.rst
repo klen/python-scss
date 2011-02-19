@@ -9,4 +9,4 @@ Usage
 
 #. **From command line**: ::
 
-    pscss test.scss
+    scss test.scss

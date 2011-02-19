@@ -6,7 +6,7 @@ from collections import defaultdict
 from pyparsing import ParseResults
 
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
-from scss.function import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
+from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT
 from scss.value import NumberValue, ColorValue, StringValue, VarString, Variable
 
