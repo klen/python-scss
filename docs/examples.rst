@@ -108,6 +108,7 @@ Example: ::
         44.5px
         >>> lighten(rgba(130,130,130,.4),10%)
         rgba(155,155,155,0.40)
+        >>> red / 2 + 10% + blue
         >>> .rule { test: red; }
         .rule {
             test: red }

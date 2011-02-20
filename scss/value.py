@@ -74,7 +74,10 @@ class ColorValue(Value):
             self.value = hex2rgba[len(val)](val)
 
         elif isinstance(t, (list, tuple)):
-            c = t[:4]
+            if len(t) < 4:
+                c = (t[0], t[1], t[2], 1.0)
+            else:
+                c = t[:4]
             r = 255.0, 255.0, 255.0, 1.0
             c = [ 0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4) ]
             self.value = tuple(c)
@@ -97,7 +100,10 @@ class ColorValue(Value):
             return rgba_op(op, self, *other.value)
 
         elif isinstance(other, NumberValue):
-            return hsl_op(op, self, 0, float(other), 0)
+            val = float(other)
+            if op in (OPRT['*'], OPRT['/']):
+                return ColorValue(map(lambda x: op(x, val), self.value[:3]))
+            return hsl_op(op, self, 0, val, 0)
 
         else:
             return self

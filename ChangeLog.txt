@@ -2,7 +2,7 @@ Changes
 =======
 
 ## 2011-02-19 0.5.5
-
+-------------------
 * Fix unused import ipdb
 * Add color functions
 * Add compass helpers: append-selector, elements-of-type, headlings, nest
@@ -10,6 +10,7 @@ Changes
 * Add "@else if"
 * Upgrade interactive mode. history support and tab completion
 * Add color name parse ( red + blue = #f0f )
+* Change sorting declarations in Zen order http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn
 
 
 ## 2011-02-19 0.5.0

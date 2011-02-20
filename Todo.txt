@@ -1,12 +1,11 @@
-Change sorting declaration and add option for this
-Move function to values
-Add @option
+Add options for compress, sorting
+Add warnings on unknown properties
+Add zen codding abbr
 Enable verbose stacktrace
 Drop copy all nodes ( only vars )
 Fix selector bug
 Add caching using pickle save default flag
 Add @debug, @warn
-Add output styles
 Add declaration check for dublicate
 Add ruleset check for dublicate
 Drop hasattr, getattr, update t patterns

@@ -1,9 +1,11 @@
 import unittest
 
-from scss import parser
+from scss.parser import Stylecheet
 
 
 class TestSCSS( unittest.TestCase ):
+
+    parser = Stylecheet()
 
     def test_for(self):
         src = """
@@ -22,5 +24,5 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test {\n\tcolor: blue}\n\n.test .span-1 {\n\twidth: 6px}\n\n.test .span-2 {\n\twidth: 7px}\n\n.test .span-3 {\n\twidth: 8px}\n\n.test .span-4 {\n\twidth: 9px}"
-        out = parser.parse(src)
+        out = self.parser.parse(src)
         self.assertEqual(test, out)

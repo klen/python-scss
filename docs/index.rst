@@ -31,6 +31,7 @@ Python-scss has most of the funcitonality in Sass SCSS_ 3.2 ...it supports:
     * **Variables**: `$`, `@variables`, `@vars`
     * **Colors handling**: `adjust-color()`, `scale-color()`, `opacify()`/`transparentize()`, `lighten()`/`darken()`, `mix()`, ...
     * **Math functions**: `sin()`, `cos()`, `tan()`, `round()`, `ceil()`, `floor()`, `pi()`, ...
+    * **Sorting declarations**: In zen sorting order: http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn 
 
 
 Requirements

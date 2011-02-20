@@ -3,6 +3,7 @@ import logging
 import os.path
 from collections import defaultdict
 
+from scss import SORTING
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
 from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES
 from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue
@@ -121,7 +122,7 @@ class Ruleset(ParseNode):
             out = '\n'
             out += ', '.join(str(s) for s in self.selectorgroup)
             out += ' {\n\t'
-            self.declaration.sort(key=lambda x: str(x.data[0]))
+            self.declaration.sort(key=lambda x: SORTING.get( str(x.data[0]), 999 ))
             out += ';\n\t'.join(str(d) for d in self.declaration)
             out += '}\n'
         # for r in getattr(self, 'ruleset', []):

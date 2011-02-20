@@ -1,13 +1,11 @@
 import unittest
 
-from scss import parser
+from scss.parser import Stylecheet
 
 
 class TestSCSS( unittest.TestCase ):
 
-    # def test_test(self):
-        # out = parser.parse("5 + 12em")
-        # print out
+    parser = Stylecheet()
 
     def test_variables(self):
         src = """
@@ -39,6 +37,6 @@ class TestSCSS( unittest.TestCase ):
                 font: -1.5em + 50px;
             }
             """
-        test = ".content-navigation {\n\tbackground-color: #7b1f3e;\n\tbackground-image: url('/test/test.png');\n\tborder-color: #fd0;\n\tcolor: #f3d40b;\n\tmargin: 0 -32px 12px}\n\n.border {\n\tborder-top-color: #fd0;\n\tcolor: rgba(120,35,64,0.40);\n\tfont: 2.346em;\n\tmargin: 8px;\n\tpadding-left: -14px;\n\tpadding-top: 8px}"
-        out = parser.parse(src)
+        test = ".content-navigation {\n\tmargin: 0 -32px 12px;\n\tborder-color: #fd0;\n\tbackground-color: #7b1f3e;\n\tbackground-image: url('/test/test.png');\n\tcolor: #f3d40b}\n\n.border {\n\tmargin: 8px;\n\tpadding-top: 8px;\n\tpadding-left: -14px;\n\tborder-top-color: #fd0;\n\tcolor: rgba(120,35,64,0.40);\n\tfont: 2.346em}"
+        out = self.parser.parse(src)
         self.assertEqual(test, out)

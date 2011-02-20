@@ -1,9 +1,11 @@
 import unittest
 
-from scss import parser
+from scss.parser import Stylecheet
 
 
 class TestSCSS( unittest.TestCase ):
+
+    parser = Stylecheet()
 
     def test_variables(self):
         src = """
@@ -26,7 +28,7 @@ class TestSCSS( unittest.TestCase ):
                 }
             }
             """
-        test = "table.hl {\n\tmargin: 2em 0}\n\ntable.hl td.ln {\n\ttext-align: right}\n\ntable.hl td.ln li {\n\tcolor: red}\n\nli {\n\tfont-family: serif;\n\tfont-size: 1.2em;\n\tfont-weight: bold}"
-        out = parser.parse(src)
+        test = "table.hl {\n\tmargin: 2em 0}\n\ntable.hl td.ln {\n\ttext-align: right}\n\ntable.hl td.ln li {\n\tcolor: red}\n\nli {\n\tfont-weight: bold;\n\tfont-size: 1.2em;\n\tfont-family: serif}"
+        out = self.parser.parse(src)
         self.assertEqual(test, out)
 
