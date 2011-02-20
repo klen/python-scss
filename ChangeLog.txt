@@ -1,7 +1,7 @@
 Changes
 =======
 
-## 2011-02-19 0.5.5
+## 2011-02-19 0.5.6
 -------------------
 * Fix unused import ipdb
 * Add color functions
@@ -11,6 +11,7 @@ Changes
 * Upgrade interactive mode. history support and tab completion
 * Add color name parse ( red + blue = #f0f )
 * Change sorting declarations in Zen order http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn
+* Fix url path bug, improve perfomance
 
 ## 2011-02-19 0.5.0
 -------------------

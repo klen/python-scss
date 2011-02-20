@@ -19,6 +19,7 @@ def complete(text, state):
 def main():
     opts, args = getopt.getopt(sys.argv[1:], 'ti')
     opts = dict(opts)
+    precache = True
 
     if '-i' in opts or '--interactive' in opts:
         p = parser.Stylecheet()
@@ -42,6 +43,7 @@ def main():
     elif not args:
         infile = sys.stdin
         outfile = sys.stdout
+        precache = False
 
     elif len(args) == 1:
         infile = open(args[0], 'rb')
@@ -55,7 +57,7 @@ def main():
         raise SystemExit("scss [-i, --interactive] [infile [outfile]]")
 
     try:
-        result = parser.load(infile, precache=True)
+        result = parser.load(infile, precache=precache)
     except ValueError, e:
         raise SystemExit(e)
 

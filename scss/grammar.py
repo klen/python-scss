@@ -1,10 +1,10 @@
-from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty, lineEnd, alphas
+from pyparsing import Word, Suppress, Literal, alphanums, hexnums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, Empty, lineEnd
 
 
 # Base css word and literals
 EMPTY = Empty()
-IDENT = Word(alphas + '_-', alphanums + "_-")
-NUMBER = Combine(Optional("-") + Word(nums+'.'))
+IDENT = Regex(r"[-a-zA-Z_][-a-zA-Z0-9_]*")
+NUMBER = Regex(r"(?:\d+(?:\.\d*)?|\.\d+)")
 COMMA, COLON, SEMICOLON = [Suppress(c) for c in ",:;"]
 OPT_SEMICOLON = Optional(SEMICOLON)
 LACC, RACC, LPAREN, RPAREN = [Suppress(c) for c in "{}()"]
