@@ -2,7 +2,7 @@ import colorsys
 import math
 from itertools import product
 
-from scss import OPRT, CONV_TYPE
+from scss import OPRT, CONV_TYPE, ELEMENTS_OF_TYPE
 from scss.value import ColorValue, NumberValue, hsl_op, rgba_op, StringValue, QuotedStringValue, BooleanValue
 
 
@@ -63,7 +63,7 @@ def _hsl(h, s, l):
 
 def _hsla(h, s, l, a):
     res = colorsys.hls_to_rgb(float(h), float(l), float(s))
-    return ColorValue(map( lambda x: x * 255.0, res ) + list((a,)))
+    return ColorValue(map( lambda x: x * 255.0, res ) + [float(a)])
 
 def _hue(color):
     h = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[0]
@@ -214,20 +214,7 @@ def _color_stops(*args):
     raise NotImplementedError
 
 def _elements_of_type(display):
-    d = StringValue(display)
-    ret = {
-        'block': 'address, article, aside, blockquote, center, dd, dialog, dir, div, dl, dt, fieldset, figure, footer, form, frameset, h1, h2, h3, h4, h5, h6, header, hgroup, hr, isindex, menu, nav, noframes, noscript, ol, p, pre, section, ul',
-        'inline': 'a, abbr, acronym, b, basefont, bdo, big, br, cite, code, dfn, em, font, i, img, input, kbd, label, q, s, samp, select, small, span, strike, strong, sub, sup, textarea, tt, u, var',
-        'table': 'table',
-        'list-item': 'li',
-        'table-row-group': 'tbody',
-        'table-header-group': 'thead',
-        'table-footer-group': 'tfoot',
-        'table-row': 'tr',
-        'table-cell': 'td, th',
-        'html5': 'article, aside, dialog, figure, footer, header, hgroup, nav, section',
-    }.get(d.value, '')
-    return StringValue(ret)
+    return StringValue(ELEMENTS_OF_TYPE.get(StringValue(display).value, ''))
 
 def _enumerate(s, b, e):
     return ', '.join(
@@ -253,9 +240,6 @@ def _nest(*args):
             *( sel.value.split(',') for sel in args )
         )
     )
-
-
-
 
 
 def _sprite_position(*args):

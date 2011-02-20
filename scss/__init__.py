@@ -44,10 +44,29 @@ for t, m in CONV.items():
 del t, m, k, f
 
 OPRT = {
-    '^': operator.__pow__,
-    '+': operator.__add__,
-    '-': operator.__sub__,
-    '*': operator.__mul__,
-    '/': operator.__div__,
-    '!': operator.__neg__,
+    '^' : operator.__pow__,
+    '+' : operator.__add__,
+    '-' : operator.__sub__,
+    '*' : operator.__mul__,
+    '/' : operator.__div__,
+    '!' : operator.__neg__,
+    '<' : operator.__lt__,
+    '<=': operator.__le__,
+    '>' : operator.__gt__,
+    '>=': operator.__ge__,
+    '==': operator.__eq__,
+    '=' : operator.__eq__,
+    '!=': operator.__ne__,
+}
+
+ELEMENTS_OF_TYPE = {
+    'block': 'address, article, aside, blockquote, center, dd, dialog, dir, div, dl, dt, fieldset, figure, footer, form, frameset, h1, h2, h3, h4, h5, h6, header, hgroup, hr, isindex, menu, nav, noframes, noscript, ol, p, pre, section, ul',
+    'inline': 'a, abbr, acronym, b, basefont, bdo, big, br, cite, code, dfn, em, font, i, img, input, kbd, label, q, s, samp, select, small, span, strike, strong, sub, sup, textarea, tt, u, var',
+    'table': 'table',
+    'list-item': 'li',
+    'table-row-group': 'tbody',
+    'table-header-group': 'thead',
+    'table-footer-group': 'tfoot',
+    'table-row': 'tr',
+    'table-cell': 'td, th',
 }

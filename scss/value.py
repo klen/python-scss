@@ -7,6 +7,9 @@ class Value(object):
     @classmethod
     def _do_op(cls, first, second, op):
         return op(first.value, second.value)
+    @classmethod
+    def _do_cmps(cls, first, second, op):
+        return op(first.value, second.value)
     def __add__(self, other):
         return self._do_op(self, other, OPRT['+'])
     __radd__ = __add__
@@ -20,6 +23,18 @@ class Value(object):
         return self._do_op(other, self, OPRT['-'])
     def __mul__(self, other):
         return self._do_op(self, other, OPRT['*'])
+    def __lt__(self, other):
+        return self._do_cmps(self, other, OPRT['<'])
+    def __le__(self, other):
+        return self._do_cmps(self, other, OPRT['<='])
+    def __gt__(self, other):
+        return self._do_cmps(self, other, OPRT['>='])
+    def __ge__(self, other):
+        return self._do_cmps(self, other, OPRT['>'])
+    def __eq__(self, other):
+        return self._do_cmps(self, other, OPRT['=='])
+    def __ne__(self, other):
+        return self._do_cmps(self, other, OPRT['!='])
     __rmul__ = __mul__
 
 
@@ -95,7 +110,7 @@ class NumberValue(Value):
         elif isinstance(t, NumberValue):
             self.value, self.units = t.value, t.units
         else:
-            self.value, self.units = t[0], t[1] if len(t) > 1 else ''
+            self.value, self.units = t[0], str(t[1]) if len(t) > 1 else ''
             self.value = float(self.value)
 
     def __float__(self):
@@ -144,8 +159,10 @@ class BooleanValue(Value):
         super(BooleanValue, self).__init__()
         if t is None:
             self.value = False
-        elif isinstance(t, bool):
-            self.value = t
+        elif isinstance(t, Value):
+            self.value = bool(t.value)
+        elif isinstance(t, ( str, bool )):
+            self.value = bool(t) if t != 'false' else False
         else:
             self.value = True if t[0] == 'true' else False
 
@@ -193,8 +210,7 @@ class VarMeta(type):
             return data[0]
         return super(VarMeta, mcs).__call__(*args)
 
-
-class VarString(Variable):
+class Expression(Variable):
     """ Parse mathematic operation.
     """
     __metaclass__ = VarMeta
@@ -207,23 +223,29 @@ class VarString(Variable):
 
     @property
     def value(self):
+        return self.do_expression(self.data, self.ctx)
 
-        for n in self.data:
-            if isinstance(n, Variable):
-                n.ctx = self.ctx
+    @classmethod
+    def do_expression(cls, data, ctx=None):
 
-        if OPRT.get(self.data[0], None):
-            self.data.insert(0, NumberValue(0))
+        if ctx:
+            for n in data:
+                if isinstance(n, Variable):
+                    n.ctx = ctx
 
-        it = iter(self.data)
+        if OPRT.get(data[0], None):
+            data.insert(0, NumberValue(0))
+
+        it = iter(data)
         first, res = next(it), next(it)
         while True:
             try:
                 op = OPRT.get(res, None)
                 if op:
                     second = next(it)
-                    first = op(self.prepare( first ), self.prepare( second ))
+                    first = op(cls.prepare( first ), cls.prepare( second ))
                 res = next(it)
             except StopIteration:
                 break
         return first
+

@@ -3,9 +3,7 @@ Upgrade programm options and interactive shell
 Change sorting declaration and add option for this
 Move function to values
 Add @option
-Add boolean values parse
 Enable verbose stacktrace
-IF node add real compare operators
 Drop copy all nodes ( only vars )
 Fix selector bug
 Add caching using pickle save default flag

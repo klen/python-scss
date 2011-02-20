@@ -6,6 +6,7 @@ Changes
 * Fix unused import ipdb
 * Add color functions
 * Add compass helpers: append-selector, elements-of-type, headlings, nest
+* Add real expression parse in @if nodes
 
 
 ## 2011-02-19 0.5.0

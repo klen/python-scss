@@ -60,7 +60,7 @@ class TestSCSS( unittest.TestCase ):
                 adj: adjust-hue( #811, 45deg);
             }
         """
-        test = ".test {\n\tadj: #886a10;\n\thsl: #7f0000;\n\thue: 0;\n\tsaturation: 255}"
+        test = ".test {\n\tadj: #886a10;\n\thsl: rgba(127,0,0,0.40);\n\thue: 0;\n\tsaturation: 255}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)
 
@@ -141,6 +141,6 @@ class TestSCSS( unittest.TestCase ):
                 }
             }
         """
-        test = ""
+        test = ".foo .baz, .bar .baz {\n\tcolor: red}\n\n.example address, .example article, .example aside, .example blockquote, .example center, .example dd, .example dialog, .example dir, .example div, .example dl, .example dt, .example fieldset, .example figure, .example footer, .example form, .example frameset, .example h1, .example h2, .example h3, .example h4, .example h5, .example h6, .example header, .example hgroup, .example hr, .example isindex, .example menu, .example nav, .example noframes, .example noscript, .example ol, .example p, .example pre, .example section, .example ul {\n\tborder: 1px solid #777;\n\tmargin: 1em 3em}\n\n.example a, .example abbr, .example acronym, .example b, .example basefont, .example bdo, .example big, .example br, .example cite, .example code, .example dfn, .example em, .example font, .example i, .example img, .example input, .example kbd, .example label, .example q, .example s, .example samp, .example select, .example small, .example span, .example strike, .example strong, .example sub, .example sup, .example textarea, .example tt, .example u, .example var {\n\tcolor: #c00}\n\na h2, a h3, a h4 {\n\tfont-weight: bold}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)

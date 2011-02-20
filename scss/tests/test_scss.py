@@ -126,21 +126,6 @@ class TestSCSS( unittest.TestCase ):
         out = parser.parse(src)
         self.assertEqual(test, out)
 
-    def test_if(self):
-        src = """$type: monster; $test: 11;
-            @if $test { .test { border: 2px; } }
-            @mixin test($fix: 0) {
-                @if $fix { display: block; } @else { display: none; }
-            }
-            span { @include test(false) }
-            p { border: red;
-                @if $type == monster { color: blue;
-                    b { color: red; }
-                } @else { color: black; } } """
-        test = ".test {\n\tborder: 2px}\n\nspan {\n\tdisplay: none}\n\np {\n\tborder: red;\n\tcolor: blue}\n\np b {\n\tcolor: red}"
-        out = parser.parse(src)
-        self.assertEqual(test, out)
-
     def test_mixin(self):
         src = """
         @mixin font {

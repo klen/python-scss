@@ -4,8 +4,8 @@ import os.path
 from collections import defaultdict
 
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
-from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, NUMBER, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES
-from scss.value import NumberValue, ColorValue, VarString, Variable, QuotedStringValue
+from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES
+from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 
 
@@ -170,13 +170,12 @@ class Stylecheet(object):
         # Values and variables
         HEXCOLOR.setParseAction(ColorValue)
         NUMBER_VALUE.setParseAction(NumberValue)
-        NUMBER.setParseAction(NumberValue)
         quotedString.setParseAction(QuotedStringValue)
 
         VAR_DEFINITION.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))
         SEP_VAL_STRING.setParseAction(self.getType(SepValString))
-        VAL_STRING.setParseAction(self.getType(VarString))
+        EXPRESSION.setParseAction(self.getType(Expression))
 
         # Declarations
         DEC_NAME.setParseAction(self.getType())
