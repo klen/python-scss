@@ -19,8 +19,6 @@ COMMENT = CSS_COMMENT | SCSS_COMMENT
 MIXIN_SYM = Suppress("@mixin")
 INCLUDE_SYM = Suppress("@include")
 EXTEND_SYM = Suppress("@extend")
-IF_SYM = Suppress("@if")
-ELSE_SYM = Suppress("@else")
 FOR_SYM = Suppress("@for")
 DEBUG_SYM = Suppress("@debug")
 
@@ -89,8 +87,9 @@ RULE_CONTENT = CONTENT | DECLARESET | DECLARATION
 # SCSS control directives
 IF_CONDITION = EXPRESSION + Optional(IF_OPERATOR + EXPRESSION)
 IF_BODY = LACC + ZeroOrMore(RULE_CONTENT) + RACC
-ELSE = ELSE_SYM + LACC + ZeroOrMore(RULE_CONTENT) + RACC
-IF = IF_SYM + IF_CONDITION + IF_BODY + (ELSE | EMPTY)
+ELSE = Suppress("@else") + LACC + ZeroOrMore(RULE_CONTENT) + RACC
+# ELSE_IF = Suppress("@else if") + LACC + ZeroOrMore(RULE_CONTENT) + RACC
+IF = ( Suppress("@if") | Suppress("@else if") ) + IF_CONDITION + IF_BODY + (ELSE | EMPTY)
 FOR_BODY = ZeroOrMore(RULE_CONTENT)
 FOR = FOR_SYM + VARIABLE + Suppress("from") + VALUE + (Suppress("through") | Suppress("to")) + VALUE + LACC + FOR_BODY + RACC
 DEBUG = DEBUG_SYM + EXPRESSION + OPT_SEMICOLON

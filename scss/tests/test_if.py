@@ -27,9 +27,12 @@ class TestSCSS( unittest.TestCase ):
                 @include test(false)
             }
             p {
-                @if $type == monster {
+                @if $type == girl {
+                    color: pink;
+                }
+                @else if $type == monster {
                     color: red;
-                    b { border: 2px; }
+                    b { border: 3px; }
                 }
                 @else {
                     color: blue;
