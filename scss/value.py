@@ -1,6 +1,6 @@
 import colorsys
 
-from scss import OPRT, CONV_FACTOR
+from scss import OPRT, CONV_FACTOR, COLORS
 from scss.base import Node
 
 class Value(object):
@@ -68,6 +68,10 @@ class ColorValue(Value):
 
         if t is None:
             self.value = (0, 0, 0, 1)
+
+        elif isinstance(t, str):
+            val = t[1:]
+            self.value = hex2rgba[len(val)](val)
 
         elif isinstance(t, (list, tuple)):
             c = t[:4]
@@ -203,22 +207,24 @@ class Variable(Node, Value):
             return 0.0
 
 
-class VarMeta(type):
+class ExpressionMeta(type):
     def __call__(mcs, *args):
         data = args[0]
-        if len(data) == 1 and isinstance( data[0], ( Node, Value, str ) ):
+        if len(data) == 1:
             return data[0]
-        return super(VarMeta, mcs).__call__(*args)
+        return super(ExpressionMeta, mcs).__call__(*args)
 
 class Expression(Variable):
     """ Parse mathematic operation.
     """
-    __metaclass__ = VarMeta
+    __metaclass__ = ExpressionMeta
 
     @staticmethod
     def prepare(value):
         while isinstance(value, Variable):
             value = value.value
+        if isinstance(value, str):
+            value = ColorValue(COLORS[value]) if COLORS.has_key(value) else StringValue(value)
         return value
 
     @property

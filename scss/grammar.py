@@ -5,8 +5,8 @@ from pyparsing import Word, Suppress, Literal, alphanums, hexnums, nums, SkipTo,
 EMPTY = Empty()
 IDENT = Word(alphas + '_-', alphanums + "_-")
 NUMBER = Combine(Optional("-") + Word(nums+'.'))
-COMMA, COLON, SEMICOLON = [Literal(c) for c in ",:;"]
-OPT_SEMICOLON = Optional(SEMICOLON.suppress())
+COMMA, COLON, SEMICOLON = [Suppress(c) for c in ",:;"]
+OPT_SEMICOLON = Optional(SEMICOLON)
 LACC, RACC, LPAREN, RPAREN = [Suppress(c) for c in "{}()"]
 LLACC, LRACC, LBRACK, RBRACK = [Literal(c) for c in "{}[]"]
 
@@ -36,24 +36,24 @@ IF_OPERATOR = oneOf("== != <= >= < >")
 # Values
 VARIABLE = "$" + IDENT
 EXPRESSION = Forward()
-FUNCTION = IDENT + LPAREN + ZeroOrMore(COMMA.suppress() | EXPRESSION) + RPAREN
+FUNCTION = IDENT + LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN
 INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
 SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | HEXCOLOR | quotedString
 VALUE = Optional('-') + ( SIMPLE_VALUE | VARIABLE )
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 PARENS = LPAREN + EXPRESSION + RPAREN
 EXPRESSION << ((VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARENS )))
-SEP_VAL_STRING = EXPRESSION + OneOrMore(COMMA.suppress() + EXPRESSION)
+SEP_VAL_STRING = EXPRESSION + OneOrMore(COMMA + EXPRESSION)
 
 # Property values
-TERM = ( DIV_STRING | EXPRESSION ) + Optional(COMMA)
+TERM = ( DIV_STRING | EXPRESSION ) + Optional(",")
 EXPR = OneOrMore(TERM) + Optional("!important")
 DEC_NAME = Optional("*") + OneOrMore(IDENT | INTERPOLATION_VAR)
-DECLARATION = DEC_NAME + COLON + EXPR + OPT_SEMICOLON
+DECLARATION = DEC_NAME + ":" + EXPR + OPT_SEMICOLON
 
 # SCSS group of declarations
 DECLARESET = Forward()
-DECLARESET << DEC_NAME + COLON.suppress() + LACC + OneOrMore(DECLARESET | DECLARATION | COMMENT) + RACC + OPT_SEMICOLON
+DECLARESET << DEC_NAME + COLON + LACC + OneOrMore(DECLARESET | DECLARATION | COMMENT) + RACC + OPT_SEMICOLON
 
 # Selectors
 ELEMENT_NAME = Combine(OneOrMore(IDENT | '&')) | Literal("*")
@@ -68,16 +68,16 @@ SEL_FILTER = FILTER + Optional(INTERPOLATION_VAR) + Optional(PSEUDO)
 SELECTOR = (SEL_NAME + SEL_FILTER) | INTERPOLATION_VAR | SEL_NAME | SEL_FILTER | PSEUDO
 
 SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(COMBINATOR) + SELECTOR)
-SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA.suppress() + SELECTOR_GROUP)
+SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA + SELECTOR_GROUP)
 
 # @include
-INCLUDE = INCLUDE_SYM + IDENT + Optional(LPAREN + ZeroOrMore(COMMA.suppress() | EXPRESSION) + RPAREN) + OPT_SEMICOLON
+INCLUDE = INCLUDE_SYM + IDENT + Optional(LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN) + OPT_SEMICOLON
 
 # @extend
 EXTEND = EXTEND_SYM + SELECTOR + OPT_SEMICOLON
 
 # SCSS variable assigment
-VAR_DEFINITION = Suppress("$") + IDENT + COLON.suppress() + (SEP_VAL_STRING | EXPRESSION ) + ("!default" | EMPTY) + OPT_SEMICOLON
+VAR_DEFINITION = Suppress("$") + IDENT + COLON + (SEP_VAL_STRING | EXPRESSION ) + ("!default" | EMPTY) + OPT_SEMICOLON
 
 # Ruleset
 RULESET = Forward()
@@ -88,7 +88,6 @@ RULE_CONTENT = CONTENT | DECLARESET | DECLARATION
 IF_CONDITION = EXPRESSION + Optional(IF_OPERATOR + EXPRESSION)
 IF_BODY = LACC + ZeroOrMore(RULE_CONTENT) + RACC
 ELSE = Suppress("@else") + LACC + ZeroOrMore(RULE_CONTENT) + RACC
-# ELSE_IF = Suppress("@else if") + LACC + ZeroOrMore(RULE_CONTENT) + RACC
 IF = ( Suppress("@if") | Suppress("@else if") ) + IF_CONDITION + IF_BODY + (ELSE | EMPTY)
 FOR_BODY = ZeroOrMore(RULE_CONTENT)
 FOR = FOR_SYM + VARIABLE + Suppress("from") + VALUE + (Suppress("through") | Suppress("to")) + VALUE + LACC + FOR_BODY + RACC
@@ -100,14 +99,15 @@ RULESET << (
     LACC + ZeroOrMore(RULE_CONTENT | CONTROL_DIR | EXTEND) + RACC )
 
 # SCSS mixin
-MIXIN_PARAM = VARIABLE + Optional(COLON.suppress() + EXPRESSION)
-MIXIN_PARAMS = LPAREN + ZeroOrMore(COMMA.suppress() | MIXIN_PARAM) + RPAREN
+MIXIN_PARAM = VARIABLE + Optional(COLON + EXPRESSION)
+MIXIN_PARAMS = LPAREN + ZeroOrMore(COMMA | MIXIN_PARAM) + RPAREN
 MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
     LACC + ZeroOrMore(RULE_CONTENT | CONTROL_DIR) + RACC)
 
 # Root elements
+OPTION = "@option" + ZeroOrMore(IDENT + COLON + IDENT) + OPT_SEMICOLON
 IMPORT = "@import" + FUNCTION + OPT_SEMICOLON
-MEDIA = "@media" + IDENT + ZeroOrMore(COMMA + IDENT) + LLACC + ZeroOrMore( RULE_CONTENT | MIXIN | CONTROL_DIR ) + LRACC
+MEDIA = "@media" + IDENT + ZeroOrMore("," + IDENT) + LLACC + ZeroOrMore( RULE_CONTENT | MIXIN | CONTROL_DIR ) + LRACC
 FONT_FACE = "@font-face" + LLACC + ZeroOrMore(DECLARATION) + LRACC
 VARIABLES = ( Literal("@variables") | Literal('@vars') ) + LLACC + ZeroOrMore(VAR_DEFINITION) + RACC
 PSEUDO_PAGE = ":" + IDENT

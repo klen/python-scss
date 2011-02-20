@@ -1,4 +1,3 @@
-Upgrade programm options and interactive shell
 Change sorting declaration and add option for this
 Move function to values
 Add @option

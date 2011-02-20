@@ -32,7 +32,7 @@ class TestSCSS( unittest.TestCase ):
                 }
                 @else if $type == monster {
                     color: red;
-                    b { border: 3px; }
+                    b { border: 2px; }
                 }
                 @else {
                     color: blue;

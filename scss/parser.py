@@ -150,6 +150,11 @@ class Stylecheet(object):
         self.cache = cache or dict(
             ctx = dict(),
             mix = dict(),
+            opts = dict(
+                compress = False,
+                short_colors = True,
+                sort_declaration = True,
+            ),
             rset = defaultdict(set),
             out = ''
         )
@@ -167,11 +172,11 @@ class Stylecheet(object):
         EMPTY.setParseAction(self.getType(Empty))
         VARIABLES.setParseAction(Empty)
 
-        # Values and variables
+        # Values
         HEXCOLOR.setParseAction(ColorValue)
         NUMBER_VALUE.setParseAction(NumberValue)
+        FUNCTION.setParseAction(self.getType(Function))
         quotedString.setParseAction(QuotedStringValue)
-
         VAR_DEFINITION.setParseAction(self.getType(VarDef))
         VARIABLE.setParseAction(self.getType(Variable))
         SEP_VAL_STRING.setParseAction(self.getType(SepValString))
@@ -181,24 +186,25 @@ class Stylecheet(object):
         DEC_NAME.setParseAction(self.getType())
         TERM.setParseAction(self.getType())
         DECLARATION.setParseAction(self.getType(Declaration))
-
         DECLARESET.setParseAction(self.getType(DeclareSet))
+
+        # Rules
+        RULESET.setParseAction(self.getType(Ruleset))
         SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
         SELECTOR.setParseAction(self.getType())
-        RULESET.setParseAction(self.getType(Ruleset))
 
+        # SCSS directives
         MIXIN_PARAM.setParseAction(self.getType(Mixinparam))
         MIXIN.setParseAction(self.getType(Mixin))
         INCLUDE.setParseAction(self.getType(Include))
         EXTEND.setParseAction(self.getType(Extend))
-
         IF.setParseAction(self.getType(IfNode))
         FOR.setParseAction(self.getType(ForNode))
         FOR_BODY.setParseAction(self.getType(ParseNode))
         IF_CONDITION.setParseAction(self.getType(ParseNode))
         IF_BODY.setParseAction(self.getType(ParseNode))
         ELSE.setParseAction(self.getType(ParseNode))
-        FUNCTION.setParseAction(self.getType(Function))
+
         DEBUG.setParseAction(self.getType(Debug))
 
     def get_var(self, name):
