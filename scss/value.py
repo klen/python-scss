@@ -201,7 +201,7 @@ class Variable(Node, Value):
         name = self.data[1]
         if self.ctx and self.ctx.get(name):
             return self.ctx.get(name)
-        return self.stylecheet.get_var(name)
+        return self.root.get_var(name)
 
     def __str__(self):
         return str(self.value)

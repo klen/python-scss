@@ -2,7 +2,7 @@ class Node(object):
     delim = ''
 
     def __init__(self, t, s=None):
-        self.data, self.stylecheet = t, s
+        self.data, self.root = t, s
 
     def __str__(self):
         return self.delim.join(str(e) for e in self.data)
@@ -12,7 +12,7 @@ class CopyNode(Node):
 
     def copy(self, ctx=None):
         t = [ e.copy(ctx) if hasattr(e, 'copy') else e for e in self.data ]
-        return self.__class__(t, self.stylecheet)
+        return self.__class__(t, self.root)
 
 
 class ParseNode(CopyNode):

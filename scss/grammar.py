@@ -105,7 +105,7 @@ MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
     LACC + ZeroOrMore(RULE_CONTENT | CONTROL_DIR) + RACC)
 
 # Root elements
-OPTION = "@option" + ZeroOrMore(IDENT + COLON + IDENT) + OPT_SEMICOLON
+OPTION = "@option" + OneOrMore(IDENT + COLON + IDENT + Optional(COMMA)) + OPT_SEMICOLON
 IMPORT = "@import" + FUNCTION + OPT_SEMICOLON
 MEDIA = "@media" + IDENT + ZeroOrMore("," + IDENT) + LLACC + ZeroOrMore( RULE_CONTENT | MIXIN | CONTROL_DIR ) + LRACC
 FONT_FACE = "@font-face" + LLACC + ZeroOrMore(DECLARATION) + LRACC
@@ -118,6 +118,7 @@ CHARSET = "@charset" + IDENT + OPT_SEMICOLON
 STYLESHEET = ZeroOrMore(
     FONT_FACE
     | CHARSET
+    | OPTION
     | MEDIA
     | PAGE
     | CONTENT

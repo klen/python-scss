@@ -5,14 +5,14 @@ from collections import defaultdict
 
 from scss import SORTING
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
-from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES
-from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue
+from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION
+from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 
 
 class Comment(Node):
     def __str__(self):
-        if self.stylecheet.ignore_comment:
+        if self.root.ignore_comment:
             return ''
         return super(Comment, self).__str__()
 
@@ -21,6 +21,20 @@ class Debug(Empty):
     def __init__(self, t, s):
         super(Debug, self).__init__(t, s)
         logging.debug(str(self))
+
+
+class Option(Empty):
+    def __init__(self, t, s):
+        super(Option, self).__init__(t, s)
+        opts = dict(
+                map(lambda (x, y): (x, BooleanValue(y).value),
+                    zip(*[iter(self.data[1:])]*2)
+                ))
+        self.root.cache['opts'].update(opts)
+        if self.root.cache['opts']['compress']:
+            self.root.ws = self.root.nl = self.root.ts = ''
+        else:
+            self.root.ws, self.root.nl, self.root.ts = ' ', '\n', '\t'
 
 
 class SelectorGroup(ParseNode):
@@ -65,7 +79,7 @@ class Declaration(ParseNode):
     """
     def __str__(self):
         name, expr = self.data[0].data, self.data[2:]
-        return ': '.join([
+        return ( ':' + self.root.ws ).join([
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
 
@@ -91,7 +105,7 @@ class Ruleset(ParseNode):
         self.ruleset = []
         super(Ruleset, self).__init__(t, s)
         self.ancor = str(self.data[0].data[0])
-        s.rset[self.ancor].add(self)
+        self.root.cache['rset'][self.ancor].add(self)
 
     def __repr__(self):
         return str(self)
@@ -116,19 +130,29 @@ class Ruleset(ParseNode):
             ds.render(self)
 
     def __str__(self):
-        out = ''
         self.parse_declareset()
-        if len(self.declaration):
-            out = '\n'
-            out += ', '.join(str(s) for s in self.selectorgroup)
-            out += ' {\n\t'
-            self.declaration.sort(key=lambda x: SORTING.get( str(x.data[0]), 999 ))
-            out += ';\n\t'.join(str(d) for d in self.declaration)
-            out += '}\n'
-        # for r in getattr(self, 'ruleset', []):
-            # out += '\n'.join("%s%s" % (self.dataab, l) for l in str(r).split('\n'))
-        out += ''.join(str(r) for r in self.ruleset)
-        return out
+        self.declaration.sort(key=lambda x: SORTING.get( str(x.data[0]), 999 ))
+
+        return ''.join((
+
+            # Rule
+            ''.join((
+
+                # Selectors
+                self.root.nl + ', '.join(str(s) for s in self.selectorgroup),
+
+                # Declarations
+                ' {' + self.root.nl + self.root.ts,
+                (';' + self.root.nl + self.root.ts).join(
+                    str(d) for d in self.declaration),
+                '}' + '\n'
+
+            )) if self.declaration else '',
+
+            # Children rules
+            ''.join(str(r) for r in self.ruleset)
+
+        ))
 
 
 class Mixinparam(ParseNode):
@@ -154,12 +178,13 @@ class Stylecheet(object):
             opts = dict(
                 compress = False,
                 short_colors = True,
-                sort_declaration = True,
+                sort = True,
             ),
             rset = defaultdict(set),
             out = ''
         )
         self.ignore_comment = ignore_comment
+        self.nl, self.ws, self.ts = '\n', ' ', '\t'
 
         # Comments
         CSS_COMMENT.setParseAction(self.getType(Comment))
@@ -170,10 +195,11 @@ class Stylecheet(object):
         IMPORT.setParseAction(self.getType(SemiNode))
         CHARSET.setParseAction(self.getType(SemiNode))
         FONT_FACE.setParseAction(self.getType(FontFace))
-        EMPTY.setParseAction(self.getType(Empty))
+        OPTION.setParseAction(self.getType(Option))
         VARIABLES.setParseAction(Empty)
 
         # Values
+        EMPTY.setParseAction(self.getType(Empty))
         HEXCOLOR.setParseAction(ColorValue)
         NUMBER_VALUE.setParseAction(NumberValue)
         FUNCTION.setParseAction(self.getType(Function))
@@ -220,14 +246,6 @@ class Stylecheet(object):
         if not(default and self.cache['ctx'].get(name)):
             self.cache['ctx'][name] = value, default
 
-    @property
-    def mixctx(self):
-        return self.cache['mix']
-
-    @property
-    def rset(self):
-        return self.cache['rset']
-
     def __str__(self):
         return self.cache['out']
 
@@ -237,7 +255,6 @@ class Stylecheet(object):
     def loads(self, src):
         """ Parse string and return self cache.
         """
-        # self.cache['out'] = ''.join(str(e) for e in STYLESHEET.parseString(src, parseAll=True)).strip()
         self.cache['out'] = STYLESHEET.transformString(src.strip()).strip()
         return self.cache
 
@@ -245,8 +262,9 @@ class Stylecheet(object):
         """ Update self cache from other.
         """
         self.cache['out'] += cache.get('out')
-        self.mixctx.update(cache.get('mix'))
-        self.rset.update(cache.get('rset'))
+        self.cache['opts'].update(cache.get('opts'))
+        self.cache['mix'].update(cache.get('mix'))
+        self.cache['rset'].update(cache.get('rset'))
         for name, rec in cache['ctx'].items():
             self.set_var(name, *rec)
 
@@ -270,7 +288,7 @@ class Stylecheet(object):
 
     def parse(self, src):
         self.loads(src)
-        return str(self)
+        return self.cache['out']
 
     def getType(self, node=CopyNode, style=True):
         def wrap(s, l, t):

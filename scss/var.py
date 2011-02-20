@@ -10,7 +10,7 @@ class VarDef(Empty):
         super(VarDef, self).__init__(t, s)
         name, self.value, default = self.data
         default = not isinstance(default, Empty)
-        self.stylecheet.set_var(name, self.value, default)
+        self.root.set_var(name, self.value, default)
 
     def copy(self, ctx=None):
         self.value.ctx = ctx
@@ -23,7 +23,7 @@ class Mixin(ParseNode, Empty):
 
     def __init__(self, t, s=None):
         super(Mixin, self).__init__(t, s)
-        self.stylecheet.mixctx[t[0]] = self
+        self.root.cache['mix'][t[0]] = self
 
     def include(self, target, params):
         if isinstance(target, Mixin):
@@ -44,7 +44,7 @@ class Include(ParseNode):
 
     def __init__(self, t, s):
         super(Include, self).__init__(t, s)
-        self.mixin = s.mixctx.get(t[0])
+        self.mixin = s.cache['mix'].get(t[0])
         self.params = t[1:]
 
     def __str__(self):
@@ -64,7 +64,7 @@ class Extend(ParseNode):
     """
     def parse(self, target):
         name = str(self.data[0])
-        rulesets = self.stylecheet.rset.get(name)
+        rulesets = self.root.cache['rset'].get(name)
         if rulesets:
             for rul in rulesets:
                 for sg in target.selectorgroup:

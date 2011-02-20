@@ -5,7 +5,8 @@ from scss.parser import Stylecheet
 
 class TestSCSS( unittest.TestCase ):
 
-    parser = Stylecheet()
+    def setUp(self):
+        self.parser = Stylecheet()
 
     def test_font_face(self):
         src = """
