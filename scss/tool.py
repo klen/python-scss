@@ -3,8 +3,18 @@
 import sys
 
 import getopt
-from scss import parser
+import readline
+from scss import parser, VERSION
 
+COMMANDS = ['import', 'option', 'mixin', 'include', 'for', 'if', 'else']
+
+def complete(text, state):
+    for cmd in COMMANDS:
+        if cmd.startswith(text):
+            if not state:
+                return cmd
+            else:
+                state -= 1
 
 def main():
     opts, args = getopt.getopt(sys.argv[1:], 'ti')
@@ -12,7 +22,10 @@ def main():
 
     if '-i' in opts or '--interactive' in opts:
         p = parser.Stylecheet()
-        print 'SCSS interactive mode.'
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer(complete)
+        print 'SCSS v. %s interactive mode' % VERSION
+        print '================================'
         print 'Ctrl+D or quit for exit'
         while True:
             try:
@@ -20,7 +33,8 @@ def main():
                 if s == 'quit':
                     raise EOFError
                 print p.parse(s)
-            except EOFError:
+            except ( EOFError, KeyboardInterrupt ):
+                print '\nBye bye.'
                 break
 
         sys.exit()

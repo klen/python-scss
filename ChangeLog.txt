@@ -1,13 +1,14 @@
 Changes
 =======
 
-## 2011-02-19 0.5.3
+## 2011-02-19 0.5.4
 
 * Fix unused import ipdb
 * Add color functions
 * Add compass helpers: append-selector, elements-of-type, headlings, nest
 * Add real expression parse in @if nodes
 * Add "@else if"
+* Upgrade interactive mode. history support and tab completion
 
 
 ## 2011-02-19 0.5.0
