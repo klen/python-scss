@@ -1,5 +1,4 @@
 Add sin, cos and etc to test, check adjust_color
-Move functions in root module
 Upgrade programm options and interactive shell
 Change sorting declaration and add option for this
 Move function to values

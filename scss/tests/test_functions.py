@@ -118,3 +118,29 @@ class TestSCSS( unittest.TestCase ):
         test = ".test {\n\ttest: number;\n\ttest2: color;\n\ttest3: px;\n\ttest4: false}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)
+
+    def test_compass_helpers(self):
+        src = """
+            #{append-selector(".foo, .bar", ".baz")} {
+                color: red;
+            }
+
+            .example {
+
+                #{elements-of-type(block)} {
+                    border: 1px solid #777777;
+                    margin: 1em 3em; }
+
+                #{elements-of-type(inline)} {
+                    color: #cc0000; }
+            }
+
+            a {
+                #{headings(2, 4)} {
+                    font-weight: bold;
+                }
+            }
+        """
+        test = ""
+        out = self.parser.parse(src)
+        self.assertEqual(test, out)

@@ -3,9 +3,7 @@ import logging
 import os.path
 from collections import defaultdict
 
-from pyparsing import ParseResults
-
-from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, SelectorGroup
+from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
 from scss.grammar import STYLESHEET, VAR_DEFINITION, VAL_STRING, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, NUMBER, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES
 from scss.value import NumberValue, ColorValue, VarString, Variable, QuotedStringValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
@@ -22,6 +20,29 @@ class Debug(Empty):
     def __init__(self, t, s):
         super(Debug, self).__init__(t, s)
         logging.debug(str(self))
+
+
+class SelectorGroup(ParseNode):
+    """ Part of css rule.
+    """
+    def __init__(self, t, s=None):
+        super(SelectorGroup, self).__init__(t, s)
+        self.data = list(self.data)
+
+    def increase(self, other):
+        return SelectorGroup(list( self.data ) + other.data[1:])
+
+    def parse(self, target):
+        for x in str(self).split(','):
+            target.selectorgroup.append(SelectorGroup( x.strip().split(' ') ))
+
+    def __add__(self, other):
+        test = str(other)
+        if '&' in test:
+            stest = str(self)
+            return SelectorGroup(test.replace('&', stest).split())
+        else:
+            return SelectorGroup(self.data + other.data)
 
 
 class DeclareSet(ParseNode):
@@ -67,23 +88,9 @@ class Ruleset(ParseNode):
         self.declaration = []
         self.selectorgroup = []
         self.ruleset = []
-        t = list( self.normalize(t) )
         super(Ruleset, self).__init__(t, s)
         self.ancor = str(self.data[0].data[0])
         s.rset[self.ancor].add(self)
-
-    @staticmethod
-    def normalize(t):
-        """ Patch only for enumerate.
-        """
-        for e in t:
-            if isinstance(e, SelectorGroup):
-                test = str(e)
-                if ',' in test:
-                    for x in test.split(','):
-                        yield SelectorGroup(ParseResults( [x.strip()] ))
-                    continue
-            yield e
 
     def __repr__(self):
         return str(self)
