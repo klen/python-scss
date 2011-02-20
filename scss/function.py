@@ -173,10 +173,10 @@ def _comparable(n1, n2):
 # Color functions
 # ================
 
-def _adjust_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None):
+def _adjust_color(color, saturation=0.0, lightness=0.0, red=0.0, green=0.0, blue=0.0, alpha=0.0):
     return _asc_color(OPRT['+'], color, saturation, lightness, red, green, blue, alpha)
 
-def _scale_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None):
+def _scale_color(color, saturation=1.0, lightness=1.0, red=1.0, green=1.0, blue=1.0, alpha=1.0):
     return _asc_color(OPRT['*'], color, saturation, lightness, red, green, blue, alpha)
 
 def _change_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None):
@@ -356,7 +356,7 @@ FUNCTION = {
     'pi:0': _pi,
 }
 
-def _asc_color(op, color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None):
+def _asc_color(op, color, saturation, lightness, red, green, blue, alpha):
     if lightness or saturation:
         color = hsl_op(op, color, 0, saturation, lightness)
     if red or green or blue or alpha:

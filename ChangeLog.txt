@@ -1,6 +1,12 @@
 Changes
 =======
 
+## 2011-02-19 0.5.1
+
+* Fix unused import ipdb
+* Add color functions
+
+
 ## 2011-02-19 0.5.0
 -------------------
 * Real conversion between numbers ( 10px + 2em = 36px )

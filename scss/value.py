@@ -34,13 +34,13 @@ hex2rgba = {
 def hsl_op(op, color, h, s, l):
     other = (float(h), float(l), float(s))
     self = colorsys.rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))
-    res = colorsys.hls_to_rgb(*map(op, self, other))
+    res = colorsys.hls_to_rgb(*map(lambda x, y: op(x, y) if op else y if y else x, self, other))
     return ColorValue(( res[0] * 255.0, res[1] * 255.0, res[2] * 255.0, color.value[3] ))
 
 
 def rgba_op(op, color, r, g, b, a):
     other = (float(r), float(g), float(b), float(a))
-    res = ColorValue(map(op, color.value, other))
+    res = ColorValue(map(lambda x, y: op(x, y) if op else y if y else x, color.value, other))
     if float(a) == color.value[3] == 1:
         res.value = (res.value[0], res.value[1], res.value[2], 1.0)
     return res
@@ -108,10 +108,7 @@ class NumberValue(Value):
     @classmethod
     def _do_op(cls, self, other, op):
         value = op(float(self), float(other))
-        try:
-            value /= CONV_FACTOR.get(self.units or other.units, 1.0)
-        except Exception, e:
-            import ipdb; ipdb.set_trace() ### XXX Breakpoint ###
+        value /= CONV_FACTOR.get(self.units or other.units, 1.0)
 
         return cls((value, self.units or other.units))
 

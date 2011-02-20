@@ -2,24 +2,27 @@ Examples
 ========
 
 #. **Nested Rules**
-    Example::
 
-	.selector {
-	    a {
-	        display: block;
-	    }
-	    strong {
-	        color: blue;
-	    }
-	}
+Example: ::
 
-    ...produces::
+    .selector {
+        a {
+            display: block;
+        }
+        strong {
+            color: blue;
+        }
+    }
 
-        .selector a {
-            display: block}
+...produces 
 
-        .selector strong {
-            color: blue}
+.. code-block:: css
+
+    .selector a {
+        display: block}
+
+    .selector strong {
+        color: blue}
 
 
 #. **Variables**
