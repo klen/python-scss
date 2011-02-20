@@ -1,7 +1,7 @@
 Changes
 =======
 
-## 2011-02-19 0.5.2
+## 2011-02-19 0.5.3
 
 * Fix unused import ipdb
 * Add color functions

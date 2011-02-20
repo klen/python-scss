@@ -26,7 +26,7 @@ Python-scss has most of the funcitonality in Sass SCSS_ 3.2 ...it supports:
     * **Keyword arguments**
     * **Mixins**: `@mixin`, `@include`
     * **Inheritance**: `@extend`
-    * **Conditions**: `@if`, `@else`
+    * **Conditions**: `@if`, `@else`, `@if else`
     * **Loops**: `@for`
     * **Variables**: `$`, `@variables`, `@vars`
     * **Colors handling**: `adjust-color()`, `scale-color()`, `opacify()`/`transparentize()`, `lighten()`/`darken()`, `mix()`, ...
