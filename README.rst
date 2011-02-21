@@ -98,10 +98,7 @@ Changes
 
 Make sure you`ve read the following document if you are upgrading from previous versions of makesite:
 
-.. toctree::
-   :maxdepth: 1
-
-   changes
+http://packages.python.org/scss/changes.html
 
 
 Examples
