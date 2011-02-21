@@ -1,6 +1,11 @@
 Changes
 =======
 
+## 2011-02-20 0.5.8
+-------------------
+* Add @options sort, @option comments, @option cache
+* Upgrade scss command tools ( more options, see scss --help )
+
 ## 2011-02-19 0.5.7
 -------------------
 * Fix unused import ipdb

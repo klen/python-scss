@@ -12,9 +12,9 @@ from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 
 class Comment(Node):
     def __str__(self):
-        if self.root.ignore_comment:
-            return ''
-        return super(Comment, self).__str__()
+        if self.root.get_opt('comments') and not self.root.get_opt('compress'):
+            return super(Comment, self).__str__()
+        return ''
 
 
 class Debug(Empty):
@@ -26,15 +26,11 @@ class Debug(Empty):
 class Option(Empty):
     def __init__(self, t, s):
         super(Option, self).__init__(t, s)
-        opts = dict(
-                map(lambda (x, y): (x, BooleanValue(y).value),
+        opts = map(lambda (x, y): (x, BooleanValue(y).value),
                     zip(*[iter(self.data[1:])]*2)
-                ))
-        self.root.cache['opts'].update(opts)
-        if self.root.cache['opts']['compress']:
-            self.root.ws = self.root.nl = self.root.ts = ''
-        else:
-            self.root.ws, self.root.nl, self.root.ts = ' ', '\n', '\t'
+                )
+        for v in opts:
+            self.root.set_opt(*v)
 
 
 class SelectorGroup(ParseNode):
@@ -79,7 +75,7 @@ class Declaration(ParseNode):
     """
     def __str__(self):
         name, expr = self.data[0].data, self.data[2:]
-        return ( ':' + self.root.ws ).join([
+        return ( ':' + self.root.delims[1] ).join([
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
 
@@ -131,7 +127,11 @@ class Ruleset(ParseNode):
 
     def __str__(self):
         self.parse_declareset()
-        self.declaration.sort(key=lambda x: SORTING.get( str(x.data[0]), 999 ))
+
+        if self.root.get_opt('sort'):
+            self.declaration.sort(key=lambda x: SORTING.get( str(x.data[0]), 999 ))
+
+        nl, ws, ts = self.root.delims
 
         return ''.join((
 
@@ -139,13 +139,13 @@ class Ruleset(ParseNode):
             ''.join((
 
                 # Selectors
-                self.root.nl + ', '.join(str(s) for s in self.selectorgroup),
+                '\n' + ', '.join(str(s) for s in self.selectorgroup),
 
                 # Declarations
-                ' {' + self.root.nl + self.root.ts,
-                (';' + self.root.nl + self.root.ts).join(
+                ws + '{' + nl + ts,
+                (';' + nl + ts).join(
                     str(d) for d in self.declaration),
-                '}' + '\n'
+                '}' + nl
 
             )) if self.declaration else '',
 
@@ -170,21 +170,36 @@ class Mixinparam(ParseNode):
 class Stylecheet(object):
 
     defvalue = NumberValue(0)
+    defdelims = '\n', ' ', '\t'
 
-    def __init__(self, cache = None, ignore_comment=False):
+    def __init__(self, cache = None, options=None):
         self.cache = cache or dict(
+
+            # Variables context
             ctx = dict(),
+
+            # Mixin context
             mix = dict(),
+
+            # Options context
             opts = dict(
-                compress = False,
-                short_colors = True,
+                comments = True,
                 sort = True,
             ),
+
+            # Rules context
             rset = defaultdict(set),
+
+            # CSS delimeters
+            delims = self.defdelims,
+
+            # Output
             out = ''
         )
-        self.ignore_comment = ignore_comment
-        self.nl, self.ws, self.ts = '\n', ' ', '\t'
+
+        if options:
+            for option in options.items():
+                self.set_opt(*option)
 
         # Comments
         CSS_COMMENT.setParseAction(self.getType(Comment))
@@ -234,20 +249,37 @@ class Stylecheet(object):
 
         DEBUG.setParseAction(self.getType(Debug))
 
+    @property
+    def delims(self):
+        return self.cache['delims']
+
     def get_var(self, name):
         """ Get variable from global stylesheet context.
         """
         rec = self.cache['ctx'].get(name)
         return rec[0] if rec else self.defvalue
 
+    def set_opt(self, name, value):
+        """ Set option.
+            @option compress
+            @option sort
+            @option comments
+        """
+        self.cache['opts'][name] = value
+
+        if name == 'compress':
+            self.cache['delims'] = self.defdelims if not value else ('', '', '')
+
+    def get_opt(self, name):
+        """ Get option.
+        """
+        return self.cache['opts'].get(name)
+
     def set_var(self, name, value, default=False):
         """ Set variable to global stylesheet context.
         """
         if not(default and self.cache['ctx'].get(name)):
             self.cache['ctx'][name] = value, default
-
-    def __str__(self):
-        return self.cache['out']
 
     def dump(self):
         return cPickle.dumps(self.cache)
@@ -262,22 +294,32 @@ class Stylecheet(object):
         """ Update self cache from other.
         """
         self.cache['out'] += cache.get('out')
+        self.cache['delims'] = cache.get('delims')
         self.cache['opts'].update(cache.get('opts'))
         self.cache['mix'].update(cache.get('mix'))
         self.cache['rset'].update(cache.get('rset'))
         for name, rec in cache['ctx'].items():
             self.set_var(name, *rec)
 
-    def load(self, f, precache=False):
-        name = os.path.splitext(f.name)[0]
-        cache_path = '.'.join((name, 'ccss'))
-        if os.path.exists(cache_path):
+    def load(self, f, precache=None):
+
+        precache = precache or self.get_opt('cache') or False
+        cache_path = '.'
+
+        if isinstance(f, str):
+            cache_path = os.path.dirname(f)
+            f = open(f)
+
+        name = '.'.join(( os.path.splitext(f.name)[0], 'ccss' ))
+        cache_path = os.path.join(cache_path, name)
+
+        if precache and os.path.exists( cache_path ):
             ptime = os.path.getmtime(cache_path)
             ttime = os.path.getmtime(f.name)
             if ptime > ttime:
                 dump = open(cache_path, 'rb').read()
                 self.update(cPickle.loads(dump))
-                return self.cache
+            return self.cache
 
         src = f.read()
         self.loads(src)
@@ -296,6 +338,9 @@ class Stylecheet(object):
                 return node(t, self)
             return node(t)
         return wrap
+
+    def __str__(self):
+        return self.cache['out']
 
 
 def parse( src, cache=None ):

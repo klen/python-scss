@@ -1,9 +1,7 @@
-Add options for compress, sorting
-Refactor compress
-
-
+Fix cache
 Add warnings on unknown properties
 Add zen codding abbr
+Add wath mode
 Enable verbose stacktrace
 Drop copy all nodes ( only vars )
 Fix selector bug

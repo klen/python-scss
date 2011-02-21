@@ -1,12 +1,7 @@
-.. python-scss documentation master file, created by
-   sphinx-quickstart on Wed Feb 16 19:24:45 2011.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Python-scss
 ===========
 
-Python-scss is SCSS_ compiler for python.
+Python-scss is SCSS_ compiler for python. Documentation available at pypi_ or github_.
 This is part of zeta-library_.
 
 .. contents::
@@ -27,7 +22,7 @@ Python-scss has most of the funcitonality in Sass SCSS_ 3.2 and more. It support
 * **Colors handling**: `adjust-color()`, `scale-color()`, `opacify()`/`transparentize()`, `lighten()`/`darken()`, `mix()`, ...
 * **Math functions**: `sin()`, `cos()`, `tan()`, `round()`, `ceil()`, `floor()`, `pi()`, ...
 * **Compass_ helpers**: `enumerate`, `type-of`, ...
-* **Sorting declarations**: In zen sorting order: http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn 
+* **Sorting declarations**: In `Zen sorting order`_
 
 .. note::
    For ``@import`` support you can use zeta-library_, python compass alternative.
@@ -58,8 +53,21 @@ Usage
 #. **From python source code**: ::
 
     from scss import parser
-    src = file.read()
-    print parser.parse('src')
+
+    file_path = path_to_file
+    src = open( file_path ).read()
+
+    # from file
+    print parser.load( 'file_path' )
+
+    # from string
+    print parser.parse( 'src' )
+
+    # Create parser object
+    p = parser.Stylesheet( options=dict( compress=True ) )
+    print p.loads( src )
+    p.load( file_path )
+    print p
 
 #. **From command line**: ::
 
@@ -208,6 +216,36 @@ Examples
             test: red }
 	>>> _
 
+
+Options
+=======
+
+Python-scss has the following options:
+
+- **compress**: Compress ouput css, default is False
+
+- **cache**: Precache compile result, default is False
+
+- **comments**: Leave css comments, default is True
+
+- **sort**: Sort declaration, default is True
+  Declaration sorted in `Zen sorting order`_
+
+Option can be defined... 
+
+#. from command line: ::
+
+    scss -m -S file.scss
+
+#. from python: ::
+
+    parser = Stylesheet( options=dict( compress=True ) )
+
+#. from scss source: ::
+
+    @option compress: true, sort: false;
+
+
 .. note::
     python-scss is still at early stages of development
 
@@ -223,8 +261,7 @@ at https://github.com/klen/python-scss/issues
 Contributing
 ============
 
-Development of python-scss happens at github:
-https://github.com/klen/python-scss
+Development of python-scss happens at github: https://github.com/klen/python-scss
 
 
 License
@@ -256,3 +293,7 @@ Note
 .. _GNU lesser general public license: http://www.gnu.org/copyleft/lesser.html
 .. _SCSS: http://sass-lang.com
 .. _compass: http://compass-style.org/
+.. _python scss git: http://packages.python.org/scss/
+.. _pypi: http://packages.python.org/scss/
+.. _github: https://github.com/klen/python-scss
+.. _Zen sorting order: http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn#Sorting_Methods
