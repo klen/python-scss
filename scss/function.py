@@ -237,7 +237,7 @@ def _nest(*args):
         ' '.join(
            s.strip() for s in p
         ) for p in product(
-            *( sel.value.split(',') for sel in args )
+            *( StringValue( sel ).value.split(',') for sel in args )
         )
     )
 

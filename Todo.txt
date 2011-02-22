@@ -1,3 +1,5 @@
+Fix recursion in compass vars
+    Fix expression evalute in progress, and mixin too
 Fix cache
 Add warnings on unknown properties
 Add zen codding abbr

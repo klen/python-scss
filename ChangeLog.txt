@@ -1,6 +1,13 @@
 Changes
 =======
 
+## 2011-02-21 0.6.0
+-------------------
+* Add warnings ( not found mix and etc )
+* Add @warn
+* Add 'add', 'or', 'not' operators in expressions
+* Add mode compass support
+
 ## 2011-02-20 0.5.9
 -------------------
 * Add @options sort, @option comments, @option cache

@@ -13,6 +13,7 @@ class TestSCSS( unittest.TestCase ):
             @charset utf-8;
             @import url(test);
 
+            @warn "Test warnings!"
             @mixin z-base {
                 a:hover, a:active { outline: none; }
                 a, a:active, a:visited { color: #607890; }

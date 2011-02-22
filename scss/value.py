@@ -10,6 +10,14 @@ class Value(object):
     @classmethod
     def _do_cmps(cls, first, second, op):
         return op(first.value, second.value)
+    @classmethod
+    def _do_bits(cls, first, second, op):
+        first = StringValue(first)
+        second = StringValue(second)
+        k = op(first.value, second.value)
+        return first if first.value == k else second
+
+    # Math operation
     def __add__(self, other):
         return self._do_op(self, other, OPRT['+'])
     __radd__ = __add__
@@ -25,6 +33,9 @@ class Value(object):
         return self._do_op(self, other, OPRT['*'])
     def __lt__(self, other):
         return self._do_cmps(self, other, OPRT['<'])
+    __rmul__ = __mul__
+
+    # Compare operation
     def __le__(self, other):
         return self._do_cmps(self, other, OPRT['<='])
     def __gt__(self, other):
@@ -35,7 +46,16 @@ class Value(object):
         return self._do_cmps(self, other, OPRT['=='])
     def __ne__(self, other):
         return self._do_cmps(self, other, OPRT['!='])
-    __rmul__ = __mul__
+
+    # Bit operation
+    def __and__(self, other):
+        return self._do_bits(self, other, OPRT['and'])
+    def __or__(self, other):
+        return self._do_bits(self, other, OPRT['or'])
+
+    # Boolean
+    def __nonzero__(self):
+        return getattr(self, 'value') and True or False
 
 
 hex2rgba = {
@@ -128,7 +148,7 @@ class NumberValue(Value):
 
     def __str__(self):
         value = ("%0.03f" % self.value).strip('0').rstrip('.') or 0
-        return "%s%s" % (value, self.units)
+        return "%s%s" % (value, self.units if self.value else '')
 
     @classmethod
     def _do_op(cls, self, other, op):
@@ -170,7 +190,7 @@ class BooleanValue(Value):
         if t is None:
             self.value = False
         elif isinstance(t, Value):
-            self.value = bool(t.value)
+            self.value = bool(t.value) if t.value != 'false' else False
         elif isinstance(t, ( str, bool )):
             self.value = bool(t) if t != 'false' else False
         else:
@@ -245,7 +265,7 @@ class Expression(Variable):
                 if isinstance(n, Variable):
                     n.ctx = ctx
 
-        if OPRT.get(data[0], None):
+        if not OPRT.get(data[0], None) is None:
             data.insert(0, NumberValue(0))
 
         it = iter(data)
@@ -256,6 +276,13 @@ class Expression(Variable):
                 if op:
                     second = next(it)
                     first = op(cls.prepare( first ), cls.prepare( second ))
+
+                    if op == OPRT['and'] and not first:
+                        raise StopIteration
+
+                    elif op == OPRT['or'] and first:
+                        raise StopIteration
+
                 res = next(it)
             except StopIteration:
                 break

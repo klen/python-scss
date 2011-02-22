@@ -4,8 +4,8 @@ import os.path
 from collections import defaultdict
 
 from scss import SORTING
-from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node
-from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION
+from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, warn
+from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN
 from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 
@@ -206,6 +206,7 @@ class Stylecheet(object):
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
 
         # At rules
+        WARN.setParseAction(warn)
         MEDIA.setParseAction(self.getType(SimpleNode))
         IMPORT.setParseAction(self.getType(SemiNode))
         CHARSET.setParseAction(self.getType(SemiNode))

@@ -2,7 +2,7 @@
 import operator
 
 
-VERSION_INFO = (0, 5, 9)
+VERSION_INFO = (0, 6, 0)
 
 __project__ = PROJECT = __name__
 __version__ = VERSION = '.'.join(str(i) for i in VERSION_INFO)
@@ -44,19 +44,23 @@ for t, m in CONV.items():
 del t, m, k, f
 
 OPRT = {
-    '^' : operator.__pow__,
-    '+' : operator.__add__,
-    '-' : operator.__sub__,
-    '*' : operator.__mul__,
-    '/' : operator.__div__,
-    '!' : operator.__neg__,
-    '<' : operator.__lt__,
-    '<=': operator.__le__,
-    '>' : operator.__gt__,
-    '>=': operator.__ge__,
-    '==': operator.__eq__,
-    '=' : operator.__eq__,
-    '!=': operator.__ne__,
+    '^'  : operator.__pow__,
+    '+'  : operator.__add__,
+    '-'  : operator.__sub__,
+    '*'  : operator.__mul__,
+    '/'  : operator.__div__,
+    '!'  : operator.__neg__,
+    '<'  : operator.__lt__,
+    '<=' : operator.__le__,
+    '>'  : operator.__gt__,
+    '>=' : operator.__ge__,
+    '==' : operator.__eq__,
+    '='  : operator.__eq__,
+    '!=' : operator.__ne__,
+    '&': operator.__and__,
+    '|' : operator.__or__,
+    'and': lambda x,y: x and y,
+    'or': lambda x,y: x or y,
 }
 
 ELEMENTS_OF_TYPE = {

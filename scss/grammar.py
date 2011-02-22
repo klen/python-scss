@@ -15,13 +15,6 @@ CSS_COMMENT = cStyleComment + Optional(lineEnd)
 SCSS_COMMENT = dblSlashComment
 COMMENT = CSS_COMMENT | SCSS_COMMENT
 
-# SCSS directives
-MIXIN_SYM = Suppress("@mixin")
-INCLUDE_SYM = Suppress("@include")
-EXTEND_SYM = Suppress("@extend")
-FOR_SYM = Suppress("@for")
-DEBUG_SYM = Suppress("@debug")
-
 # Property values
 HASH = Word('#', alphanums + "_-")
 HEXCOLOR = Suppress("#") + Word(hexnums, min=3, max=8)
@@ -29,9 +22,9 @@ NUMBER_VALUE = NUMBER + ( oneOf("em ex px cm mm in pt pc deg %") | EMPTY)
 PATH = Word(alphanums + "_-/.", alphanums + "_-./?#&")
 
 # Operators
-MATH_OPERATOR = oneOf("+ - / *")
+MATH_OPERATOR = oneOf("+ - / * and or")
 COMBINATOR = oneOf("+ >")
-IF_OPERATOR = oneOf("== != <= >= < >")
+IF_OPERATOR = oneOf("== != <= >= < > =")
 
 # Values
 VARIABLE = "$" + IDENT
@@ -70,28 +63,33 @@ SELECTOR = (SEL_NAME + SEL_FILTER) | INTERPOLATION_VAR | SEL_NAME | SEL_FILTER |
 SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(COMBINATOR) + SELECTOR)
 SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA + SELECTOR_GROUP)
 
+# @warn
+WARN = "@warn" + quotedString + OPT_SEMICOLON
+
 # @include
-INCLUDE = INCLUDE_SYM + IDENT + Optional(LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN) + OPT_SEMICOLON
+INCLUDE = "@include" + IDENT + Optional(LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN) + OPT_SEMICOLON
 
 # @extend
-EXTEND = EXTEND_SYM + SELECTOR + OPT_SEMICOLON
+EXTEND = "@extend" + SELECTOR + OPT_SEMICOLON
 
 # SCSS variable assigment
 VAR_DEFINITION = Suppress("$") + IDENT + COLON + (SEP_VAL_STRING | EXPRESSION ) + ("!default" | EMPTY) + OPT_SEMICOLON
 
-# Ruleset
 RULESET = Forward()
-CONTENT = COMMENT | INCLUDE | VAR_DEFINITION | RULESET
+IF = Forward()
+CONTENT = COMMENT | WARN | IF | INCLUDE | VAR_DEFINITION | RULESET
 RULE_CONTENT = CONTENT | DECLARESET | DECLARATION
 
 # SCSS control directives
 IF_CONDITION = EXPRESSION + Optional(IF_OPERATOR + EXPRESSION)
 IF_BODY = LACC + ZeroOrMore(RULE_CONTENT) + RACC
 ELSE = Suppress("@else") + LACC + ZeroOrMore(RULE_CONTENT) + RACC
-IF = ( Suppress("@if") | Suppress("@else if") ) + IF_CONDITION + IF_BODY + (ELSE | EMPTY)
+IF << (
+        ( Suppress("@if") | Suppress("@else if") ) + IF_CONDITION + IF_BODY + (ELSE | EMPTY))
+
 FOR_BODY = ZeroOrMore(RULE_CONTENT)
-FOR = FOR_SYM + VARIABLE + Suppress("from") + VALUE + (Suppress("through") | Suppress("to")) + VALUE + LACC + FOR_BODY + RACC
-DEBUG = DEBUG_SYM + EXPRESSION + OPT_SEMICOLON
+FOR = "@for" + VARIABLE + Suppress("from") + VALUE + (Suppress("through") | Suppress("to")) + VALUE + LACC + FOR_BODY + RACC
+DEBUG = "@debug" + EXPRESSION + OPT_SEMICOLON
 CONTROL_DIR = IF | FOR | DEBUG
 
 RULESET << (
@@ -101,7 +99,7 @@ RULESET << (
 # SCSS mixin
 MIXIN_PARAM = VARIABLE + Optional(COLON + EXPRESSION)
 MIXIN_PARAMS = LPAREN + ZeroOrMore(COMMA | MIXIN_PARAM) + RPAREN
-MIXIN = (MIXIN_SYM + IDENT + Optional(MIXIN_PARAMS) +
+MIXIN = ("@mixin" + IDENT + Optional(MIXIN_PARAMS) +
     LACC + ZeroOrMore(RULE_CONTENT | CONTROL_DIR) + RACC)
 
 # Root elements

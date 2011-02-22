@@ -1,4 +1,4 @@
-from scss.base import Node, Empty, ParseNode
+from scss.base import Node, Empty, ParseNode, warn
 from scss.function import FUNCTION, unknown
 from scss.value import Variable, NumberValue, Expression, BooleanValue
 
@@ -8,9 +8,8 @@ class VarDef(Empty):
     """
     def __init__(self, t, s):
         super(VarDef, self).__init__(t, s)
-        name, self.value, default = self.data
-        default = not isinstance(default, Empty)
-        self.root.set_var(name, self.value, default)
+        name, self.value, default = t
+        s.set_var(name, self.value, not isinstance(default, Empty))
 
     def copy(self, ctx=None):
         self.value.ctx = ctx
@@ -20,10 +19,9 @@ class VarDef(Empty):
 class Mixin(ParseNode, Empty):
     """ @mixin class.
     """
-
     def __init__(self, t, s=None):
         super(Mixin, self).__init__(t, s)
-        self.root.cache['mix'][t[0]] = self
+        s.cache['mix'][t[1]] = self
 
     def include(self, target, params):
         if isinstance(target, Mixin):
@@ -39,36 +37,41 @@ class Mixin(ParseNode, Empty):
 
 
 class Include(ParseNode):
-    """ @include class.
+    """ @include
     """
 
     def __init__(self, t, s):
         super(Include, self).__init__(t, s)
-        self.mixin = s.cache['mix'].get(t[0])
-        self.params = t[1:]
+        self.name, self.params = t[1], t[2:]
 
     def __str__(self):
-        if not self.mixin is None:
-            node = Node([])
-            self.mixin.include(node, self.params)
-            if hasattr(node, 'ruleset'):
-                return ''.join(str(r) for r in getattr(node, 'ruleset'))
+        node = Node(tuple())
+        if self.parse(node) and hasattr(node, 'ruleset'):
+            return ''.join( r.__str__() for r in getattr(node, 'ruleset') )
+
+        warn("Required mixin not found: %s:%d." % ( self.name, len(self.params)))
+        return ''
 
     def parse(self, target):
-        if not self.mixin is None:
-            self.mixin.include(target, self.params)
+        mixin = self.root.cache['mix'].get(self.name)
+        if mixin:
+            mixin.include(target, self.params)
+            return True
+        return False
 
 
 class Extend(ParseNode):
     """ @extend at rule.
     """
     def parse(self, target):
-        name = str(self.data[0])
+        name = str(self.data[1])
         rulesets = self.root.cache['rset'].get(name)
         if rulesets:
             for rul in rulesets:
                 for sg in target.selectorgroup:
                     rul.selectorgroup.append(sg.increase(rul.selectorgroup[0]))
+        else:
+            warn("Ruleset for extend not found: %s" % name)
 
 
 class Function(Variable):
@@ -102,7 +105,7 @@ class IfNode(ParseNode):
 
     def __init__(self, t, s):
         super(IfNode, self).__init__(t, s)
-        self.cond, self.body, self.els = self.data
+        self.cond, self.body, self.els = t
 
     def __str__(self):
         return str(self.get_node())
@@ -110,7 +113,7 @@ class IfNode(ParseNode):
     def get_node(self):
         data = self.cond.data
         if len(data) == 1:
-            res = data[0]
+            res = Expression.prepare(data[0])
         else:
             res = Expression.do_expression(data)
         return self.body if BooleanValue(res).value else self.els
@@ -118,13 +121,14 @@ class IfNode(ParseNode):
     def parse(self, target):
         node = self.get_node()
         for n in node.data:
-            n.parse(target)
+            if isinstance(n, ParseNode):
+                n.parse(target)
 
 
 class ForNode(ParseNode):
     def __init__(self, t, s):
         super(ForNode, self).__init__(t, s)
-        self.var, self.first, self.second, self.body = self.data
+        self.var, self.first, self.second, self.body = t[1:]
 
     def copy(self, ctx=None):
         return self
