@@ -14,6 +14,8 @@ class TestSCSS( unittest.TestCase ):
                 $blue: #ffdd00 !default;
                 $test: rgb(120, 35, 64);
                 $test2: rgba(120, 35, 64, .4);
+                $property: float;
+                $value: left;
                 $len: 0px or 5px;
             }
             $margin: 16px;
@@ -21,11 +23,13 @@ class TestSCSS( unittest.TestCase ):
             $image: 'test.png';
 
             .content-navigation {
+                #{$property}: #{$value};
                 border-color: $blue;
                 background-color: $test + 5%;
                 background-image: url('/test/' + $image);
+                display: -moz-inline-box;
                 color: $blue - 9%;
-                margin: $len ( -$margin * 2 ) 12px;
+                margin: $len (-$margin * 2 ) ( -12px );
             }
 
             .border {
@@ -39,6 +43,6 @@ class TestSCSS( unittest.TestCase ):
                 font: -1.5em + 50px;
             }
             """
-        test = ".content-navigation {\n\tmargin: 5px -32px 12px;\n\tborder-color: #fd0;\n\tbackground-color: #7b1f3e;\n\tbackground-image: url('/test/test.png');\n\tcolor: #f3d40b}\n\n.border {\n\tmargin: 8px;\n\tpadding-top: 8px;\n\tpadding-left: -14px;\n\tborder-top-color: #fd0;\n\tcolor: rgba(120,35,64,0.40);\n\tfont: 2.346em}"
+        test = ".content-navigation {\n\tfloat: left;\n\tdisplay: -moz-inline-box;\n\tmargin: 5px -32px -12px;\n\tborder-color: #fd0;\n\tbackground-color: #7b1f3e;\n\tbackground-image: url('/test/test.png');\n\tcolor: #f3d40b}\n\n.border {\n\tmargin: 8px;\n\tpadding-top: 8px;\n\tpadding-left: -14px;\n\tborder-top-color: #fd0;\n\tcolor: rgba(120,35,64,0.40);\n\tfont: 2.346em}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)

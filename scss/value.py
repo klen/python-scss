@@ -103,7 +103,7 @@ class ColorValue(Value):
             self.value = tuple(c)
 
         else:
-            val = t[0]
+            val = t[0][1:]
             self.value = hex2rgba[len(val)](val)
 
     def __str__(self):
@@ -218,10 +218,12 @@ class Variable(Node, Value):
     def value(self):
         """ Return variable value.
         """
-        name = self.data[1]
+        name = self.data[0].lstrip('$-')
         if self.ctx and self.ctx.get(name):
-            return self.ctx.get(name)
-        return self.root.get_var(name)
+            value = self.ctx.get(name)
+        else:
+            value = self.root.get_var(name)
+        return (self.root.defvalue - value) if self.data[0][0] == '-' else value
 
     def __str__(self):
         return str(self.value)
@@ -264,9 +266,6 @@ class Expression(Variable):
             for n in data:
                 if isinstance(n, Variable):
                     n.ctx = ctx
-
-        if not OPRT.get(data[0], None) is None:
-            data.insert(0, NumberValue(0))
 
         it = iter(data)
         first, res = next(it), next(it)

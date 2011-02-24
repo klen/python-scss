@@ -1,12 +1,10 @@
+Ok, ok, add import support
+Add col, lines to unknown messages
 Fix cache
 Add zen codding abbr
 Add wath mode
-Enable verbose stacktrace
 Copy and parse only in mixin and function
 Drop root defined in node init, get this from str stylecheet
-Fix selector bug
 Add caching using pickle save default flag
-Add @debug, @warn
-Add declaration check for dublicate
 Add ruleset check for dublicate
 Drop hasattr, getattr, update t patterns

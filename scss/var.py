@@ -8,7 +8,7 @@ class VarDef(ParseNode, Empty):
     """
     def __init__(self, t, s):
         super(VarDef, self).__init__(t, s)
-        self.name, self.value, self.default = t[0], t[1], not isinstance(t[2], Empty)
+        self.name, self.value, self.default = t[0], t[1], len(t) > 2
         self.parse()
 
     def copy(self, ctx=None):
@@ -107,10 +107,11 @@ class Function(Variable):
 
 
 class IfNode(ParseNode):
+    def_else = Node([])
 
     def __init__(self, t, s):
         super(IfNode, self).__init__(t, s)
-        self.cond, self.body, self.els = t
+        self.cond, self.body, self.els = t[0], t[1], t[2] if len(t)>2 else self.def_else
 
     def __str__(self):
         return str(self.get_node())
@@ -139,7 +140,7 @@ class ForNode(ParseNode):
         return self
 
     def __parse(self):
-        name = self.var.data[1]
+        name = self.var.data[0][1:]
         for i in xrange(int(float( self.first )), int(float( self.second ))+1):
             yield self.body.copy({name: NumberValue(i)})
 

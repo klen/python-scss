@@ -1,11 +1,12 @@
 Changes
 =======
 
-## 2011-02-24 0.6.1
+## 2011-02-24 0.6.2
 -------------------
 * Fix recursion bug in variable redefinition
 * Add unwnown properties
 * Add @option @warn:true
+* Fix selector interpolation bug
 
 ## 2011-02-21 0.6.0
 -------------------

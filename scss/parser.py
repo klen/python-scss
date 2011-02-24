@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from scss import SORTING
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, warn
-from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, EMPTY, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN
+from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN
 from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
 
@@ -15,6 +15,13 @@ class Comment(Node):
         if self.root.get_opt('comments') and not self.root.get_opt('compress'):
             return super(Comment, self).__str__()
         return ''
+
+
+class Import(SemiNode):
+    pass
+    # def __init__(self, t, s):
+        # super(Import, self).__init__(t, s)
+        # import ipdb; ipdb.set_trace() ### XXX Breakpoint ###
 
 
 class Debug(Empty):
@@ -160,7 +167,7 @@ class Ruleset(ParseNode):
 class Mixinparam(ParseNode):
     @property
     def name(self):
-        return self.data[0].data[1]
+        return self.data[0].data[0][1:]
 
     @property
     def default(self):
@@ -211,14 +218,13 @@ class Stylecheet(object):
         # At rules
         WARN.setParseAction(warn)
         MEDIA.setParseAction(self.getType(SimpleNode))
-        IMPORT.setParseAction(self.getType(SemiNode))
+        IMPORT.setParseAction(self.getType(Import))
         CHARSET.setParseAction(self.getType(SemiNode))
         FONT_FACE.setParseAction(self.getType(FontFace))
         OPTION.setParseAction(self.getType(Option))
         VARIABLES.setParseAction(Empty)
 
         # Values
-        EMPTY.setParseAction(self.getType(Empty))
         HEXCOLOR.setParseAction(ColorValue)
         NUMBER_VALUE.setParseAction(NumberValue)
         FUNCTION.setParseAction(self.getType(Function))
@@ -298,6 +304,7 @@ class Stylecheet(object):
         """ Parse string and return self cache.
         """
         self.cache['out'] = STYLESHEET.transformString(src.strip()).strip()
+        # self.cache['out'] = STYLESHEET.parseString(src.strip())
         return self.cache
 
     def update(self, cache):
