@@ -17,6 +17,7 @@ class TestSCSS( unittest.TestCase ):
             height: 100px;
             color: #ff0033;
             border: 2px solid magenta;
+            @warn "Test";
 
             li {
                 background-color: red - #333;

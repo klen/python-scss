@@ -1,11 +1,9 @@
-Fix recursion in compass vars
-    Fix expression evalute in progress, and mixin too
 Fix cache
-Add warnings on unknown properties
 Add zen codding abbr
 Add wath mode
 Enable verbose stacktrace
-Drop copy all nodes ( only vars )
+Copy and parse only in mixin and function
+Drop root defined in node init, get this from str stylecheet
 Fix selector bug
 Add caching using pickle save default flag
 Add @debug, @warn

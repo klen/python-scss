@@ -3,17 +3,21 @@ from scss.function import FUNCTION, unknown
 from scss.value import Variable, NumberValue, Expression, BooleanValue
 
 
-class VarDef(Empty):
+class VarDef(ParseNode, Empty):
     """ Variable definition.
     """
     def __init__(self, t, s):
         super(VarDef, self).__init__(t, s)
-        name, self.value, default = t
-        s.set_var(name, self.value, not isinstance(default, Empty))
+        self.name, self.value, self.default = t[0], t[1], not isinstance(t[2], Empty)
+        self.parse()
 
     def copy(self, ctx=None):
-        self.value.ctx = ctx
+        if isinstance(self.value, Variable):
+            self.value.ctx = ctx
         return self
+
+    def parse(self, target=None):
+        self.root.set_var(self.name, self.value, self.default)
 
 
 class Mixin(ParseNode, Empty):
@@ -49,7 +53,8 @@ class Include(ParseNode):
         if self.parse(node) and hasattr(node, 'ruleset'):
             return ''.join( r.__str__() for r in getattr(node, 'ruleset') )
 
-        warn("Required mixin not found: %s:%d." % ( self.name, len(self.params)))
+        if self.root.get_opt('warn'):
+            warn("Required mixin not found: %s:%d." % ( self.name, len(self.params)))
         return ''
 
     def parse(self, target):
@@ -70,7 +75,7 @@ class Extend(ParseNode):
             for rul in rulesets:
                 for sg in target.selectorgroup:
                     rul.selectorgroup.append(sg.increase(rul.selectorgroup[0]))
-        else:
+        elif self.root.get_opt('warn'):
             warn("Ruleset for extend not found: %s" % name)
 
 

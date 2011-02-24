@@ -11,10 +11,17 @@ class TestSCSS( unittest.TestCase ):
     def test_operations_and_functions(self):
         src = """
             $type: monster;
-             $test: 9px;
+            $test: 9px;
+
+            $rec: true;
+            $rec2: $rec or true;
+            $rec3: $rec or true;
+            $rec: $rec2 or $rec3;
 
             @if $test + 2 > 10 {
-                .test { border: 2px; }
+                @if $rec {
+                    .test { border: 2px; }
+                }
             }
 
             @mixin test($fix: true) {

@@ -38,6 +38,8 @@ class TestSCSS( unittest.TestCase ):
 
     def test_rgb_functions(self):
         src = """
+            @option warn:false;
+
             $color: rgba(23, 45, 67, .4)
             $color2: #fdc;
             .test {
@@ -53,6 +55,8 @@ class TestSCSS( unittest.TestCase ):
 
     def test_hsl_functions(self):
         src = """
+            @option warn:false;
+
             $hsl: hsla(0, 100%, 25%, .4);
             .test {
                 color: $hsl;
@@ -91,6 +95,8 @@ class TestSCSS( unittest.TestCase ):
 
     def test_number_functions(self):
         src = """
+            @option warn:false;
+
             $top: 100px;
             $bottom: 50px;
             .test {
@@ -107,6 +113,8 @@ class TestSCSS( unittest.TestCase ):
 
     def test_introspection_functions(self):
         src = """
+            @option warn:false;
+
             $top: 100px;
             $color: #f00;
             .test {

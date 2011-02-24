@@ -55,6 +55,10 @@ def main():
         '-C', '--no-comments', action='store_false', dest='comments',
         help="Clear css comments.")
 
+    p.add_option(
+        '-W', '--no-warnings', action='store_false', dest='warn',
+        help="Disable warnings.")
+
     opts, args = p.parse_args()
     precache = opts.cache
 
@@ -105,6 +109,7 @@ def main():
             options=dict(
                 comments = opts.comments,
                 compress = opts.compress,
+                warn = opts.warn,
                 sort = opts.sort,
                 cache = precache,
             ))

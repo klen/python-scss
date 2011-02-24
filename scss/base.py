@@ -4,6 +4,7 @@ import sys
 def warn(warning):
     if not isinstance(warning, str):
         warning = str(warning[1])
+
     print >> sys.stderr, "\nWarning: %s" % warning
     return ''
 

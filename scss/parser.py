@@ -74,7 +74,9 @@ class Declaration(ParseNode):
     """ Css declaration.
     """
     def __str__(self):
-        name, expr = self.data[0].data, self.data[2:]
+        name, expr = ''.join(str(s) for s in self.data[0].data ), self.data[2:]
+        if not SORTING.has_key(name.strip('*_')) and self.root.get_opt('warn'):
+            warn("Unknown declaration: %s" % name)
         return ( ':' + self.root.delims[1] ).join([
             ''.join(str(s) for s in name),
             ' '.join(str(e) for e in expr)])
@@ -184,6 +186,7 @@ class Stylecheet(object):
             # Options context
             opts = dict(
                 comments = True,
+                warn = True,
                 sort = True,
             ),
 
@@ -258,7 +261,11 @@ class Stylecheet(object):
         """ Get variable from global stylesheet context.
         """
         rec = self.cache['ctx'].get(name)
-        return rec[0] if rec else self.defvalue
+        if rec:
+            return rec[0]
+
+        # warn('Unwnown variable: %s' % name, self)
+        return self.defvalue
 
     def set_opt(self, name, value):
         """ Set option.
@@ -280,6 +287,8 @@ class Stylecheet(object):
         """ Set variable to global stylesheet context.
         """
         if not(default and self.cache['ctx'].get(name)):
+            if isinstance(value, Variable):
+                value = value.value
             self.cache['ctx'][name] = value, default
 
     def dump(self):

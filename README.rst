@@ -228,6 +228,8 @@ Python-scss has the following options:
 - **sort**: Sort declaration, default is True
   Declaration sorted in `Zen sorting order`_
 
+- **warn**: Enable or disable warnings: unwnown mixin, declaration name, extend ruleset, default is True
+
 Option can be defined... 
 
 #. from command line: ::

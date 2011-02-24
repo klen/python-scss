@@ -1,6 +1,12 @@
 Changes
 =======
 
+## 2011-02-24 0.6.1
+-------------------
+* Fix recursion bug in variable redefinition
+* Add unwnown properties
+* Add @option @warn:true
+
 ## 2011-02-21 0.6.0
 -------------------
 * Add warnings ( not found mix and etc )
