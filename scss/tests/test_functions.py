@@ -26,13 +26,14 @@ class TestSCSS( unittest.TestCase ):
 
             li {
                 background-color: $navbar-color - #333;
+                background-image: url(test/value);
                 float: left;
                 font: 8px/10px $font;
                 margin: 3px + 5.5px auto;
                 height: 5px + (4px * (2 + $items));
                 width: $navbar-width/$items - 10px;
                 &:hover { background-color: $navbar-color - 10%; } }"""
-        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #646437}\n\n#navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar p div1, #navbar p div2, #navbar p div3 {\n\tcolor: blue}\n\nli {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\twidth: 256.667px;\n\theight: 25px;\n\tbackground-color: #313104;\n\tfont: 8px/10px 'Verdana', monospace}\n\nli:hover {\n\tbackground-color: #5c5c3e}"
+        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #646437}\n\n#navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar p div1, #navbar p div2, #navbar p div3 {\n\tcolor: blue}\n\nli {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\twidth: 256.667px;\n\theight: 25px;\n\tbackground-color: #313104;\n\tbackground-image: url(test/value);\n\tfont: 8px/10px 'Verdana', monospace}\n\nli:hover {\n\tbackground-color: #5c5c3e}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)
 

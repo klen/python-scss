@@ -18,7 +18,7 @@ HASH = Regex(r"#[-a-zA-Z_][-a-zA-Z0-9_]+")
 HEXCOLOR = Regex(r"#[a-zA-Z0-9]{3,6}")
 VARIABLE = Regex(r"-?\$[-a-zA-Z_][-a-zA-Z0-9_]*")
 NUMBER_VALUE = NUMBER + Optional(oneOf("em ex px cm mm in pt pc deg % "))
-PATH = Word(alphanums + "_-/.", alphanums + "_-./?#&")
+PATH = Word(alphanums + "_-/.:", alphanums + "_-./?#&")
 
 # Operators
 MATH_OPERATOR = oneOf("+ - / * and or")

@@ -13,32 +13,32 @@ def unknown(name, *args):
 # RGB functions
 # =============
 
-def _rgb(r, g, b):
+def _rgb(r, g, b, root=None):
     """ Converts an rgb(red, green, blue) triplet into a color.
     """
     return _rgba(r, g, b, 1.0)
 
-def _rgba(r, g, b, a):
+def _rgba(r, g, b, a, root=None):
     """ Converts an rgba(red, green, blue, alpha) quadruplet into a color.
     """
     return ColorValue(( float(r), float(g), float(b), float(a) ))
 
-def _red(color):
+def _red(color, root=None):
     """ Gets the red component of a color.
     """
     return NumberValue(color.value[0])
 
-def _green(color):
+def _green(color, root=None):
     """ Gets the green component of a color.
     """
     return NumberValue(color.value[1])
 
-def _blue(color):
+def _blue(color, root=None):
     """ Gets the blue component of a color.
     """
     return NumberValue(color.value[2])
 
-def _mix(color1, color2, weight=0.5):
+def _mix(color1, color2, weight=0.5, root=None):
     """ Mixes two colors together.
     """
     weight = float(weight)
@@ -58,92 +58,110 @@ def _mix(color1, color2, weight=0.5):
 # HSL functions
 # =============
 
-def _hsl(h, s, l):
+def _hsl(h, s, l, root=None):
     return _hsla(h, s, l, 1.0)
 
-def _hsla(h, s, l, a):
+def _hsla(h, s, l, a, root=None):
     res = colorsys.hls_to_rgb(float(h), float(l), float(s))
     return ColorValue(map( lambda x: x * 255.0, res ) + [float(a)])
 
-def _hue(color):
+def _hue(color, root=None):
     h = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[0]
     return NumberValue(h * 360.0)
 
-def _saturation(color):
+def _saturation(color, root=None):
     s = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[2]
     return NumberValue(s * 255.0)
 
-def _lightness(color):
+def _lightness(color, root=None):
     l = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[1]
     return NumberValue(l * 255.0)
 
-def _adjust_hue(color, degrees):
+def _adjust_hue(color, degrees, root=None):
     return hsl_op(OPRT['+'], color, degrees, 0, 0)
 
-def _lighten(color, amount):
+def _lighten(color, amount, root=None):
     return hsl_op(OPRT['+'], color, 0, 0, amount)
 
-def _darken(color, amount):
+def _darken(color, amount, root=None):
     return hsl_op(OPRT['-'], color, 0, 0, amount)
 
-def _saturate(color, amount):
+def _saturate(color, amount, root=None):
     return hsl_op(OPRT['+'], color, 0, amount, 0)
 
-def _desaturate(color, amount):
+def _desaturate(color, amount, root=None):
     return hsl_op(OPRT['-'], color, 0, amount, 0)
 
-def _grayscale(color):
+def _grayscale(color, root=None):
     return hsl_op(OPRT['-'], color, 0, 1.0, 0)
 
-def _complement(color):
+def _complement(color, root=None):
     return hsl_op(OPRT['+'], color, 180.0, 0, 0)
 
 
 # Opacity functions
 # =================
 
-def _alpha(color):
+def _alpha(color, root=None):
     c = ColorValue(color).value
     return NumberValue(c[3])
 
-def _opacify(color, amount):
+def _opacify(color, amount, root=None):
     return rgba_op(OPRT['+'], color, 0, 0, 0, amount)
 
-def _transparentize(color, amount):
+def _transparentize(color, amount, root=None):
     return rgba_op(OPRT['-'], color, 0, 0, 0, amount)
 
 
 # String functions
 # =================
 
-def _unquote(*args):
+def _unquote(*args, **kwargs):
     return StringValue(' '.join(str(s).strip("\"'") for s in args))
 
-def _quote(*args):
+def _quote(*args, **kwargs):
     return QuotedStringValue(' '.join(str(s) for s in args))
 
 
 # Number functions
 # =================
 
-def _percentage(value):
+def _percentage(value, root=None):
     value = NumberValue(value)
     if not value.units == '%':
         value.value *= 100
         value.units = '%'
     return value
 
-def _abs(value):
+def _abs(value, root=None):
     return abs(float(value))
 
-def _pi():
+def _pi(root=None):
     return NumberValue(math.pi)
+
+def _sin(value, root=None):
+    return math.sin(value)
+
+def _cos(value, root=None):
+    return math.cos(value)
+
+def _tan(value, root=None):
+    return math.tan(value)
+
+def _round(value, root=None):
+    return round(value)
+
+def _ceil(value, root=None):
+    return math.ceil(value)
+
+def _floor(value, root=None):
+    return math.floor(value)
 
 
 # Introspection functions
 # =======================
 
-def _type_of(obj):
+def _type_of(obj, root=None):
     if isinstance(obj, BooleanValue):
         return StringValue('bool')
     if isinstance(obj, NumberValue):
@@ -156,15 +174,15 @@ def _type_of(obj):
         return StringValue('list')
     return 'unknown'
 
-def _unit(value):
+def _unit(value, root=None):
     return NumberValue(value).units
 
-def _unitless(value):
+def _unitless(value, root=None):
     if NumberValue(value).units:
         return BooleanValue(False)
     return BooleanValue(True)
 
-def _comparable(n1, n2):
+def _comparable(n1, n2, root=None):
     n1, n2 = NumberValue(n1), NumberValue(n2)
     type1 = CONV_TYPE.get(n1.units)
     type2 = CONV_TYPE.get(n2.units)
@@ -174,16 +192,16 @@ def _comparable(n1, n2):
 # Color functions
 # ================
 
-def _adjust_color(color, saturation=0.0, lightness=0.0, red=0.0, green=0.0, blue=0.0, alpha=0.0):
+def _adjust_color(color, saturation=0.0, lightness=0.0, red=0.0, green=0.0, blue=0.0, alpha=0.0, root=None):
     return _asc_color(OPRT['+'], color, saturation, lightness, red, green, blue, alpha)
 
-def _scale_color(color, saturation=1.0, lightness=1.0, red=1.0, green=1.0, blue=1.0, alpha=1.0):
+def _scale_color(color, saturation=1.0, lightness=1.0, red=1.0, green=1.0, blue=1.0, alpha=1.0, root=None):
     return _asc_color(OPRT['*'], color, saturation, lightness, red, green, blue, alpha)
 
-def _change_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None):
+def _change_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None, root=None):
     return _asc_color(None, color, saturation, lightness, red, green, blue, alpha)
 
-def _invert(color):
+def _invert(color, root=None):
     """ Returns the inverse (negative) of a color.
         The red, green, and blue values are inverted, while the opacity is left alone.
     """
@@ -194,37 +212,37 @@ def _invert(color):
     c[2] = 255.0 - c[2]
     return col
 
-def _adjust_lightness(color, amount):
+def _adjust_lightness(color, amount, root=None):
     return hsl_op(OPRT['+'], color, 0, 0, amount)
 
-def _adjust_saturation(color, amount):
+def _adjust_saturation(color, amount, root=None):
     return hsl_op(OPRT['+'], color, 0, amount, 0)
 
-def _scale_lightness(color, amount):
+def _scale_lightness(color, amount, root=None):
     return hsl_op(OPRT['*'], color, 0, 0, amount)
 
-def _scale_saturation(color, amount):
+def _scale_saturation(color, amount, root=None):
     return hsl_op(OPRT['*'], color, 0, amount, 0)
 
 
 # Compass helpers
 # ================
 
-def _color_stops(*args):
+def _color_stops(*args, **kwargs):
     raise NotImplementedError
 
-def _elements_of_type(display):
+def _elements_of_type(display, root=None):
     return StringValue(ELEMENTS_OF_TYPE.get(StringValue(display).value, ''))
 
-def _enumerate(s, b, e):
+def _enumerate(s, b, e, root=None):
     return ', '.join(
         "%s%d" % (StringValue(s).value, x) for x in xrange(int(b.value), int(e.value+1))
     )
 
-def _font_files(*args):
+def _font_files(*args, **kwargs):
     raise NotImplementedError
 
-def _headings(a=None, b=None):
+def _headings(a=None, b=None, root=None):
     h = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
     if not a or StringValue(a).value == 'all':
         a, b = 1, 6
@@ -232,7 +250,7 @@ def _headings(a=None, b=None):
         b, a = a.value + 1, 1
     return ', '.join(h[int(float(a)-1):int(float(b))])
 
-def _nest(*args):
+def _nest(*args, **kwargs):
     return ', '.join(
         ' '.join(
            s.strip() for s in p
@@ -240,6 +258,12 @@ def _nest(*args):
             *( StringValue( sel ).value.split(',') for sel in args )
         )
     )
+
+def _image_width(image, root=None):
+    pass
+
+def _image_height(image, root=None):
+    pass
 
 
 def _sprite_position(*args):
@@ -264,12 +288,6 @@ def _inline_image(*args):
     pass
 
 def _image_url(*args):
-    pass
-
-def _image_width(*args):
-    pass
-
-def _image_height(*args):
     pass
 
 def _opposite_position(*args):
@@ -335,13 +353,13 @@ FUNCTION = {
 
     # Number functions
     'percentage:1': _percentage,
-    'sin:1': math.sin,
-    'cos:1': math.cos,
-    'tan:1': math.tan,
+    'sin:1': _sin,
+    'cos:1': _cos,
+    'tan:1': _tan,
     'abs:1': _abs,
-    'round:1': round,
-    'ceil:1': math.ceil,
-    'floor:1': math.floor,
+    'round:1': _round,
+    'ceil:1': _ceil,
+    'floor:1': _floor,
     'pi:0': _pi,
 
     # Introspection functions

@@ -26,6 +26,8 @@ class TestSCSS( unittest.TestCase ):
                 #{$property}: #{$value};
                 border-color: $blue;
                 background-color: $test + 5%;
+
+
                 background-image: url('/test/' + $image);
                 display: -moz-inline-box;
                 color: $blue - 9%;

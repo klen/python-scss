@@ -1,6 +1,7 @@
 Ok, ok, add import support
 Add col, lines to unknown messages
 Fix cache
+Fix double variable evalute
 Add zen codding abbr
 Add wath mode
 Copy and parse only in mixin and function

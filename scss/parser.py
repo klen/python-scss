@@ -19,9 +19,6 @@ class Comment(Node):
 
 class Import(SemiNode):
     pass
-    # def __init__(self, t, s):
-        # super(Import, self).__init__(t, s)
-        # import ipdb; ipdb.set_trace() ### XXX Breakpoint ###
 
 
 class Debug(Empty):

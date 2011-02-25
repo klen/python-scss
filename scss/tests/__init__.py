@@ -13,7 +13,7 @@ def all_tests_suite():
         'scss.tests.test_if',
         'scss.tests.test_options',
 
-        # 'scss.tests.test_compass',
+        # 'scss.tests.test_working',
     ])
 
 

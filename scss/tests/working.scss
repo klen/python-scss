@@ -1,0 +1,147 @@
+$grey_color: #bbb;
+$link_color: rgb(60,123,171);
+
+body {
+    font-family: arial;
+    font-size: 13px;
+}
+
+@font-face {
+        font-family: 'MyMinionPro';
+    src: url(test/data/minion-webfont.eot?) format('eot'),
+         url('minion-webfont.woff') format('woff'),
+         url('minion-webfont.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+}
+
+@font-face {
+        font-family: 'MyMinionProItalic';
+    src: url('minionpro-it-webfont.eot?') format('eot'),
+         url('minionpro-it-webfont.woff') format('woff'),
+         url('minionpro-it-webfont.ttf') format('truetype');
+        font-weight: normal;
+        font-style: italic;
+}
+
+h1,h2,h3, time, ol#using .number {
+        font-weight: normal;
+        font-family: 'MyMinionPro';
+}
+
+h1 {
+    font-size: 90px;
+}
+
+h2 {
+    font-size: 50px;
+}
+
+h3 {
+    font-size: 21px;
+}
+
+#user_route h3, h3.note, h2 a, h2#fin {  font-style: italic; font-family: 'MyMinionProItalic'; }
+
+a {
+   color: $link_color; 
+}
+
+h2#fin {
+    color: $grey_color;
+}
+
+time {
+    font-size: 35px;
+    color: $grey_color;
+}
+
+ul#menu {
+    h3 a { color: white;}
+}
+
+ul#blog_announces {
+    p {
+        font-size: 18px;
+    }  
+} 
+
+ul#blog {
+    h2 {
+        font-size: 35px;
+    }
+    p {
+        font-size: 15px;
+        line-height: 1.4em;
+        margin-top: 1.4em;
+    }
+}
+
+h3.note {
+    color: #ff633f;
+    font-size: 30px;
+}    
+
+ul#features {
+        li {
+            font-family: Arial;
+            font-size: 21px;
+        }
+}
+
+#description p {
+    font-size: 18px;
+    line-height: 1.4em;
+    margin-bottom: 1.4em;
+}
+
+#user_route {
+    input.text {
+        font-size: 16px;
+        border: 1px solid rgb(241, 164, 33);
+        border-radius: 5px;
+    }
+    input.submit {
+        
+    }
+}
+
+ol#using {
+  input.text {
+      font-size: 16px;
+      border: 1px solid rgb(241, 164, 33);
+      border-radius: 5px;
+  }
+  .number {
+    color: $grey_color;
+    font-size: 35px; 
+    }
+}
+
+ul#opensource_projects {
+        p {
+                font-size: 15px;
+                line-height: 22px;
+        }
+        h3 {
+                font-family: Calibri, Myriad Pro, Arial;
+                font-size: 33px;
+                color: #2891e1;
+        }
+        .version {
+                font-family: Arial;
+                font-size: 18px;
+                color: #9c9c9c;
+        }
+        .links a {
+                font-size: 18px;
+        }
+        
+}
+
+
+nav {
+        color: $grey_color;
+        a {color: $grey_color; }
+}
+

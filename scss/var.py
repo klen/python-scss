@@ -100,7 +100,7 @@ class Function(Variable):
         func_name_a = "%s:%d" % (self.name, len(self.params))
         func_name_n = "%s:n" % self.name
         func = FUNCTION.get(func_name_a) or FUNCTION.get(func_name_n)
-        return func(*self.params) if func else unknown(self.name, *self.params)
+        return func(*self.params, root=self.root) if func else unknown(self.name, *self.params)
 
     def __str__(self):
         return str(self.__parse())

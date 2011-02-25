@@ -1,7 +1,7 @@
 import colorsys
 
 from scss import OPRT, CONV_FACTOR, COLORS
-from scss.base import Node
+from scss.base import Node, warn
 
 class Value(object):
     @classmethod
@@ -169,6 +169,10 @@ class StringValue(Value):
         else:
             self.value = str(t[0]).strip('\'"')
 
+    def __div__(self, other):
+        self.value = '/'.join((str(self), str(other)))
+        return self
+
     def __str__(self):
         return "%s" % self.value
 
@@ -257,7 +261,11 @@ class Expression(Variable):
 
     @property
     def value(self):
-        return self.do_expression(self.data, self.ctx)
+        try:
+            return self.do_expression(self.data, self.ctx)
+        except TypeError, e:
+            if self.root.get_opt('warn'):
+                warn(str(e))
 
     @classmethod
     def do_expression(cls, data, ctx=None):
