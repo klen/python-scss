@@ -162,7 +162,9 @@ class StringValue(Value):
 
     def __init__(self, t):
         super(StringValue, self).__init__()
-        if isinstance(t, ( str, int, float, NumberValue )):
+        if t is None:
+            self.value = ''
+        elif isinstance(t, ( str, int, float, NumberValue )):
             self.value = str(t)
         elif isinstance(t, StringValue):
             self.value = t.value

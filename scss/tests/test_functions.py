@@ -26,14 +26,14 @@ class TestSCSS( unittest.TestCase ):
 
             li {
                 background-color: $navbar-color - #333;
-                background-image: url(test/value);
+                background-image: url(test/value.png);
                 float: left;
                 font: 8px/10px $font;
                 margin: 3px + 5.5px auto;
                 height: 5px + (4px * (2 + $items));
                 width: $navbar-width/$items - 10px;
                 &:hover { background-color: $navbar-color - 10%; } }"""
-        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #646437}\n\n#navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar p div1, #navbar p div2, #navbar p div3 {\n\tcolor: blue}\n\nli {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\twidth: 256.667px;\n\theight: 25px;\n\tbackground-color: #313104;\n\tbackground-image: url(test/value);\n\tfont: 8px/10px 'Verdana', monospace}\n\nli:hover {\n\tbackground-color: #5c5c3e}"
+        test = "#navbar {\n\twidth: 800px;\n\tborder-bottom: 2px solid #646437}\n\n#navbar div1, #navbar div2, #navbar div3 {\n\tcolor: red}\n\n#navbar p div1, #navbar p div2, #navbar p div3 {\n\tcolor: blue}\n\nli {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\twidth: 256.667px;\n\theight: 25px;\n\tbackground-color: #313104;\n\tbackground-image: url(test/value.png);\n\tfont: 8px/10px 'Verdana', monospace}\n\nli:hover {\n\tbackground-color: #5c5c3e}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)
 
@@ -152,5 +152,36 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".foo .baz, .bar .baz {\n\tcolor: red}\n\n.example address, .example article, .example aside, .example blockquote, .example center, .example dd, .example dialog, .example dir, .example div, .example dl, .example dt, .example fieldset, .example figure, .example footer, .example form, .example frameset, .example h1, .example h2, .example h3, .example h4, .example h5, .example h6, .example header, .example hgroup, .example hr, .example isindex, .example menu, .example nav, .example noframes, .example noscript, .example ol, .example p, .example pre, .example section, .example ul {\n\tmargin: 1em 3em;\n\tborder: 1px solid #777}\n\n.example a, .example abbr, .example acronym, .example b, .example basefont, .example bdo, .example big, .example br, .example cite, .example code, .example dfn, .example em, .example font, .example i, .example img, .example input, .example kbd, .example label, .example q, .example s, .example samp, .example select, .example small, .example span, .example strike, .example strong, .example sub, .example sup, .example textarea, .example tt, .example u, .example var {\n\tcolor: #c00}\n\na h2, a h3, a h4 {\n\tfont-weight: bold}"
+        out = self.parser.parse(src)
+        self.assertEqual(test, out)
+
+    def test_image_functions(self):
+        src = """
+            img.test {
+                width: image-width(scss/tests/ + 'bug_16.png');
+                height: image-height(scss/tests/ + 'bug_16.png');
+                background-image: inline-image(scss/tests/ + 'test.png')
+
+            }
+        """
+        test = 'img.test {\n\twidth: 16px;\n\theight: 16px;\n\tbackground-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRF8EFB3AAA////d5xsogAAAAN0Uk5T//8A18oNQQAAAClJREFUeNpiYIIDBkYGCAXEYDaEAFEQKbAQVBEyE6EASRuSYQgrAAIMAB1mAIkfpDEtAAAAAElFTkSuQmCC")}'
+        out = self.parser.parse(src)
+        self.assertEqual(test, out)
+
+    def _test_function_define(self):
+        src = """
+            @function percent-width(
+                $t,
+                $c
+            ) {
+                $perc: ($t / $c) * 100%;
+                @return $perc;
+            }
+
+            .test {
+                width: percent-width(12px, 5px);
+            }
+        """
+        test = ""
         out = self.parser.parse(src)
         self.assertEqual(test, out)

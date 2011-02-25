@@ -1,13 +1,34 @@
 import colorsys
 import math
 from itertools import product
+import os.path
+import mimetypes
+import base64
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 from scss import OPRT, CONV_TYPE, ELEMENTS_OF_TYPE
+from scss.base import warn
 from scss.value import ColorValue, NumberValue, hsl_op, rgba_op, StringValue, QuotedStringValue, BooleanValue
 
 
+IMAGES = dict()
+
 def unknown(name, *args):
     return "%s(%s)" % ( name, ', '.join(str(a) for a in args) )
+
+def check_pil(func):
+    def __wrapper(*args, **kwargs):
+        root = kwargs.get('root')
+        if not Image:
+            if root and root.get_opt('warn'):
+                warn("Images manipulation require PIL")
+            return 'none'
+        return func(*args, **kwargs)
+    return __wrapper
 
 
 # RGB functions
@@ -193,13 +214,13 @@ def _comparable(n1, n2, root=None):
 # ================
 
 def _adjust_color(color, saturation=0.0, lightness=0.0, red=0.0, green=0.0, blue=0.0, alpha=0.0, root=None):
-    return _asc_color(OPRT['+'], color, saturation, lightness, red, green, blue, alpha)
+    return __asc_color(OPRT['+'], color, saturation, lightness, red, green, blue, alpha)
 
 def _scale_color(color, saturation=1.0, lightness=1.0, red=1.0, green=1.0, blue=1.0, alpha=1.0, root=None):
-    return _asc_color(OPRT['*'], color, saturation, lightness, red, green, blue, alpha)
+    return __asc_color(OPRT['*'], color, saturation, lightness, red, green, blue, alpha)
 
 def _change_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None, root=None):
-    return _asc_color(None, color, saturation, lightness, red, green, blue, alpha)
+    return __asc_color(None, color, saturation, lightness, red, green, blue, alpha)
 
 def _invert(color, root=None):
     """ Returns the inverse (negative) of a color.
@@ -259,11 +280,33 @@ def _nest(*args, **kwargs):
         )
     )
 
+@check_pil
 def _image_width(image, root=None):
-    pass
+    path = os.path.abspath(os.path.join(root.get_opt('path'), StringValue(image).value))
+    size = __get_size(path, root)
+    return NumberValue([size[0], 'px'])
 
+@check_pil
 def _image_height(image, root=None):
-    pass
+    path = os.path.abspath(os.path.join(root.get_opt('path'), StringValue(image).value))
+    size = __get_size(path, root)
+    return NumberValue([size[1], 'px'])
+
+def _image_url(image, root=None):
+    return QuotedStringValue(image).value
+
+def _inline_image(image, mimetype=None, root=None):
+    path = os.path.abspath(os.path.join(root.get_opt('path'), StringValue(image).value))
+    if os.path.exists(path):
+        mimetype = StringValue(mimetype).value or mimetypes.guess_type(path)[0]
+        f = open(path, 'rb')
+        url = 'data:' + mimetype + ';base64,' + base64.b64encode(f.read())
+    else:
+        if root and root.get_opt('warn'):
+            warn("Not found image: %s" % path)
+        url = '%s?_=NA' % QuotedStringValue(image).value
+    inline = 'url("%s")' % url
+    return StringValue(inline)
 
 
 def _sprite_position(*args):
@@ -282,12 +325,6 @@ def _sprite_map_name(*args):
     pass
 
 def _sprite_url(*args):
-    pass
-
-def _inline_image(*args):
-    pass
-
-def _image_url(*args):
     pass
 
 def _opposite_position(*args):
@@ -387,6 +424,13 @@ FUNCTION = {
     'headings:n': _headings,
     'nest:n': _nest,
 
+    # Images functions
+    'image-url:1': _image_url,
+    'image-width:1': _image_width,
+    'image-height:1': _image_height,
+    'inline-image:1': _inline_image,
+    'inline-image:2': _inline_image,
+
     # Not implemented
     'sprite-map:1': _sprite_map,
     'sprite:2': _sprite,
@@ -398,12 +442,6 @@ FUNCTION = {
     'sprite-position:2': _sprite_position,
     'sprite-position:3': _sprite_position,
     'sprite-position:4': _sprite_position,
-
-    'inline-image:1': _inline_image,
-    'inline-image:2': _inline_image,
-    'image-url:1': _image_url,
-    'image-width:1': _image_width,
-    'image-height:1': _image_height,
 
     'opposite-position:n': _opposite_position,
     'grad-point:n': _grad_point,
@@ -422,9 +460,23 @@ FUNCTION = {
 
 }
 
-def _asc_color(op, color, saturation, lightness, red, green, blue, alpha):
+def __asc_color(op, color, saturation, lightness, red, green, blue, alpha):
     if lightness or saturation:
         color = hsl_op(op, color, 0, saturation, lightness)
     if red or green or blue or alpha:
         color = rgba_op(op, color, red, green, blue, alpha)
     return color
+
+def __get_size(path, root):
+    if not IMAGES.has_key(path):
+
+        if not os.path.exists(path):
+
+            if root and root.get_opt('warn'):
+                warn("Not found image: %s" % path)
+
+            return 0, 0
+
+        image = Image.open(path)
+        IMAGES[path] = image.size
+    return IMAGES[path]

@@ -192,6 +192,7 @@ class Stylecheet(object):
                 comments = True,
                 warn = True,
                 sort = True,
+                path = os.getcwd(),
             ),
 
             # Rules context

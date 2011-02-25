@@ -18,7 +18,9 @@ HASH = Regex(r"#[-a-zA-Z_][-a-zA-Z0-9_]+")
 HEXCOLOR = Regex(r"#[a-zA-Z0-9]{3,6}")
 VARIABLE = Regex(r"-?\$[-a-zA-Z_][-a-zA-Z0-9_]*")
 NUMBER_VALUE = NUMBER + Optional(oneOf("em ex px cm mm in pt pc deg % "))
-PATH = Word(alphanums + "_-/.:", alphanums + "_-./?#&")
+FILE_PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/]*")
+HTTP_PATH = Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)")
+PATH = FILE_PATH | HTTP_PATH
 
 # Operators
 MATH_OPERATOR = oneOf("+ - / * and or")
@@ -29,7 +31,7 @@ IF_OPERATOR = oneOf("== != <= >= < > =")
 EXPRESSION = Forward()
 FUNCTION = IDENT + LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN
 INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
-SIMPLE_VALUE = FUNCTION | IDENT | NUMBER_VALUE | PATH | HEXCOLOR | quotedString
+SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | HEXCOLOR | quotedString
 VALUE = VARIABLE | SIMPLE_VALUE
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 PARENS = LPAREN + EXPRESSION + RPAREN
@@ -97,6 +99,11 @@ MIXIN_PARAMS = LPAREN + ZeroOrMore(COMMA | MIXIN_PARAM) + RPAREN
 MIXIN = ("@mixin" + IDENT + Optional(MIXIN_PARAMS) +
     LACC + ZeroOrMore(CONTENT | FOR) + RACC)
 
+# SCSS function
+FUNCTION_RETURN = "@return" + VARIABLE + OPT_SEMICOLON
+FUNCTION_BODY = LACC + ZeroOrMore(VAR_DEFINITION) + FUNCTION_RETURN + RACC
+FUNCTION_DEFINITION = "@function" + IDENT + LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN + FUNCTION_BODY
+
 # Root elements
 OPTION = "@option" + OneOrMore(IDENT + COLON + IDENT + Optional(COMMA)) + OPT_SEMICOLON
 IMPORT = "@import" + FUNCTION + OPT_SEMICOLON
@@ -115,6 +122,7 @@ STYLESHEET = ZeroOrMore(
     | MEDIA
     | PAGE
     | CONTENT
+    | FUNCTION
     | MIXIN
     | FOR
     | IMPORT

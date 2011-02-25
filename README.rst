@@ -96,7 +96,7 @@ Usage
 Changes
 =======
 
-Make sure you`ve read the following document if you are upgrading from previous versions of makesite:
+Make sure you`ve read the following document if you are upgrading from previous versions of scss:
 
 http://packages.python.org/scss/changes.html
 

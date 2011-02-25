@@ -1,6 +1,11 @@
 Changes
 =======
 
+## 2011-02-25 0.6.4
+-------------------
+* Add option path
+* Add image functions: image-width, image-height, image-url, inline-image
+
 ## 2011-02-24 0.6.3
 -------------------
 * Fix recursion bug in variable redefinition
