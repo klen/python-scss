@@ -30,10 +30,10 @@ def main():
         pass
 
     p = optparse.OptionParser(
-        usage="%prog [OPTION]... [INFILE]  [OUTFILE]",
+        usage="%prog [OPTION]... [INFILE] [OUTFILE]",
         version="%prog " + VERSION,
         epilog="SCSS compiler.",
-        description="Compile INFILE or standart input, to OUTFILE or standart output.")
+        description="Compile INFILE or standard input, to OUTFILE or standard output.")
 
     p.add_option(
         '-c', '--cache', action='store_true', dest='cache',
