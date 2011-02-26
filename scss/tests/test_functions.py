@@ -158,13 +158,13 @@ class TestSCSS( unittest.TestCase ):
     def test_image_functions(self):
         src = """
             img.test {
-                width: image-width(scss/tests/ + 'bug_16.png');
-                height: image-height(scss/tests/ + 'bug_16.png');
+                width: image-width(scss/tests/ + 'bug_64.png');
+                height: image-height(scss/tests/ + 'bug_64.png');
                 background-image: inline-image(scss/tests/ + 'test.png')
 
             }
         """
-        test = 'img.test {\n\twidth: 16px;\n\theight: 16px;\n\tbackground-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRF8EFB3AAA////d5xsogAAAAN0Uk5T//8A18oNQQAAAClJREFUeNpiYIIDBkYGCAXEYDaEAFEQKbAQVBEyE6EASRuSYQgrAAIMAB1mAIkfpDEtAAAAAElFTkSuQmCC")}'
+        test = 'img.test {\n\twidth: 64px;\n\theight: 64px;\n\tbackground-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRF8EFB3AAA////d5xsogAAAAN0Uk5T//8A18oNQQAAAClJREFUeNpiYIIDBkYGCAXEYDaEAFEQKbAQVBEyE6EASRuSYQgrAAIMAB1mAIkfpDEtAAAAAElFTkSuQmCC")}'
         out = self.parser.parse(src)
         self.assertEqual(test, out)
 
