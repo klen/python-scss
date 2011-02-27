@@ -45,6 +45,6 @@ class TestSCSS( unittest.TestCase ):
                 font: -1.5em + 50px;
             }
             """
-        test = ".content-navigation {\n\tfloat: left;\n\tdisplay: -moz-inline-box;\n\tmargin: 5px -32px -12px;\n\tborder-color: #fd0;\n\tbackground-color: #7b1f3e;\n\tbackground-image: url('/test/test.png');\n\tcolor: #f3d40b}\n\n.border {\n\tmargin: 8px;\n\tpadding-top: 8px;\n\tpadding-left: -14px;\n\tborder-top-color: #fd0;\n\tcolor: rgba(120,35,64,0.40);\n\tfont: 2.346em}"
+        test = ".content-navigation {\n\tfloat: left;\n\tdisplay: -moz-inline-box;\n\tmargin: 5px -32px -12px;\n\tborder-color: #fd0;\n\tbackground-color: #7b1f3e;\n\tbackground-image: url(/test/test.png);\n\tcolor: #f3d40b}\n\n.border {\n\tmargin: 8px;\n\tpadding-top: 8px;\n\tpadding-left: -14px;\n\tborder-top-color: #fd0;\n\tcolor: rgba(120,35,64,0.40);\n\tfont: 30.5px}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)

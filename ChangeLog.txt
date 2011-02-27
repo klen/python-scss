@@ -5,6 +5,8 @@ Changes
 -------------------
 * Add option path
 * Add image functions: image-width, image-height, image-url, inline-image
+* Add @function and @return
+* Add --watch mode
 
 ## 2011-02-24 0.6.3
 -------------------

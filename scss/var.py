@@ -8,16 +8,28 @@ class VarDef(ParseNode, Empty):
     """
     def __init__(self, t, s):
         super(VarDef, self).__init__(t, s)
-        self.name, self.value, self.default = t[0], t[1], len(t) > 2
-        self.parse()
+        self.name, self.expression, self.default = t[0], t[1], len(t) > 2
+        self.value = self.expression
+        self.root.set_var(self)
 
     def copy(self, ctx=None):
-        if isinstance(self.value, Variable):
-            self.value.ctx = ctx
+        if isinstance(self.expression, Variable):
+            self.expression.ctx = ctx
+        self.root.set_var(self)
         return self
 
-    def parse(self, target=None):
-        self.root.set_var(self.name, self.value, self.default)
+
+class FunctionDefinition(Empty):
+    def __init__(self, t, s):
+        super(FunctionDefinition, self).__init__(t, s)
+        self.name, self.params, self.body = t[1], t[2], t[3:]
+        s.cache['fnc'][self.name] = self
+        FUNCTION['%s:%s' % (self.name, len(self.params))] = self.wrapper
+
+    def wrapper(self, *args, **kwargs):
+        ctx = Mixin.get_context(self.params, args)
+        map(lambda e:e.copy(ctx) if isinstance(e, ParseNode) else e, self.body)
+        return self.body[-1]
 
 
 class Mixin(ParseNode, Empty):
@@ -27,13 +39,16 @@ class Mixin(ParseNode, Empty):
         super(Mixin, self).__init__(t, s)
         s.cache['mix'][t[1]] = self
 
+    @staticmethod
+    def get_context(defined, params):
+        test = map(lambda x, y: (x, y), defined, params)
+        return dict(( mp.name, v or mp.default ) for mp, v in test if mp)
+
     def include(self, target, params):
         if isinstance(target, Mixin):
             return
 
-        test = map(lambda x, y: (x, y), getattr(self, 'mixinparam', []), params)
-        ctx = dict(( mp.name, v or mp.default ) for mp, v in test if mp)
-
+        ctx = self.get_context(getattr(self, 'mixinparam', []), params)
         for e in self.data:
             if isinstance(e, ParseNode):
                 node = e.copy(ctx)
@@ -43,7 +58,6 @@ class Mixin(ParseNode, Empty):
 class Include(ParseNode):
     """ @include
     """
-
     def __init__(self, t, s):
         super(Include, self).__init__(t, s)
         self.name, self.params = t[1], t[2:]
@@ -82,12 +96,7 @@ class Extend(ParseNode):
 class Function(Variable):
     def __init__(self, t, s):
         super(Function, self).__init__(t, s)
-        self.name, params = self.data[0], self.data[1:]
-        self.params = list()
-        for value in params:
-            while isinstance(value, Variable):
-                value = value.value
-            self.params.append(value)
+        self.name, self.params = self.data[0], self.data[1:]
 
     @property
     def value(self):
@@ -96,11 +105,17 @@ class Function(Variable):
     def copy(self, ctx=None):
         return self.__parse(ctx)
 
-    def __parse(self, ctx=dict()):
+    def __parse(self, ctx=None):
         func_name_a = "%s:%d" % (self.name, len(self.params))
         func_name_n = "%s:n" % self.name
+        params = list()
+        for value in self.params:
+            while isinstance(value, Variable):
+                value.ctx = ctx
+                value = value.value
+            params.append(value)
         func = FUNCTION.get(func_name_a) or FUNCTION.get(func_name_n)
-        return func(*self.params, root=self.root) if func else unknown(self.name, *self.params)
+        return func(*params, root=self.root) if func else unknown(self.name, *params)
 
     def __str__(self):
         return str(self.__parse())

@@ -1,4 +1,4 @@
-from pyparsing import Word, Suppress, Literal, alphanums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, lineEnd
+from pyparsing import Word, Suppress, Literal, alphanums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, lineEnd, Group
 
 
 # Base css word and literals
@@ -29,21 +29,20 @@ IF_OPERATOR = oneOf("== != <= >= < > =")
 
 # Values
 EXPRESSION = Forward()
-FUNCTION = IDENT + LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN
+PARAMS = LPAREN + EXPRESSION + ZeroOrMore(COMMA + EXPRESSION) + RPAREN
+FUNCTION = IDENT + PARAMS
 INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
 SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | HEXCOLOR | quotedString
 VALUE = VARIABLE | SIMPLE_VALUE
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
-PARENS = LPAREN + EXPRESSION + RPAREN
-EXPRESSION << ((VALUE | PARENS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARENS )))
+EXPRESSION << ((VALUE | PARAMS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARAMS )))
 
-# Property values
+# Declaration
 TERM = ( DIV_STRING | EXPRESSION | INTERPOLATION_VAR ) + Optional(",")
-EXPR = OneOrMore(TERM) + Optional("!important")
 DEC_NAME = Optional("*") + OneOrMore(IDENT | INTERPOLATION_VAR)
-DECLARATION = DEC_NAME + ":" + EXPR + OPT_SEMICOLON
+DECLARATION = DEC_NAME + ":" + OneOrMore(TERM) + Optional("!important") + OPT_SEMICOLON
 
-# SCSS group of declarations
+# SCSS declareset
 DECLARESET = Forward()
 DECLARESET << DEC_NAME + COLON + LACC + OneOrMore(DECLARESET | DECLARATION | COMMENT) + RACC + OPT_SEMICOLON
 
@@ -66,7 +65,7 @@ DEBUG = "@debug" + EXPRESSION + OPT_SEMICOLON
 WARN = "@warn" + quotedString + OPT_SEMICOLON
 
 # @include
-INCLUDE = "@include" + IDENT + Optional(LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN) + OPT_SEMICOLON
+INCLUDE = "@include" + IDENT + Optional( PARAMS ) + OPT_SEMICOLON
 
 # @extend
 EXTEND = "@extend" + OneOrMore(ELEMENT_NAME | FILTER | INTERPOLATION_VAR | PSEUDO) + OPT_SEMICOLON
@@ -96,13 +95,13 @@ RULESET << (
 # SCSS mixin
 MIXIN_PARAM = VARIABLE + Optional(COLON + EXPRESSION)
 MIXIN_PARAMS = LPAREN + ZeroOrMore(COMMA | MIXIN_PARAM) + RPAREN
-MIXIN = ("@mixin" + IDENT + Optional(MIXIN_PARAMS) +
-    LACC + ZeroOrMore(CONTENT | FOR) + RACC)
+MIXIN = "@mixin" + IDENT + Optional(MIXIN_PARAMS) + LACC + ZeroOrMore(CONTENT | FOR) + RACC
+MIXIN = "@mixin" + IDENT + Optional(MIXIN_PARAMS) + LACC + ZeroOrMore(CONTENT | FOR) + RACC
 
 # SCSS function
 FUNCTION_RETURN = "@return" + VARIABLE + OPT_SEMICOLON
 FUNCTION_BODY = LACC + ZeroOrMore(VAR_DEFINITION) + FUNCTION_RETURN + RACC
-FUNCTION_DEFINITION = "@function" + IDENT + LPAREN + ZeroOrMore(COMMA | EXPRESSION) + RPAREN + FUNCTION_BODY
+FUNCTION_DEFINITION = "@function" + IDENT + Group( MIXIN_PARAMS ) + FUNCTION_BODY
 
 # Root elements
 OPTION = "@option" + OneOrMore(IDENT + COLON + IDENT + Optional(COMMA)) + OPT_SEMICOLON
@@ -122,7 +121,7 @@ STYLESHEET = ZeroOrMore(
     | MEDIA
     | PAGE
     | CONTENT
-    | FUNCTION
+    | FUNCTION_DEFINITION
     | MIXIN
     | FOR
     | IMPORT

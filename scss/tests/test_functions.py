@@ -168,20 +168,20 @@ class TestSCSS( unittest.TestCase ):
         out = self.parser.parse(src)
         self.assertEqual(test, out)
 
-    def _test_function_define(self):
+    def test_function_define(self):
         src = """
             @function percent-width(
                 $t,
                 $c
             ) {
-                $perc: ($t / $c) * 100%;
+                $perc: $t / $c * 100%;
                 @return $perc;
             }
 
             .test {
-                width: percent-width(12px, 5px);
+                width: percent-width(5px, 24px);
             }
         """
-        test = ""
+        test = ".test {\n\twidth: 20.833%}"
         out = self.parser.parse(src)
         self.assertEqual(test, out)

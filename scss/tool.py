@@ -2,6 +2,7 @@
 """
 import optparse
 import sys, os
+import time
 
 from scss import parser, VERSION
 
@@ -48,6 +49,13 @@ def main():
         help="Compress css output.")
 
     p.add_option(
+        '-w', '--watch', dest='watch',
+        help="""Watch files or directories for changes.
+The location of the generated CSS can be set using a colon:
+    scss -w input.scss:output.css
+""")
+
+    p.add_option(
         '-S', '--no-sorted', action='store_false', dest='sort',
         help="Do not sort declaration.")
 
@@ -79,6 +87,57 @@ def main():
 
         sys.exit()
 
+    elif opts.watch:
+        self, sep, target = opts.watch.partition(':')
+        files = []
+        if not os.path.exists(self):
+            print >> sys.stderr, "Path don't exist: %s" % self
+            sys.exit(1)
+
+        if os.path.isdir(self):
+            for f in os.listdir(self):
+                if os.path.isfile(f) and f.endswitch('.scss'):
+                    path = os.path.join(self, f)
+                    tpath = os.path.join(target, f[:-5] + '.css')
+                    files.append([ path, tpath, 0 ])
+        else:
+            files.append([ self, target or self[:-5] + '.css', 0 ])
+
+        s = parser.Stylecheet(
+            options=dict(
+                comments = opts.comments,
+                compress = opts.compress,
+                warn = opts.warn,
+                sort = opts.sort,
+                cache = precache,
+            ))
+
+        def parse(f):
+            infile, outfile, mtime = f
+            ttime = os.path.getmtime(infile)
+            if mtime < ttime:
+                print " Parse '%s' to '%s' .. done" % ( infile, outfile )
+                s.load(open(infile, 'r'))
+                open(outfile, 'w').write(str(s))
+                f[2] = os.path.getmtime(outfile)
+
+        print 'SCSS v. %s watch mode' % VERSION
+        print '================================'
+        print 'Ctrl+C for exit\n'
+        while True:
+            try:
+                for f in files:
+                    parse(f)
+                time.sleep(0.3)
+            except OSError:
+                pass
+            except KeyboardInterrupt:
+                print "\nSCSS stoped."
+                break
+
+        sys.exit()
+
+
     elif not args:
         infile = sys.stdin
         outfile = sys.stdout
@@ -86,7 +145,7 @@ def main():
 
     elif len(args) == 1:
         try:
-            infile = open(args[0], 'rb')
+            infile = open(args[0], 'r')
             outfile = sys.stdout
         except IOError, e:
             sys.stderr.write(str(e))
@@ -94,8 +153,8 @@ def main():
 
     elif len(args) == 2:
         try:
-            infile = open(args[0], 'rb')
-            outfile = open(args[1], 'wb')
+            infile = open(args[0], 'r')
+            outfile = open(args[1], 'w')
         except IOError, e:
             sys.stderr.write(str(e))
             sys.exit()

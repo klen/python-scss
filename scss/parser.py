@@ -5,9 +5,9 @@ from collections import defaultdict
 
 from scss import SORTING
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, warn
-from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN
+from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN, FUNCTION_DEFINITION
 from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue
-from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef
+from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef, FunctionDefinition
 
 
 class Comment(Node):
@@ -175,7 +175,6 @@ class Mixinparam(ParseNode):
 
 class Stylecheet(object):
 
-    defvalue = NumberValue(0)
     defdelims = '\n', ' ', '\t'
 
     def __init__(self, cache = None, options=None):
@@ -186,6 +185,9 @@ class Stylecheet(object):
 
             # Mixin context
             mix = dict(),
+
+            # Function context
+            fnc = dict(),
 
             # Options context
             opts = dict(
@@ -244,6 +246,7 @@ class Stylecheet(object):
         SELECTOR.setParseAction(self.getType())
 
         # SCSS directives
+        FUNCTION_DEFINITION.setParseAction(self.getType(FunctionDefinition))
         MIXIN_PARAM.setParseAction(self.getType(Mixinparam))
         MIXIN.setParseAction(self.getType(Mixin))
         INCLUDE.setParseAction(self.getType(Include))
@@ -261,15 +264,19 @@ class Stylecheet(object):
     def delims(self):
         return self.cache['delims']
 
+    def set_var(self, var):
+        """ Set variable to global stylesheet context.
+        """
+        if not(var.default and self.cache['ctx'].get(var.name)):
+            if isinstance(var.expression, Expression):
+                var.value = var.expression.value
+            self.cache['ctx'][var.name] = var
+
     def get_var(self, name):
         """ Get variable from global stylesheet context.
         """
-        rec = self.cache['ctx'].get(name)
-        if rec:
-            return rec[0]
-
-        # warn('Unwnown variable: %s' % name, self)
-        return self.defvalue
+        var = self.cache['ctx'].get(name)
+        return var.value if var else None
 
     def set_opt(self, name, value):
         """ Set option.
@@ -286,14 +293,6 @@ class Stylecheet(object):
         """ Get option.
         """
         return self.cache['opts'].get(name)
-
-    def set_var(self, name, value, default=False):
-        """ Set variable to global stylesheet context.
-        """
-        if not(default and self.cache['ctx'].get(name)):
-            if isinstance(value, Variable):
-                value = value.value
-            self.cache['ctx'][name] = value, default
 
     def dump(self):
         return cPickle.dumps(self.cache)
@@ -312,9 +311,9 @@ class Stylecheet(object):
         self.cache['delims'] = cache.get('delims')
         self.cache['opts'].update(cache.get('opts'))
         self.cache['mix'].update(cache.get('mix'))
+        self.cache['fnc'].update(cache.get('mix'))
         self.cache['rset'].update(cache.get('rset'))
-        for name, rec in cache['ctx'].items():
-            self.set_var(name, *rec)
+        map(self.set_var, cache['ctx'].values())
 
     def load(self, f, precache=None):
 

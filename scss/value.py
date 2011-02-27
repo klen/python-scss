@@ -5,7 +5,8 @@ from scss.base import Node, warn
 
 class Value(object):
     @classmethod
-    def _do_op(cls, first, second, op):
+    def _do_op(cls, self, other, op):
+        first, second = cls(self), cls(other)
         return op(first.value, second.value)
     @classmethod
     def _do_cmps(cls, first, second, op):
@@ -152,10 +153,11 @@ class NumberValue(Value):
 
     @classmethod
     def _do_op(cls, self, other, op):
-        value = op(float(self), float(other))
-        value /= CONV_FACTOR.get(self.units or other.units, 1.0)
-
-        return cls((value, self.units or other.units))
+        first, second = cls(self), cls(other)
+        units = second.units or first.units
+        value = op(float(first), float(second))
+        value /= CONV_FACTOR.get(units, 1.0)
+        return cls((value, units))
 
 
 class StringValue(Value):
@@ -177,10 +179,6 @@ class StringValue(Value):
 
     def __str__(self):
         return "%s" % self.value
-
-    @classmethod
-    def _do_op(cls, self, other, op):
-        return cls(op(self.value, str(other).strip("'")))
 
 
 class QuotedStringValue(StringValue):
@@ -229,7 +227,7 @@ class Variable(Node, Value):
             value = self.ctx.get(name)
         else:
             value = self.root.get_var(name)
-        return (self.root.defvalue - value) if self.data[0][0] == '-' else value
+        return (0 - value) if self.data[0][0] == '-' else value
 
     def __str__(self):
         return str(self.value)
@@ -266,8 +264,7 @@ class Expression(Variable):
         try:
             return self.do_expression(self.data, self.ctx)
         except TypeError, e:
-            if self.root.get_opt('warn'):
-                warn(str(e))
+            pass
 
     @classmethod
     def do_expression(cls, data, ctx=None):

@@ -114,7 +114,7 @@ def _desaturate(color, amount, root=None):
     return hsl_op(OPRT['-'], color, 0, amount, 0)
 
 def _grayscale(color, root=None):
-    return hsl_op(OPRT['-'], color, 0, 1.0, 0)
+    return hsl_op(OPRT['-'], color, 0, 100, 0)
 
 def _complement(color, root=None):
     return hsl_op(OPRT['+'], color, 180.0, 0, 0)
