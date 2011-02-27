@@ -98,7 +98,7 @@ The location of the generated CSS can be set using a colon:
             for f in os.listdir(self):
                 if os.path.isfile(f) and f.endswitch('.scss'):
                     path = os.path.join(self, f)
-                    tpath = os.path.join(target, f[:-5] + '.css')
+                    tpath = os.path.join(target or self, f[:-5] + '.css')
                     files.append([ path, tpath, 0 ])
         else:
             files.append([ self, target or self[:-5] + '.css', 0 ])
