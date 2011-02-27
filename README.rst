@@ -4,8 +4,8 @@ Python-scss
 Python-scss is SCSS_ compiler for python. Documentation available at pypi_ or github_.
 This is part of zeta-library_.
 
-    ..note ::
-        pyScss_ compiler is newer and more powerful. Use if for sass compatibility.
+.. note::
+    pyScss_ compiler is newer and more powerful. Use if for sass compatibility.
 
 .. contents::
 
