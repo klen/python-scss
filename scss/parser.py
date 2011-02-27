@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from scss import SORTING
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, warn
-from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_CONDITION, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN, FUNCTION_DEFINITION
+from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN, FUNCTION_DEFINITION
 from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef, FunctionDefinition
 
@@ -211,6 +211,10 @@ class Stylecheet(object):
             for option in options.items():
                 self.set_opt(*option)
 
+        self.setup()
+
+    def setup(self):
+
         # Comments
         CSS_COMMENT.setParseAction(self.getType(Comment))
         SCSS_COMMENT.setParseAction(lambda s, l, t: '')
@@ -254,7 +258,6 @@ class Stylecheet(object):
         IF.setParseAction(self.getType(IfNode))
         FOR.setParseAction(self.getType(ForNode))
         FOR_BODY.setParseAction(self.getType(ParseNode))
-        IF_CONDITION.setParseAction(self.getType(ParseNode))
         IF_BODY.setParseAction(self.getType(ParseNode))
         ELSE.setParseAction(self.getType(ParseNode))
 

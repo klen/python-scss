@@ -1,10 +1,9 @@
 Ok, ok, add import support
 Add col, lines to unknown messages
+Drop parse nodes
 Fix cache
 Fix double variable evalute
 Add zen codding abbr
-Add wath mode
-Copy and parse only in mixin and function
 Drop root defined in node init, get this from str stylecheet
 Add caching using pickle save default flag
 Add ruleset check for dublicate

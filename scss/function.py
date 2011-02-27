@@ -309,6 +309,15 @@ def _inline_image(image, mimetype=None, root=None):
     return StringValue(inline)
 
 
+# Misc
+# ====
+
+def _if(cond, body, els, root=None):
+    if BooleanValue( cond ).value:
+        return body
+    return els
+
+
 def _sprite_position(*args):
     pass
 
@@ -343,9 +352,6 @@ def _join(*args):
     pass
 
 def _append(*args):
-    pass
-
-def _if(*args):
     pass
 
 FUNCTION = {

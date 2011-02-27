@@ -1,6 +1,6 @@
 from scss.base import Node, Empty, ParseNode, warn
 from scss.function import FUNCTION, unknown
-from scss.value import Variable, NumberValue, Expression, BooleanValue
+from scss.value import Variable, NumberValue, BooleanValue
 
 
 class VarDef(ParseNode, Empty):
@@ -132,18 +132,14 @@ class IfNode(ParseNode):
         return str(self.get_node())
 
     def get_node(self):
-        data = self.cond.data
-        if len(data) == 1:
-            res = Expression.prepare(data[0])
-        else:
-            res = Expression.do_expression(data)
-        return self.body if BooleanValue(res).value else self.els
+        return self.body if BooleanValue(self.cond).value else self.els
 
     def parse(self, target):
-        node = self.get_node()
-        for n in node.data:
-            if isinstance(n, ParseNode):
-                n.parse(target)
+        if not isinstance(target, ( Mixin, Function )):
+            node = self.get_node()
+            for n in node.data:
+                if isinstance(n, ParseNode):
+                    n.parse(target)
 
 
 class ForNode(ParseNode):
@@ -163,7 +159,8 @@ class ForNode(ParseNode):
         return ''.join(str(n) for n in self.__parse())
 
     def parse(self, target):
-        for node in self.__parse():
-            for n in node.data:
-                if hasattr(n, 'parse'):
-                    n.parse(target)
+        if not isinstance(target, ( Mixin, Function )):
+            for node in self.__parse():
+                for n in node.data:
+                    if hasattr(n, 'parse'):
+                        n.parse(target)

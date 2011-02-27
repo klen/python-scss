@@ -23,7 +23,7 @@ HTTP_PATH = Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]
 PATH = FILE_PATH | HTTP_PATH
 
 # Operators
-MATH_OPERATOR = oneOf("+ - / * and or")
+OPERATOR = oneOf("+ - / * and or == != <= < > >=")
 COMBINATOR = Word("+>", max=1)
 IF_OPERATOR = oneOf("== != <= >= < > =")
 
@@ -35,7 +35,7 @@ INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
 SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | HEXCOLOR | quotedString
 VALUE = VARIABLE | SIMPLE_VALUE
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
-EXPRESSION << ((VALUE | PARAMS) + ZeroOrMore(MATH_OPERATOR + ( VALUE | PARAMS )))
+EXPRESSION << ((VALUE | PARAMS) + ZeroOrMore(OPERATOR + ( VALUE | PARAMS )))
 
 # Declaration
 TERM = ( DIV_STRING | EXPRESSION | INTERPOLATION_VAR ) + Optional(",")
@@ -79,11 +79,10 @@ IF = Forward()
 CONTENT = COMMENT | WARN | DEBUG | IF | INCLUDE | VAR_DEFINITION | RULESET | DECLARESET | DECLARATION
 
 # SCSS control directives
-IF_CONDITION = EXPRESSION + Optional(IF_OPERATOR + EXPRESSION)
 IF_BODY = LACC + ZeroOrMore(CONTENT) + RACC
 ELSE = Suppress("@else") + LACC + ZeroOrMore(CONTENT) + RACC
 IF << (
-        ( Suppress("@if") | Suppress("@else if") ) + IF_CONDITION + IF_BODY + Optional(ELSE))
+        ( Suppress("@if") | Suppress("@else if") ) + EXPRESSION + IF_BODY + Optional(ELSE))
 
 FOR_BODY = ZeroOrMore(CONTENT)
 FOR = "@for" + VARIABLE + Suppress("from") + VALUE + (Suppress("through") | Suppress("to")) + VALUE + LACC + FOR_BODY + RACC

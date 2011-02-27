@@ -1,7 +1,8 @@
 import colorsys
 
 from scss import OPRT, CONV_FACTOR, COLORS
-from scss.base import Node, warn
+from scss.base import Node
+
 
 class Value(object):
     @classmethod
@@ -57,6 +58,8 @@ class Value(object):
     # Boolean
     def __nonzero__(self):
         return getattr(self, 'value') and True or False
+    def __bool__(self):
+        return bool(self.value) if self.value != 'false' else False
 
 
 hex2rgba = {
@@ -193,12 +196,12 @@ class BooleanValue(Value):
         super(BooleanValue, self).__init__()
         if t is None:
             self.value = False
-        elif isinstance(t, Value):
-            self.value = bool(t.value) if t.value != 'false' else False
-        elif isinstance(t, ( str, bool )):
+        elif isinstance(t, (Value, Variable)):
+            self.value = bool(t)
+        elif isinstance(t, (str, bool)):
             self.value = bool(t) if t != 'false' else False
         else:
-            self.value = True if t[0] == 'true' else False
+            self.value = bool(t[0]) if t[0] != 'false' else False
 
     def __str__(self):
         return 'true' if self.value else 'false'
@@ -232,6 +235,9 @@ class Variable(Node, Value):
     def __str__(self):
         return str(self.value)
 
+    def __bool__(self):
+        return bool(self.value)
+
     def __float__(self):
         try:
             return float(self.value)
@@ -263,7 +269,7 @@ class Expression(Variable):
     def value(self):
         try:
             return self.do_expression(self.data, self.ctx)
-        except TypeError, e:
+        except TypeError:
             pass
 
     @classmethod
