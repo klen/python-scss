@@ -10,6 +10,7 @@ def warn(warning):
 
 
 class Node(object):
+
     delim = ''
 
     def __init__(self, t, s=None):
@@ -44,6 +45,7 @@ class ParseNode(CopyNode):
 
 
 class Empty(Node):
+
     def __str__(self):
         return ''
 
@@ -55,9 +57,11 @@ class SepValString(Node):
 
 
 class SimpleNode(Node):
+
     delim = ' '
 
 
 class SemiNode(SimpleNode):
+
     def __str__(self):
         return super(SemiNode, self).__str__() + ';\n'

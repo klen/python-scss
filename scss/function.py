@@ -1,18 +1,20 @@
+import base64
 import colorsys
 import math
-from itertools import product
-import os.path
 import mimetypes
-import base64
+import os.path
+from itertools import product
+
+from scss import OPRT, CONV_TYPE, ELEMENTS_OF_TYPE
+from scss.base import warn
+from scss.value import ColorValue, NumberValue, hsl_op, rgba_op, StringValue, QuotedStringValue, BooleanValue
+
 
 try:
     from PIL import Image
 except ImportError:
     Image = None
 
-from scss import OPRT, CONV_TYPE, ELEMENTS_OF_TYPE
-from scss.base import warn
-from scss.value import ColorValue, NumberValue, hsl_op, rgba_op, StringValue, QuotedStringValue, BooleanValue
 
 
 IMAGES = dict()

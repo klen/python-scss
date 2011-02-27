@@ -2,7 +2,7 @@
 import operator
 
 
-VERSION_INFO = (0, 6, 6)
+VERSION_INFO = (0, 7, 0)
 
 __project__ = PROJECT = __name__
 __version__ = VERSION = '.'.join(str(i) for i in VERSION_INFO)

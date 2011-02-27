@@ -6,7 +6,7 @@ from collections import defaultdict
 from scss import SORTING
 from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, warn
 from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN, FUNCTION_DEFINITION
-from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue
+from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue, StringValue
 from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef, FunctionDefinition
 
 
@@ -176,6 +176,7 @@ class Mixinparam(ParseNode):
 class Stylecheet(object):
 
     defdelims = '\n', ' ', '\t'
+    defvalue = StringValue('')
 
     def __init__(self, cache = None, options=None):
         self.cache = cache or dict(
@@ -279,7 +280,7 @@ class Stylecheet(object):
         """ Get variable from global stylesheet context.
         """
         var = self.cache['ctx'].get(name)
-        return var.value if var else None
+        return var.value if var else self.defvalue
 
     def set_opt(self, name, value):
         """ Set option.

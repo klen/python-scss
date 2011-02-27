@@ -1,7 +1,9 @@
 Changes
 =======
 
-## 2011-02-27 0.6.6
+## 2011-02-27 0.7.0
+* Add link on pyScss
+* Fix None type bug
 * Add if() function
 
 ## 2011-02-25 0.6.5
