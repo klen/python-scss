@@ -25,6 +25,7 @@ META_DATA = dict(
     author_email='horneds@gmail.com',
     url='http://github.com/klen/python-scss',
 
+    keywords= 'css sass scss precompiler',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
