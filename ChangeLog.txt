@@ -3,7 +3,7 @@ Changes
 
 ## 2011-06-20 0.8.0
 -------------------
-* Big scss refactoring
+* Big scss refactoring begin
 
 ## 2011-06-19 0.7.2
 -------------------
