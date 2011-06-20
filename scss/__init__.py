@@ -376,6 +376,7 @@ SORTING = dict((v, k) for k, v in enumerate((
     'font-emphasize-style',
     'font-smooth',
     'font-stretch',
+    'src',
 
     # Visual properties
     'opacity',

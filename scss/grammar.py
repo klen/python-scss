@@ -1,4 +1,8 @@
+" SCSS Grammars."
 from pyparsing import Word, Suppress, Literal, alphanums, SkipTo, oneOf, ZeroOrMore, Optional, OneOrMore, Forward, cStyleComment, Combine, dblSlashComment, quotedString, Regex, lineEnd, Group
+
+
+__all__ = ("STYLESHEET", "NUMBER_VALUE", "quotedString", "EXPRESSION", "IDENT", "PATH", "VARIABLE", "VAR_DEFINITION", "VARIABLES", "FUNCTION", "COLOR_VALUE", "SCSS_COMMENT", "CSS_COMMENT", "IMPORT", "RULESET", "DECLARATION", "DECLARATION_NAME", "SELECTOR_TREE", "SELECTOR_GROUP", "SELECTOR", "MIXIN", "INCLUDE", "MIXIN_PARAM", "EXTEND", "FONT_FACE", "OPTION", "FUNCTION_DEFINITION", "FUNCTION_RETURN", "IF", "ELSE", "IF_BODY", "FOR", "FOR_BODY", "CHARSET", "MEDIA", "WARN")
 
 
 # Base css word and literals
@@ -10,51 +14,45 @@ LLACC, LRACC, LBRACK, RBRACK = [Literal(c) for c in "{}[]"]
 # Comment
 CSS_COMMENT = cStyleComment + Optional(lineEnd)
 SCSS_COMMENT = dblSlashComment
-COMMENT = CSS_COMMENT | SCSS_COMMENT
 
 IDENT = Regex(r"-?[a-zA-Z_][-a-zA-Z0-9_]*")
-NUMBER = Regex(r"-?\d+(?:\.\d*)?|\.\d+")
-HASH = Regex(r"#[-a-zA-Z_][-a-zA-Z0-9_]+")
-HEXCOLOR = Regex(r"#[a-zA-Z0-9]{3,6}")
+COLOR_VALUE = Regex(r"#[a-zA-Z0-9]{3,6}")
 VARIABLE = Regex(r"-?\$[-a-zA-Z_][-a-zA-Z0-9_]*")
-NUMBER_VALUE = NUMBER + Optional(oneOf("em ex px cm mm in pt pc deg % "))
-FILE_PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/]*")
-HTTP_PATH = Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)")
-PATH = FILE_PATH | HTTP_PATH
-
-# Operators
-OPERATOR = oneOf("+ - / * and or == != <= < > >=")
-COMBINATOR = Word("+>", max=1)
-IF_OPERATOR = oneOf("== != <= >= < > =")
+NUMBER_VALUE = Regex(r"-?\d+(?:\.\d*)?|\.\d+") + Optional(oneOf("em ex px cm mm in pt pc deg % "))
+PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/]*") | Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)")
 
 # Values
 EXPRESSION = Forward()
 PARAMS = LPAREN + EXPRESSION + ZeroOrMore(COMMA + EXPRESSION) + RPAREN
-FUNCTION = IDENT + PARAMS
+FUNCTION = Regex(r"[a-zA-Z_][-a-zA-Z0-9_]*") + PARAMS
 INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
-SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | HEXCOLOR | quotedString
+SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | COLOR_VALUE | quotedString
 VALUE = VARIABLE | SIMPLE_VALUE
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
-EXPRESSION << ((VALUE | PARAMS) + ZeroOrMore(OPERATOR + ( VALUE | PARAMS )))
+EXPRESSION << ((VALUE | PARAMS) + ZeroOrMore(oneOf("+ - / * and or == != <= < > >=") + ( VALUE | PARAMS )))
 
 # Declaration
 TERM = ( DIV_STRING | EXPRESSION | INTERPOLATION_VAR ) + Optional(",")
-DEC_NAME = Optional("*") + OneOrMore(IDENT | INTERPOLATION_VAR)
-DECLARATION = DEC_NAME + ":" + OneOrMore(TERM) + Optional("!important") + OPT_SEMICOLON
-
-# SCSS declareset
-DECLARESET = Forward()
-DECLARESET << DEC_NAME + COLON + LACC + OneOrMore(DECLARESET | DECLARATION | COMMENT) + RACC + OPT_SEMICOLON
+DECLARATION_NAME = Optional("*") + OneOrMore(IDENT | INTERPOLATION_VAR)
+DECLARATION = Forward()
+DECLARATION << (
+        DECLARATION_NAME +
+        ":" +
+        ZeroOrMore(TERM) +
+        Optional("!important") +
+        Optional(LACC + OneOrMore(DECLARATION | CSS_COMMENT | SCSS_COMMENT) + RACC) +
+        OPT_SEMICOLON )
 
 # Selectors
 ELEMENT_NAME = Combine(OneOrMore(IDENT | '&')) | Literal("*")
 ATTRIB = LBRACK + SkipTo("]") + RBRACK
 CLASS_NAME = Word('.', alphanums + "-_")
+HASH = Regex(r"#[-a-zA-Z_][-a-zA-Z0-9_]+")
 FILTER = HASH | CLASS_NAME | ATTRIB
 PSEUDO = Regex(r':{1,2}[A-Za-z0-9-_]+')
 SELECTOR = OneOrMore(ELEMENT_NAME | FILTER | INTERPOLATION_VAR | PSEUDO)
 SELECTOR.leaveWhitespace()
-SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(COMBINATOR) + SELECTOR)
+SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(Word("+>", max=1)) + SELECTOR)
 SELECTOR_GROUP.skipWhitespace = True
 SELECTOR_TREE = SELECTOR_GROUP + ZeroOrMore(COMMA + SELECTOR_GROUP)
 
@@ -72,11 +70,11 @@ EXTEND = "@extend" + OneOrMore(ELEMENT_NAME | FILTER | INTERPOLATION_VAR | PSEUD
 
 # SCSS variable assigment
 SEP_VAL_STRING = EXPRESSION + OneOrMore(COMMA + EXPRESSION)
-VAR_DEFINITION = Suppress("$") + IDENT + COLON + (SEP_VAL_STRING | EXPRESSION ) + Optional("!default") + OPT_SEMICOLON
+VAR_DEFINITION = Regex(r"\$[a-zA-Z_][-a-zA-Z0-9_]*") + COLON + (SEP_VAL_STRING | EXPRESSION ) + Optional("!default") + OPT_SEMICOLON
 
 RULESET = Forward()
 IF = Forward()
-CONTENT = COMMENT | WARN | DEBUG | IF | INCLUDE | VAR_DEFINITION | RULESET | DECLARESET | DECLARATION
+CONTENT = CSS_COMMENT | SCSS_COMMENT | WARN | DEBUG | IF | INCLUDE | VAR_DEFINITION | RULESET | DECLARATION
 
 # SCSS control directives
 IF_BODY = LACC + ZeroOrMore(CONTENT) + RACC
@@ -94,13 +92,12 @@ RULESET << (
 # SCSS mixin
 MIXIN_PARAM = VARIABLE + Optional(COLON + EXPRESSION)
 MIXIN_PARAMS = LPAREN + ZeroOrMore(COMMA | MIXIN_PARAM) + RPAREN
-MIXIN = "@mixin" + IDENT + Optional(MIXIN_PARAMS) + LACC + ZeroOrMore(CONTENT | FOR) + RACC
-MIXIN = "@mixin" + IDENT + Optional(MIXIN_PARAMS) + LACC + ZeroOrMore(CONTENT | FOR) + RACC
+MIXIN = "@mixin" + IDENT + Group(Optional(MIXIN_PARAMS)) + LACC + ZeroOrMore(CONTENT | FOR) + RACC
 
 # SCSS function
 FUNCTION_RETURN = "@return" + VARIABLE + OPT_SEMICOLON
 FUNCTION_BODY = LACC + ZeroOrMore(VAR_DEFINITION) + FUNCTION_RETURN + RACC
-FUNCTION_DEFINITION = "@function" + IDENT + Group( MIXIN_PARAMS ) + FUNCTION_BODY
+FUNCTION_DEFINITION = "@function" + IDENT + Group(MIXIN_PARAMS) + FUNCTION_BODY
 
 # Root elements
 OPTION = "@option" + OneOrMore(IDENT + COLON + IDENT + Optional(COMMA)) + OPT_SEMICOLON

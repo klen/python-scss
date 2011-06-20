@@ -3,11 +3,11 @@ import colorsys
 import math
 import mimetypes
 import os.path
+import sys
 from itertools import product
 
 from scss import OPRT, CONV_TYPE, ELEMENTS_OF_TYPE
-from scss.base import warn
-from scss.value import ColorValue, NumberValue, hsl_op, rgba_op, StringValue, QuotedStringValue, BooleanValue
+from scss.value import NumberValue, StringValue, QuotedStringValue, ColorValue, BooleanValue, hsl_op, rgba_op
 
 
 try:
@@ -15,9 +15,14 @@ try:
 except ImportError:
     Image = None
 
-
-
 IMAGES = dict()
+
+
+def warn(warning):
+    """ Write warning messages in stderr.
+    """
+    print >> sys.stderr, "\nWarning: %s" % str( warning )
+
 
 def unknown(name, *args):
     return "%s(%s)" % ( name, ', '.join(str(a) for a in args) )
@@ -275,12 +280,14 @@ def _headings(a=None, b=None, root=None):
 
 def _nest(*args, **kwargs):
     return ', '.join(
-        ' '.join(
-           s.strip() for s in p
-        ) for p in product(
-            *( StringValue( sel ).value.split(',') for sel in args )
+        ' '.join(s.strip() for s in p)
+            if not '&' in p[1] else p[1].replace('&', p[0].strip())
+                for p in product(
+                    *( StringValue( sel ).value.split(',')
+                        for sel in args
+                    )
+                )
         )
-    )
 
 @check_pil
 def _image_width(image, root=None):
@@ -356,7 +363,7 @@ def _join(*args):
 def _append(*args):
     pass
 
-FUNCTION = {
+FUNCTION_LIST = {
 
     # RGB functions
     'rgb:3': _rgb,

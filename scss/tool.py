@@ -71,7 +71,7 @@ The location of the generated CSS can be set using a colon:
     precache = opts.cache
 
     if opts.shell:
-        p = parser.Stylecheet()
+        p = parser.Stylesheet()
         print 'SCSS v. %s interactive mode' % VERSION
         print '================================'
         print 'Ctrl+D or quit for exit'
@@ -103,7 +103,7 @@ The location of the generated CSS can be set using a colon:
         else:
             files.append([ self, target or self[:-5] + '.css', 0 ])
 
-        s = parser.Stylecheet(
+        s = parser.Stylesheet(
             options=dict(
                 comments = opts.comments,
                 compress = opts.compress,
@@ -164,7 +164,7 @@ The location of the generated CSS can be set using a colon:
         sys.exit()
 
     try:
-        s = parser.Stylecheet(
+        s = parser.Stylesheet(
             options=dict(
                 comments = opts.comments,
                 compress = opts.compress,

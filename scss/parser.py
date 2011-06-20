@@ -1,182 +1,160 @@
 import cPickle
-import logging
 import os.path
 from collections import defaultdict
 
 from scss import SORTING
-from scss.base import CopyNode, Empty, ParseNode, SimpleNode, SemiNode, SepValString, Node, warn
-from scss.grammar import STYLESHEET, VAR_DEFINITION, EXPRESSION, SELECTOR_GROUP, DECLARATION, DECLARESET, EXTEND, INCLUDE, MIXIN, MIXIN_PARAM, RULESET, VARIABLE, DEC_NAME, HEXCOLOR, NUMBER_VALUE, SCSS_COMMENT, CSS_COMMENT, FUNCTION, IF, ELSE, IF_BODY, SELECTOR, FOR, FOR_BODY, SEP_VAL_STRING, TERM, MEDIA, DEBUG, CHARSET, FONT_FACE, quotedString, IMPORT, VARIABLES, OPTION, WARN, FUNCTION_DEFINITION
-from scss.value import NumberValue, ColorValue, Expression, Variable, QuotedStringValue, BooleanValue, StringValue
-from scss.var import Function, IfNode, ForNode, Mixin, Extend, Include, VarDef, FunctionDefinition
+from scss.base import Node, Empty, ParseNode, ContentNode, IncludeNode
+from scss.control import Variable, Expression, Function, Mixin, Include, MixinParam, Extend, Variables, Option, FunctionDefinition, FunctionReturn, If, For
+from scss.function import warn, _nest
+from scss.grammar import *
+from scss.value import NumberValue, StringValue, ColorValue, QuotedStringValue
 
 
 class Comment(Node):
+    """ Comment node.
+    """
+    delim = ''
     def __str__(self):
+        """ Clean comments if option `comments` disabled
+            or enabled option `compress`
+        """
         if self.root.get_opt('comments') and not self.root.get_opt('compress'):
             return super(Comment, self).__str__()
         return ''
 
 
-class Import(SemiNode):
-    pass
-
-
-class Debug(Empty):
-    def __init__(self, t, s):
-        super(Debug, self).__init__(t, s)
-        logging.debug(str(self))
-
-
-class Option(Empty):
-    def __init__(self, t, s):
-        super(Option, self).__init__(t, s)
-        opts = map(lambda (x, y): (x, BooleanValue(y).value),
-                    zip(*[iter(self.data[1:])]*2)
-                )
-        for v in opts:
-            self.root.set_opt(*v)
-
-
-class SelectorGroup(ParseNode):
-    """ Part of css rule.
+class Warn(Empty):
+    """ Warning node @warn.
     """
-    def __init__(self, t, s=None):
-        super(SelectorGroup, self).__init__(t, s)
-        self.data = list(self.data)
-
-    def increase(self, other):
-        return SelectorGroup(list( self.data ) + other.data[1:])
-
     def parse(self, target):
-        for x in str(self).split(','):
-            target.selectorgroup.append(SelectorGroup( x.strip().split(' ') ))
-
-    def __add__(self, other):
-        test = str(other)
-        if '&' in test:
-            stest = str(self)
-            return SelectorGroup(test.replace('&', stest).split())
-        else:
-            return SelectorGroup(self.data + other.data)
+        """ Write message to stderr.
+        """
+        if self.root.get_opt('warn'):
+            warn(self.data[1])
 
 
-class DeclareSet(ParseNode):
-    def __init__(self, t, s):
-        self.declaration = []
-        super(DeclareSet, self).__init__(t, s)
+class Import(Node):
+    """ Import node @import.
+    """
+    def __str__(self):
+        """ Write @import to outstring.
+        """
+        return "%s;\n" % super(Import, self).__str__()
 
-    def render(self, target):
-        name = str(self.data[0])
-        for dec in getattr(self, 'declareset', []):
-            dec.render(self)
-        for dc in self.declaration:
-            dc.data[0].data[0] = "-".join((name, dc.data[0].data[0]))
-            target.declaration.append(dc)
+
+class Ruleset(ContentNode):
+    """ Rule node.
+    """
+    def parse(self, target):
+        """ Parse nested rulesets
+            and save it in cache.
+        """
+        if isinstance(target, ContentNode):
+            self.name += target.name
+            target.ruleset.append(self)
+        self.root.cache['rset'][str(self.name).split()[0]].add(self)
+        super(Ruleset, self).parse(target)
 
 
 class Declaration(ParseNode):
-    """ Css declaration.
+    """ Declaration node.
     """
-    def __str__(self):
-        name, expr = ''.join(str(s) for s in self.data[0].data ), self.data[2:]
-        if not SORTING.has_key(name.strip('*_')) and self.root.get_opt('warn'):
-            warn("Unknown declaration: %s" % name)
-        return ( ':' + self.root.delims[1] ).join([
-            ''.join(str(s) for s in name),
-            ' '.join(str(e) for e in expr)])
-
-
-class FontFace(ParseNode):
-    def __init__(self, t, s):
-        self.declaration = []
-        super(FontFace, self).__init__(t, s)
-
-    def __str__(self):
-        out = '\n@font-face {\n\t'
-        self.declaration.sort(key=lambda x: str(x.data[0]))
-        out += ';\n\t'.join(str(d) for d in self.declaration)
-        out += '}\n'
-        return out
-
-
-class Ruleset(ParseNode):
-
-    def __init__(self, t, s):
-        self.declaration = []
-        self.selectorgroup = []
-        self.ruleset = []
-        super(Ruleset, self).__init__(t, s)
-        self.ancor = str(self.data[0].data[0])
-        self.root.cache['rset'][self.ancor].add(self)
-
-    def __repr__(self):
-        return str(self)
+    def __init__(self, s, n, t):
+        """ Add self.name and self.expr to object.
+        """
+        super(Declaration, self).__init__(s, n, t)
+        self.name = self.expr = ''
 
     def parse(self, target):
-        super(Ruleset, self).parse(target)
-        if isinstance(target, Ruleset):
-            self.parse_ruleset(target)
+        """ Parse nested declaration.
+        """
+        super(Declaration, self).parse(target)
+        self.name = str(self.data[0])
+        while isinstance(target, Declaration):
+            self.name = '-'.join(( str(target.data[0]), self.name))
+            target = target.parent
 
-    def parse_ruleset(self, target):
-        selgroup = list()
-        for psg in target.selectorgroup:
-            for sg in self.selectorgroup:
-                selgroup.append(psg + sg)
-        self.selectorgroup = selgroup
-
-        for r in self.ruleset:
-            r.parse_ruleset(target)
-
-    def parse_declareset(self):
-        for ds in getattr(self, 'declareset', []):
-            ds.render(self)
+        self.expr = ' '.join(str(n) for n in self.data[2:] if not isinstance(n, Declaration))
+        if self.expr:
+            target.declareset.append(self)
 
     def __str__(self):
-        self.parse_declareset()
+        """ Warning on unknown declaration
+            and write current in outstring.
+        """
+        if ( not SORTING.has_key(self.name.strip('*_'))
+                and self.root.get_opt('warn') ):
+            warn("Unknown declaration: %s" % self.name)
 
-        if self.root.get_opt('sort'):
-            self.declaration.sort(key=lambda x: SORTING.get( str(x.data[0]), 999 ))
-
-        nl, ws, ts = self.root.delims
-
-        return ''.join((
-
-            # Rule
-            ''.join((
-
-                # Selectors
-                '\n' + ', '.join(str(s) for s in self.selectorgroup),
-
-                # Declarations
-                ws + '{' + nl + ts,
-                (';' + nl + ts).join(
-                    str(d) for d in self.declaration),
-                '}' + nl
-
-            )) if self.declaration else '',
-
-            # Children rules
-            ''.join(str(r) for r in self.ruleset)
-
-        ))
+        return (":%s" % self.root.cache['delims'][1] ).join(
+                (self.name, self.expr))
 
 
-class Mixinparam(ParseNode):
-    @property
-    def name(self):
-        return self.data[0].data[0][1:]
-
-    @property
-    def default(self):
-        if len(self.data) > 1:
-            return self.data[1]
-        return None
+class DeclarationName(ParseNode):
+    """ Name of declaration node.
+        For spliting it in one string.
+    """
+    delim = ''
 
 
-class Stylecheet(object):
+class SelectorTree(ParseNode):
+    """ Tree of selectors in ruleset.
+    """
+    delim = ', '
 
-    defdelims = '\n', ' ', '\t'
-    defvalue = StringValue('')
+    def extend(self, target):
+        """ @extend selectors tree.
+        """
+        self_test = ', '.join(map(str, self.data))
+        target_test = ', '.join(map(str, target.data))
+        self.data = (self_test + ', ' + self_test.replace(str(self.data[0].data[0]), target_test)).split(', ')
+
+    def __add__(self, target):
+        """ Add selectors from parent nodes.
+        """
+        if isinstance(target, SelectorTree):
+            self_test = ', '.join(map(str, self.data))
+            target_test = ', '.join(map(str, target.data))
+            self.data = _nest(target_test, self_test).split(', ')
+        return self
+
+
+class Selector(ParseNode):
+    """ Simple selector node.
+    """
+    delim = ''
+
+    def __str__(self):
+        """ Write to output.
+        """
+        return ''.join(StringValue(n).value for n in self.data)
+
+
+class VarDefinition(ParseNode, Empty):
+    """ Variable definition.
+    """
+    def __init__(self, s, n, t):
+        """ Save self.name, self.default, self.expression
+        """
+        super(VarDefinition, self).__init__(s, n, t)
+        self.name = t[0][1:]
+        self.default = len(t) > 2
+        self.expression = t[1]
+
+    def parse(self, target):
+        """ Update root and parent context.
+        """
+        super(VarDefinition, self).parse(target)
+        if isinstance(self.parent, ParseNode):
+            self.parent.ctx.update({ self.name: self.expression.value })
+        self.root.set_var(self)
+
+
+class Stylesheet(object):
+    """ Root stylesheet node.
+    """
+
+    def_delims = '\n', ' ', '\t'
 
     def __init__(self, cache = None, options=None):
         self.cache = cache or dict(
@@ -187,8 +165,8 @@ class Stylecheet(object):
             # Mixin context
             mix = dict(),
 
-            # Function context
-            fnc = dict(),
+            # Rules context
+            rset = defaultdict(set),
 
             # Options context
             opts = dict(
@@ -198,14 +176,9 @@ class Stylecheet(object):
                 path = os.getcwd(),
             ),
 
-            # Rules context
-            rset = defaultdict(set),
-
             # CSS delimeters
-            delims = self.defdelims,
+            delims = self.def_delims,
 
-            # Output
-            out = ''
         )
 
         if options:
@@ -213,164 +186,149 @@ class Stylecheet(object):
                 self.set_opt(*option)
 
         self.setup()
+        Node.root = self
 
     def setup(self):
 
-        # Comments
-        CSS_COMMENT.setParseAction(self.getType(Comment))
-        SCSS_COMMENT.setParseAction(lambda s, l, t: '')
+        # Values
+        NUMBER_VALUE.setParseAction(NumberValue)
+        IDENT.setParseAction(StringValue)
+        PATH.setParseAction(StringValue)
+        COLOR_VALUE.setParseAction(ColorValue)
+        quotedString.setParseAction(QuotedStringValue)
+        EXPRESSION.setParseAction(Expression)
+
+        # Vars
+        VARIABLE.setParseAction(Variable)
+        VAR_DEFINITION.setParseAction(VarDefinition)
+        VARIABLES.setParseAction(Variables)
+        FUNCTION.setParseAction(Function)
+        FUNCTION_DEFINITION.setParseAction(FunctionDefinition)
+        FUNCTION_RETURN.setParseAction(FunctionReturn)
+
+        # Coments
+        SCSS_COMMENT.setParseAction(lambda x: '')
+        CSS_COMMENT.setParseAction(Comment)
 
         # At rules
-        WARN.setParseAction(warn)
-        MEDIA.setParseAction(self.getType(SimpleNode))
-        IMPORT.setParseAction(self.getType(Import))
-        CHARSET.setParseAction(self.getType(SemiNode))
-        FONT_FACE.setParseAction(self.getType(FontFace))
-        OPTION.setParseAction(self.getType(Option))
-        VARIABLES.setParseAction(Empty)
-
-        # Values
-        HEXCOLOR.setParseAction(ColorValue)
-        NUMBER_VALUE.setParseAction(NumberValue)
-        FUNCTION.setParseAction(self.getType(Function))
-        quotedString.setParseAction(QuotedStringValue)
-        VAR_DEFINITION.setParseAction(self.getType(VarDef))
-        VARIABLE.setParseAction(self.getType(Variable))
-        SEP_VAL_STRING.setParseAction(self.getType(SepValString))
-        EXPRESSION.setParseAction(self.getType(Expression))
-
-        # Declarations
-        DEC_NAME.setParseAction(self.getType())
-        TERM.setParseAction(self.getType())
-        DECLARATION.setParseAction(self.getType(Declaration))
-        DECLARESET.setParseAction(self.getType(DeclareSet))
+        IMPORT.setParseAction(Import)
+        CHARSET.setParseAction(Import)
+        MEDIA.setParseAction(Node)
 
         # Rules
-        RULESET.setParseAction(self.getType(Ruleset))
-        SELECTOR_GROUP.setParseAction(self.getType(SelectorGroup))
-        SELECTOR.setParseAction(self.getType())
+        RULESET.setParseAction(Ruleset)
+        DECLARATION.setParseAction(Declaration)
+        DECLARATION_NAME.setParseAction(DeclarationName)
+        SELECTOR.setParseAction(Selector)
+        SELECTOR_GROUP.setParseAction(ParseNode)
+        SELECTOR_TREE.setParseAction(SelectorTree)
+        FONT_FACE.setParseAction(ContentNode)
 
-        # SCSS directives
-        FUNCTION_DEFINITION.setParseAction(self.getType(FunctionDefinition))
-        MIXIN_PARAM.setParseAction(self.getType(Mixinparam))
-        MIXIN.setParseAction(self.getType(Mixin))
-        INCLUDE.setParseAction(self.getType(Include))
-        EXTEND.setParseAction(self.getType(Extend))
-        IF.setParseAction(self.getType(IfNode))
-        FOR.setParseAction(self.getType(ForNode))
-        FOR_BODY.setParseAction(self.getType(ParseNode))
-        IF_BODY.setParseAction(self.getType(ParseNode))
-        ELSE.setParseAction(self.getType(ParseNode))
-
-        DEBUG.setParseAction(self.getType(Debug))
+        # SCSS Directives
+        MIXIN.setParseAction(Mixin)
+        MIXIN_PARAM.setParseAction(MixinParam)
+        INCLUDE.setParseAction(Include)
+        EXTEND.setParseAction(Extend)
+        OPTION.setParseAction(Option)
+        IF.setParseAction(If)
+        IF_BODY.setParseAction(IncludeNode)
+        ELSE.setParseAction(IncludeNode)
+        FOR.setParseAction(For)
+        FOR_BODY.setParseAction(IncludeNode)
+        WARN.setParseAction(Warn)
 
     @property
-    def delims(self):
-        return self.cache['delims']
+    def ctx(self):
+        return self.cache['ctx']
 
-    def set_var(self, var):
+    def set_var(self, vardef):
         """ Set variable to global stylesheet context.
         """
-        if not(var.default and self.cache['ctx'].get(var.name)):
-            if isinstance(var.expression, Expression):
-                var.value = var.expression.value
-            self.cache['ctx'][var.name] = var
-
-    def get_var(self, name):
-        """ Get variable from global stylesheet context.
-        """
-        var = self.cache['ctx'].get(name)
-        return var.value if var else self.defvalue
+        if not(vardef.default and self.cache['ctx'].get(vardef.name)):
+            self.cache['ctx'][vardef.name] = vardef.expression.value
 
     def set_opt(self, name, value):
         """ Set option.
-            @option compress
-            @option sort
-            @option comments
         """
         self.cache['opts'][name] = value
 
         if name == 'compress':
-            self.cache['delims'] = self.defdelims if not value else ('', '', '')
+            self.cache['delims'] = self.def_delims if not value else ('', '', '')
 
     def get_opt(self, name):
         """ Get option.
         """
         return self.cache['opts'].get(name)
 
-    def dump(self):
-        return cPickle.dumps(self.cache)
-
-    def loads(self, src):
-        """ Parse string and return self cache.
-        """
-        self.cache['out'] = STYLESHEET.transformString(src.strip()).strip()
-        # self.cache['out'] = STYLESHEET.parseString(src.strip())
-        return self.cache
-
     def update(self, cache):
         """ Update self cache from other.
         """
-        self.cache['out'] += cache.get('out')
         self.cache['delims'] = cache.get('delims')
         self.cache['opts'].update(cache.get('opts'))
-        self.cache['mix'].update(cache.get('mix'))
-        self.cache['fnc'].update(cache.get('mix'))
         self.cache['rset'].update(cache.get('rset'))
+        self.cache['mix'].update(cache.get('mix'))
         map(self.set_var, cache['ctx'].values())
 
+    def scan(self, src):
+        """ Scan scss from string and return nodes.
+        """
+        assert isinstance(src, basestring)
+        return STYLESHEET.parseString(src)
+
+    def parse(self, results):
+        map(lambda n: n.parse(self) if isinstance(n, Node) else None, results)
+
+    def loads(self, src):
+        """ Compile css from scss string.
+        """
+        assert isinstance(src, basestring)
+        results = self.scan(src.strip())
+        self.parse(results)
+        return ''.join(map(str, results))
+
     def load(self, f, precache=None):
-
+        """ Compile scss from file.
+            File is string path of file object.
+        """
         precache = precache or self.get_opt('cache') or False
-        cache_path = '.'
+        nodes = None
+        if isinstance(f, file):
+            path = os.path.abspath(f.name)
 
-        if isinstance(f, str):
-            cache_path = os.path.dirname(f)
+        else:
+            path = os.path.abspath(f.name)
             f = open(f)
 
-        name = '.'.join(( os.path.splitext(f.name)[0], 'ccss' ))
-        cache_path = os.path.join(cache_path, name)
+        cache_path = os.path.splitext(path)[0] + '.ccss'
 
-        if precache and os.path.exists( cache_path ):
+        if precache and os.path.exists(cache_path):
             ptime = os.path.getmtime(cache_path)
-            ttime = os.path.getmtime(f.name)
+            ttime = os.path.getmtime(path)
             if ptime > ttime:
                 dump = open(cache_path, 'rb').read()
-                self.update(cPickle.loads(dump))
-            return self.cache
+                nodes = cPickle.loads(dump)
 
-        src = f.read()
-        self.loads(src)
+        if not nodes:
+            src = f.read()
+            nodes = self.scan(src.strip())
+
         if precache:
             f = open(cache_path, 'wb')
-            f.write(self.dump())
-        return self.cache
+            cPickle.dump(nodes, f)
 
-    def parse(self, src):
-        self.loads(src)
-        return self.cache['out']
-
-    def getType(self, node=CopyNode, style=True):
-        def wrap(s, l, t):
-            if style:
-                return node(t, self)
-            return node(t)
-        return wrap
-
-    def __str__(self):
-        return self.cache['out']
+        self.parse(nodes)
+        return ''.join(map(str, nodes))
 
 
 def parse( src, cache=None ):
     """ Parse from string.
     """
-    parser = Stylecheet(cache)
-    return parser.parse(src)
+    parser = Stylesheet(cache)
+    return parser.loads(src)
 
 
 def load(path, cache=None, precache=False):
     """ Parse from file.
     """
-    parser = Stylecheet(cache)
-    cache = parser.load(path, precache=precache)
-    return str(parser)
+    parser = Stylesheet(cache)
+    return parser.load(path, precache=precache)

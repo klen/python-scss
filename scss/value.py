@@ -1,65 +1,10 @@
-import colorsys
+" SCSS Values."
+
+from colorsys import rgb_to_hls, hls_to_rgb
+from pyparsing import ParseResults
 
 from scss import OPRT, CONV_FACTOR, COLORS
 from scss.base import Node
-
-
-class Value(object):
-    @classmethod
-    def _do_op(cls, self, other, op):
-        first, second = cls(self), cls(other)
-        return op(first.value, second.value)
-    @classmethod
-    def _do_cmps(cls, first, second, op):
-        return op(first.value, second.value)
-    @classmethod
-    def _do_bits(cls, first, second, op):
-        first = StringValue(first)
-        second = StringValue(second)
-        k = op(first.value, second.value)
-        return first if first.value == k else second
-
-    # Math operation
-    def __add__(self, other):
-        return self._do_op(self, other, OPRT['+'])
-    __radd__ = __add__
-    def __div__(self, other):
-        return self._do_op(self, other, OPRT['/'])
-    def __rdiv__(self, other):
-        return self._do_op(other, self, OPRT['/'])
-    def __sub__(self, other):
-        return self._do_op(self, other, OPRT['-'])
-    def __rsub__(self, other):
-        return self._do_op(other, self, OPRT['-'])
-    def __mul__(self, other):
-        return self._do_op(self, other, OPRT['*'])
-    def __lt__(self, other):
-        return self._do_cmps(self, other, OPRT['<'])
-    __rmul__ = __mul__
-
-    # Compare operation
-    def __le__(self, other):
-        return self._do_cmps(self, other, OPRT['<='])
-    def __gt__(self, other):
-        return self._do_cmps(self, other, OPRT['>='])
-    def __ge__(self, other):
-        return self._do_cmps(self, other, OPRT['>'])
-    def __eq__(self, other):
-        return self._do_cmps(self, other, OPRT['=='])
-    def __ne__(self, other):
-        return self._do_cmps(self, other, OPRT['!='])
-
-    # Bit operation
-    def __and__(self, other):
-        return self._do_bits(self, other, OPRT['and'])
-    def __or__(self, other):
-        return self._do_bits(self, other, OPRT['or'])
-
-    # Boolean
-    def __nonzero__(self):
-        return getattr(self, 'value') and True or False
-    def __bool__(self):
-        return bool(self.value) if self.value != 'false' else False
 
 
 hex2rgba = {
@@ -72,43 +17,166 @@ hex2rgba = {
 
 def hsl_op(op, color, h, s, l):
     other = (float(h), float(l), float(s))
-    self = colorsys.rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))
-    res = colorsys.hls_to_rgb(*map(lambda x, y: op(x, y) if op else y if y else x, self, other))
+    self = rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))
+    res = hls_to_rgb(*map(lambda x, y: op(x, y) if op else y if y else x, self, other))
     return ColorValue(( res[0] * 255.0, res[1] * 255.0, res[2] * 255.0, color.value[3] ))
 
 
 def rgba_op(op, color, r, g, b, a):
     other = (float(r), float(g), float(b), float(a))
-    res = ColorValue(map(lambda x, y: op(x, y) if op else y if y else x, color.value, other))
-    if float(a) == color.value[3] == 1:
-        res.value = (res.value[0], res.value[1], res.value[2], 1.0)
-    return res
+    res = map(op or ( lambda x, y: x or y ), color.value, other)
+    res[3] = 1 if float(a) == color.value[3] == 1 else res[3]
+    return ColorValue(res)
+
+
+class Value(Node):
+    """ Abstract value.
+    """
+    @classmethod
+    def _do_op(cls, self, other, op):
+        first, second = cls(self), cls(other)
+        return op(first.value, second.value)
+
+    @classmethod
+    def _do_cmps(cls, first, second, op):
+        return op(first.value, second.value)
+
+    # Math operation
+    def __add__(self, other):
+        return self._do_op(self, other, OPRT['+'])
+
+    __radd__ = __add__
+
+    def __div__(self, other):
+        return self._do_op(self, other, OPRT['/'])
+
+    def __rdiv__(self, other):
+        return self._do_op(other, self, OPRT['/'])
+
+    def __sub__(self, other):
+        return self._do_op(self, other, OPRT['-'])
+
+    def __rsub__(self, other):
+        return self._do_op(other, self, OPRT['-'])
+
+    def __mul__(self, other):
+        return self._do_op(self, other, OPRT['*'])
+
+    def __lt__(self, other):
+        return self._do_cmps(self, other, OPRT['<'])
+
+    __rmul__ = __mul__
+
+    # Compare operation
+    def __le__(self, other):
+        return self._do_cmps(self, other, OPRT['<='])
+
+    def __gt__(self, other):
+        return self._do_cmps(self, other, OPRT['>='])
+
+    def __ge__(self, other):
+        return self._do_cmps(self, other, OPRT['>'])
+
+    def __eq__(self, other):
+        return self._do_cmps(self, other, OPRT['=='])
+
+    def __ne__(self, other):
+        return self._do_cmps(self, other, OPRT['!='])
+
+    # Boolean
+    def __nonzero__(self):
+        return getattr(self, 'value') and True or False
+
+    def __bool__(self):
+        return bool(self.value) if self.value != 'false' else False
+
+    def __str__(self):
+        return str(self.value)
+
+    def __float__(self):
+        return float(self.value)
+
+
+class StringValueMeta(type):
+
+    def __call__(mcs, *args, **kwargs):
+        test = mcs.__new__(mcs)
+        test.__init__(*args, **kwargs)
+
+        if test.value in ('true', 'false'):
+            return BooleanValue(test.value)
+
+        elif COLORS.has_key(test.value):
+            return ColorValue(COLORS.get(test.value))
+
+        return test
+
+
+class StringValue(Value):
+
+    __metaclass__ = StringValueMeta
+
+    def_value = ''
+
+    def __init__(self, t):
+        super(StringValue, self).__init__(None, None, t)
+
+        self.value = self.def_value
+
+        if isinstance(t, ParseResults):
+            self.value = ''.join(str(s) for s in t)
+
+        elif isinstance(t, StringValue):
+            self.value = t.value
+
+        elif isinstance(t, Node):
+            self.value = str(t.value).strip('"\'')
+
+        elif isinstance(t, (str, int, float)):
+            self.value = str(t)
+
+    def __div__(self, other):
+        self.value = '/'.join((str(self), str(other)))
+        return self
+
+    def __str__(self):
+        return self.value
+
+
+class QuotedStringValue(StringValue):
+
+    def __init__(self, t):
+        super(QuotedStringValue, self).__init__(t)
+        self.value = self.value.strip('"\'')
+
+    def __str__(self):
+        return "'%s'" % self.value
 
 
 class ColorValue(Value):
 
-    def __init__(self, t):
-        super(ColorValue, self).__init__()
+    def_value = (255.0, 255.0, 255.0, 1)
 
-        if t is None:
-            self.value = (0, 0, 0, 1)
+    def __init__(self, t):
+        super(ColorValue, self).__init__(None, None, t)
+        self.value = self.def_value
+
+        if isinstance(t, ParseResults):
+            val = t[0][1:]
+            self.value = hex2rgba[len(val)](val)
+
+        elif isinstance(t, (list, tuple)):
+            r = self.value
+            c = map( lambda x, y: x if not x is None else y, t, r )
+            c = tuple( 0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4) )
+            self.value = c
 
         elif isinstance(t, str):
             val = t[1:]
             self.value = hex2rgba[len(val)](val)
 
-        elif isinstance(t, (list, tuple)):
-            if len(t) < 4:
-                c = (t[0], t[1], t[2], 1.0)
-            else:
-                c = t[:4]
-            r = 255.0, 255.0, 255.0, 1.0
-            c = [ 0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4) ]
-            self.value = tuple(c)
-
-        else:
-            val = t[0][1:]
-            self.value = hex2rgba[len(val)](val)
+    def __float__(self):
+        return float( sum(self.value[:3], 0.0) / 3 * self.value[3] )
 
     def __str__(self):
         if self.value[3] == 1:
@@ -123,7 +191,7 @@ class ColorValue(Value):
         if isinstance(other, ColorValue):
             return rgba_op(op, self, *other.value)
 
-        elif isinstance(other, NumberValue):
+        elif isinstance(other, ( NumberValue, int )):
             val = float(other)
             if op in (OPRT['*'], OPRT['/']):
                 return ColorValue(map(lambda x: op(x, val), self.value[:3]))
@@ -133,19 +201,49 @@ class ColorValue(Value):
             return self
 
 
-class NumberValue(Value):
+class BooleanValue(Value):
+
+    def_value = True
 
     def __init__(self, t):
-        super(NumberValue, self).__init__()
-        if t is None:
-            self.value, self.units = 0.0, ''
-        elif isinstance(t, (int, float, str)):
-            self.value, self.units = float(t), ''
+        super(BooleanValue, self).__init__(None, None, t)
+        self.value = self.def_value
+
+        if isinstance(t, (str, bool)):
+            self.value = bool(t) if t != 'false' else False
+
+        elif isinstance(t, Node):
+            self.value = bool(t)
+
+    def __str__(self):
+        return 'true' if self.value else 'false'
+
+    def __float__(self):
+        return 1.0 if self.value else 0.0
+
+
+class NumberValue(Value):
+
+    def_value = 0.0
+
+    def __init__(self, t):
+        super(NumberValue, self).__init__(None, None, t)
+        self.value = self.def_value
+        self.units = ''
+
+        if isinstance(t, ( ParseResults, list, tuple )):
+            if len(t) > 1:
+                self.units = t[1]
+            self.value = float(t[0])
+
         elif isinstance(t, NumberValue):
             self.value, self.units = t.value, t.units
-        else:
-            self.value, self.units = t[0], str(t[1]) if len(t) > 1 else ''
-            self.value = float(self.value)
+
+        elif isinstance(t, Node):
+            self.value = float(t.value)
+
+        elif isinstance(t, (int, float, str)):
+            self.value = float(t)
 
     def __float__(self):
         return self.value * CONV_FACTOR.get(self.units, 1.0)
@@ -161,142 +259,3 @@ class NumberValue(Value):
         value = op(float(first), float(second))
         value /= CONV_FACTOR.get(units, 1.0)
         return cls((value, units))
-
-
-class StringValue(Value):
-
-    def __init__(self, t):
-        super(StringValue, self).__init__()
-        if t is None:
-            self.value = ''
-        elif isinstance(t, ( str, int, float, NumberValue )):
-            self.value = str(t)
-        elif isinstance(t, StringValue):
-            self.value = t.value
-        else:
-            self.value = str(t[0]).strip('\'"')
-
-    def __div__(self, other):
-        self.value = '/'.join((str(self), str(other)))
-        return self
-
-    def __str__(self):
-        return "%s" % self.value
-
-
-class QuotedStringValue(StringValue):
-
-    def __str__(self):
-        return "'%s'" % self.value
-
-
-class BooleanValue(Value):
-
-    def __init__(self, t):
-        super(BooleanValue, self).__init__()
-        if t is None:
-            self.value = False
-        elif isinstance(t, (Value, Variable)):
-            self.value = bool(t)
-        elif isinstance(t, (str, bool)):
-            self.value = bool(t) if t != 'false' else False
-        else:
-            self.value = bool(t[0]) if t[0] != 'false' else False
-
-    def __str__(self):
-        return 'true' if self.value else 'false'
-
-
-class Variable(Node, Value):
-    """ Get variable value.
-    """
-
-    def __init__(self, t, s):
-        super(Variable, self).__init__(t, s)
-        self.ctx = None
-
-    def copy(self, ctx=None):
-        self.ctx = ctx
-        if hasattr(self.value, 'copy'):
-            return self.value.copy(ctx)
-        return self.value
-
-    @property
-    def value(self):
-        """ Return variable value.
-        """
-        name = self.data[0].lstrip('$-')
-        if self.ctx and self.ctx.get(name):
-            value = self.ctx.get(name)
-        else:
-            value = self.root.get_var(name)
-        return (0 - value) if self.data[0][0] == '-' else value
-
-    def __str__(self):
-        return str(self.value)
-
-    def __bool__(self):
-        return bool(self.value)
-
-    def __float__(self):
-        try:
-            return float(self.value)
-        except ValueError:
-            return 0.0
-
-
-class ExpressionMeta(type):
-    def __call__(mcs, *args):
-        data = args[0]
-        if len(data) == 1:
-            return data[0]
-        return super(ExpressionMeta, mcs).__call__(*args)
-
-class Expression(Variable):
-    """ Parse mathematic operation.
-    """
-    __metaclass__ = ExpressionMeta
-
-    @staticmethod
-    def prepare(value):
-        while isinstance(value, Variable):
-            value = value.value
-        if isinstance(value, str):
-            value = ColorValue(COLORS[value]) if COLORS.has_key(value) else StringValue(value)
-        return value
-
-    @property
-    def value(self):
-        try:
-            return self.do_expression(self.data, self.ctx)
-        except TypeError:
-            pass
-
-    @classmethod
-    def do_expression(cls, data, ctx=None):
-
-        if ctx:
-            for n in data:
-                if isinstance(n, Variable):
-                    n.ctx = ctx
-
-        it = iter(data)
-        first, res = next(it), next(it)
-        while True:
-            try:
-                op = OPRT.get(res, None)
-                if op:
-                    second = next(it)
-                    first = op(cls.prepare( first ), cls.prepare( second ))
-
-                    if op == OPRT['and'] and not first:
-                        raise StopIteration
-
-                    elif op == OPRT['or'] and first:
-                        raise StopIteration
-
-                res = next(it)
-            except StopIteration:
-                break
-        return first
-

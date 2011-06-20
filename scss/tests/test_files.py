@@ -4,9 +4,9 @@ import unittest
 from scss import parser
 
 
-class TestSCSS( unittest.TestCase ):
+class ScssCache(unittest.TestCase):
 
-    def test_load(self):
+    def test_cache(self):
         path = os.path.join(os.path.dirname(__file__), 'example.scss')
         src = open(path).read()
         test = parser.parse(src)

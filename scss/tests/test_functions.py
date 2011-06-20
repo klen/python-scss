@@ -1,12 +1,12 @@
 import unittest
 
-from scss.parser import Stylecheet
+from scss.parser import Stylesheet
 
 
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylecheet(options=dict(compress=True))
+        self.parser = Stylesheet(options=dict(compress=True))
 
     def test_operations_and_functions(self):
         src = """
@@ -33,8 +33,8 @@ class TestSCSS( unittest.TestCase ):
                 height: 5px + (4px * (2 + $items));
                 width: $navbar-width/$items - 10px;
                 &:hover { background-color: $navbar-color - 10%; } }"""
-        test = "#navbar{width:800px;border-bottom:2px solid #646437}\n#navbar div1, #navbar div2, #navbar div3{color:red}\n#navbar p div1, #navbar p div2, #navbar p div3{color:blue}\nli{float:left;margin:8.5px auto;width:256.667px;height:25px;background-color:#313104;background-image:url(test/value.png);font:8px/10px 'Verdana', monospace}\nli:hover{background-color:#5c5c3e}"
-        out = self.parser.parse(src)
+        test = "#navbar{width:800px;border-bottom:2px solid #646437}#navbar div1, #navbar div2, #navbar div3{color:#f00}p #navbar div1, p #navbar div2, p #navbar div3{color:#00f}li{float:left;margin:8.5px auto;width:256.667px;height:25px;background-color:#313104;background-image:url(test/value.png);font:8px / 10px 'Verdana'}li:hover{background-color:#5c5c3e}"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_rgb_functions(self):
@@ -44,14 +44,14 @@ class TestSCSS( unittest.TestCase ):
             $color: rgba(23, 45, 67, .4)
             $color2: #fdc;
             .test {
-                red: red($color);
-                blue: blue($color);
-                green: green($color);
+                red_test: red($color);
+                blue_test: blue($color);
+                green_test: green($color);
                 color: mix(#f00, #00f, 25%);
             }
         """
-        test = ".test{color:#3f00bf;red:23;blue:67;green:45}"
-        out = self.parser.parse(src)
+        test = ".test{color:#3f00bf;red_test:23;blue_test:67;green_test:45}"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_hsl_functions(self):
@@ -67,7 +67,7 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test{background-color:#886a10;color:rgba(127,0,0,0.40);hue:0;saturation:255}"
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_opacity_functions(self):
@@ -78,7 +78,7 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test{color:#646464}"
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_string_functions(self):
@@ -91,7 +91,7 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test{top:top;bottom:'bottom'}"
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_number_functions(self):
@@ -109,7 +109,7 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test{top:200%;round:100.0;ceil:2.0;floor:1.0;abs:1.24}"
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_introspection_functions(self):
@@ -126,7 +126,7 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test{test:number;test2:color;test3:px;test4:false}"
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_compass_helpers(self):
@@ -151,8 +151,8 @@ class TestSCSS( unittest.TestCase ):
                 }
             }
         """
-        test = ".foo .baz, .bar .baz{color:red}\n.example address, .example article, .example aside, .example blockquote, .example center, .example dd, .example dialog, .example dir, .example div, .example dl, .example dt, .example fieldset, .example figure, .example footer, .example form, .example frameset, .example h1, .example h2, .example h3, .example h4, .example h5, .example h6, .example header, .example hgroup, .example hr, .example isindex, .example menu, .example nav, .example noframes, .example noscript, .example ol, .example p, .example pre, .example section, .example ul{margin:1em 3em;border:1px solid #777}\n.example a, .example abbr, .example acronym, .example b, .example basefont, .example bdo, .example big, .example br, .example cite, .example code, .example dfn, .example em, .example font, .example i, .example img, .example input, .example kbd, .example label, .example q, .example s, .example samp, .example select, .example small, .example span, .example strike, .example strong, .example sub, .example sup, .example textarea, .example tt, .example u, .example var{color:#c00}\na h2, a h3, a h4{font-weight:bold}"
-        out = self.parser.parse(src)
+        test = ".foo .baz, .bar .baz{color:#f00}.example address, .example article, .example aside, .example blockquote, .example center, .example dd, .example dialog, .example dir, .example div, .example dl, .example dt, .example fieldset, .example figure, .example footer, .example form, .example frameset, .example h1, .example h2, .example h3, .example h4, .example h5, .example h6, .example header, .example hgroup, .example hr, .example isindex, .example menu, .example nav, .example noframes, .example noscript, .example ol, .example p, .example pre, .example section, .example ul{margin:1em 3em;border:1px solid #777}.example a, .example abbr, .example acronym, .example b, .example basefont, .example bdo, .example big, .example br, .example cite, .example code, .example dfn, .example em, .example font, .example i, .example img, .example input, .example kbd, .example label, .example q, .example s, .example samp, .example select, .example small, .example span, .example strike, .example strong, .example sub, .example sup, .example textarea, .example tt, .example u, .example var{color:#c00}a h2, a h3, a h4{font-weight:bold}"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_image_functions(self):
@@ -165,15 +165,12 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = 'img.test{width:64px;height:64px;background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRF8EFB3AAA////d5xsogAAAAN0Uk5T//8A18oNQQAAAClJREFUeNpiYIIDBkYGCAXEYDaEAFEQKbAQVBEyE6EASRuSYQgrAAIMAB1mAIkfpDEtAAAAAElFTkSuQmCC")}'
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_function_define(self):
         src = """
-            @function percent-width(
-                $t,
-                $c
-            ) {
+            @function percent-width($t, $c) {
                 $perc: $t / $c * 100%;
                 @return $perc;
             }
@@ -183,7 +180,7 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test{width:20.833%}"
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_misc(self):
@@ -194,5 +191,5 @@ class TestSCSS( unittest.TestCase ):
             }
         """
         test = ".test{margin:0 auto}"
-        out = self.parser.parse(src)
+        out = self.parser.loads(src)
         self.assertEqual(test, out)

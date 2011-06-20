@@ -1,47 +1,32 @@
-import sys
-
-
-def warn(warning):
-    if not isinstance(warning, str):
-        warning = str(warning[1])
-
-    print >> sys.stderr, "\nWarning: %s" % warning
-    return ''
-
+from scss import SORTING
 
 class Node(object):
+    """ Base class for parsed objects.
+    """
+    delim = ' '
+    root = None
+    defctx = dict()
 
-    delim = ''
-
-    def __init__(self, t, s=None):
-        self.data, self.root = t, s
+    def __init__(self, s, n, t):
+        self.num, self.data = n, t
+        self.parent = self.__ctx = None
 
     def __str__(self):
-        return self.delim.join(str(e) for e in self.data)
+        return self.delim.join(map(str, self.data))
 
+    def parse(self, target):
+        self.parent = target
 
-class CopyNode(Node):
+    def copy(self):
+        return self
 
-    def copy(self, ctx=None):
-        t = [ e.copy(ctx) if hasattr(e, 'copy') else e for e in self.data ]
-        return self.__class__(t, self.root)
+    @property
+    def ctx(self):
+        return self.__ctx or (self.parent.ctx if self.parent else self.defctx)
 
-
-class ParseNode(CopyNode):
-
-    delim = ' '
-
-    def __init__(self, t, s=None):
-        super(ParseNode, self).__init__(t, s)
-        for e in self.data:
-            if hasattr(e, 'parse'):
-                e.parse(self)
-
-    def parse(self, e):
-        name = self.__class__.__name__.lower()
-        if not hasattr(e, name):
-            setattr(e, name, list())
-        getattr(e, name).append(self)
+    @ctx.setter
+    def ctx(self, value):
+        self.__ctx = value
 
 
 class Empty(Node):
@@ -50,18 +35,65 @@ class Empty(Node):
         return ''
 
 
-class SepValString(Node):
-    """ Separated value.
-    """
-    delim = ', '
+class ParseNode(Node):
+
+    def parse(self, target):
+        super(ParseNode, self).parse(target)
+        for n in self.data:
+            if isinstance(n, Node):
+                n.parse(self)
+
+    def copy(self):
+        t = [n.copy() if isinstance(n, Node) else n for n in self.data]
+        return self.__class__(None, self.num, t)
 
 
-class SimpleNode(Node):
+class ContentNode(ParseNode):
 
-    delim = ' '
-
-
-class SemiNode(SimpleNode):
+    def __init__(self, s, n, t):
+        super(ContentNode, self).__init__(s, n, t)
+        self.name = self.data[0] if self.data else ''
+        self.declareset = []
+        self.ruleset = []
 
     def __str__(self):
-        return super(SemiNode, self).__str__() + ';\n'
+        # Sort declaration
+        if self.root.get_opt('sort'):
+            self.declareset.sort(
+                    key=lambda x: SORTING.get(x.name, 999 ))
+
+        nl, ws, ts = self.root.cache['delims']
+
+        return ''.join((
+
+            # Self
+            ''.join((
+
+                # Selector tree
+                str(self.name),
+
+                "%s{%s%s" % (ws, nl, ts) if self.name else '',
+
+                #Declarations
+                (';%s%s' % ( nl, ts )).join(str(d) for d in self.declareset),
+
+                '}%s%s' % ( nl, nl ) if self.name else ''
+
+            )) if self.declareset else '',
+
+            # Children
+            ''.join(str(r) for r in self.ruleset)
+        ))
+
+
+class IncludeNode(ParseNode):
+
+    def parse(self, target):
+        for node in self.data:
+            if isinstance(node, Node):
+                node.parse(target)
+
+    def __str__(self):
+        node = ContentNode(None, None, [])
+        self.parse(node)
+        return str(node)

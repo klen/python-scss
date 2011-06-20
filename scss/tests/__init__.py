@@ -4,16 +4,16 @@ import unittest
 def all_tests_suite():
     return unittest.TestLoader().loadTestsFromNames([
         'scss.tests.test_variables',
-        'scss.tests.test_for',
         'scss.tests.test_nesting',
-        'scss.tests.test_files',
-        'scss.tests.test_scss',
         'scss.tests.test_font_face',
-        'scss.tests.test_if',
-        'scss.tests.test_options',
         'scss.tests.test_functions',
-
-        # 'scss.tests.test_working',
+        'scss.tests.test_options',
+        'scss.tests.test_extend',
+        'scss.tests.test_mixin',
+        'scss.tests.test_if',
+        'scss.tests.test_for',
+        'scss.tests.test_scss',
+        'scss.tests.test_files',
     ])
 
 

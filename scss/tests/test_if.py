@@ -1,14 +1,14 @@
 import unittest
 
-from scss.parser import Stylecheet
+from scss.parser import Stylesheet
 
 
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylecheet()
+        self.parser = Stylesheet()
 
-    def test_operations_and_functions(self):
+    def test_if(self):
         src = """
             $type: monster;
             $test: 9px;
@@ -47,6 +47,6 @@ class TestSCSS( unittest.TestCase ):
                 }
             }
         """
-        test = ".test {\n\tborder: 2px}\n\nspan {\n\tdisplay: none}\n\np {\n\tcolor: red}\n\np b {\n\tborder: 2px}"
-        out = self.parser.parse(src)
+        test = ".test {\n\tborder: 2px}\n\nspan {\n\tdisplay: none}\n\np {\n\tcolor: #f00}\n\np b {\n\tborder: 2px}\n\n"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)

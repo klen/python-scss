@@ -1,12 +1,12 @@
 import unittest
 
-from scss.parser import Stylecheet
+from scss.parser import Stylesheet
 
 
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylecheet()
+        self.parser = Stylesheet()
 
     def test_default(self):
         src = """
@@ -28,8 +28,8 @@ class TestSCSS( unittest.TestCase ):
             }
         }
         """
-        test = "/* CSS Comment */\n\n#navbar {\n\theight: 100px;\n\tborder: 2px solid magenta;\n\tcolor: #f03}\n\n#navbar li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px/10px verdana}"
-        out = self.parser.parse(src)
+        test = "/* CSS Comment */\n#navbar {\n\theight: 100px;\n\tborder: 2px solid #f0f;\n\tcolor: #f03}\n\n#navbar li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px / 10px verdana}\n\n"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_compress(self):
@@ -51,8 +51,8 @@ class TestSCSS( unittest.TestCase ):
             }
         }
         """
-        test = "#navbar, p{height:100px;border:2px solid magenta;color:#f03}\n#navbar li, p li{float:left;margin:8.5px auto;height:13px;background-color:#c00;font:8px/10px verdana}"
-        out = self.parser.parse(src)
+        test = "#navbar, p{height:100px;border:2px solid #f0f;color:#f03}#navbar li, p li{float:left;margin:8.5px auto;height:13px;background-color:#c00;font:8px / 10px verdana}"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_comments(self):
@@ -74,8 +74,8 @@ class TestSCSS( unittest.TestCase ):
             }
         }
         """
-        test = "#navbar, p {\n\theight: 100px;\n\tborder: 2px solid magenta;\n\tcolor: #f03}\n\n#navbar li, p li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px/10px verdana}"
-        out = self.parser.parse(src)
+        test = "#navbar, p {\n\theight: 100px;\n\tborder: 2px solid #f0f;\n\tcolor: #f03}\n\n#navbar li, p li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px / 10px verdana}\n\n"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
 
     def test_sortings(self):
@@ -97,6 +97,6 @@ class TestSCSS( unittest.TestCase ):
             }
         }
         """
-        test = "/* CSS Comment */\n\n#navbar, p {\n\theight: 100px;\n\tcolor: #f03;\n\tborder: 2px solid magenta}\n\n#navbar li, p li {\n\tbackground-color: #c00;\n\tfloat: left;\n\tfont: 8px/10px verdana;\n\tmargin: 8.5px auto;\n\theight: 13px}"
-        out = self.parser.parse(src)
+        test = "/* CSS Comment */\n#navbar, p {\n\theight: 100px;\n\tcolor: #f03;\n\tborder: 2px solid #f0f}\n\n#navbar li, p li {\n\tbackground-color: #c00;\n\tfloat: left;\n\tfont: 8px / 10px verdana;\n\tmargin: 8.5px auto;\n\theight: 13px}\n\n"
+        out = self.parser.loads(src)
         self.assertEqual(test, out)
