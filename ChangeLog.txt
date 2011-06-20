@@ -1,6 +1,10 @@
 Changes
 =======
 
+## 2011-06-20 0.8.0
+-------------------
+* Big scss refactoring
+
 ## 2011-06-19 0.7.2
 -------------------
 * Add argv parse to tools.main

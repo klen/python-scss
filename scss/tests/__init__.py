@@ -3,6 +3,7 @@ import unittest
 
 def all_tests_suite():
     return unittest.TestLoader().loadTestsFromNames([
+        # 'scss.tests.test_fake',
         'scss.tests.test_variables',
         'scss.tests.test_nesting',
         'scss.tests.test_font_face',

@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from scss import SORTING
 from scss.base import Node, Empty, ParseNode, ContentNode, IncludeNode
-from scss.control import Variable, Expression, Function, Mixin, Include, MixinParam, Extend, Variables, Option, FunctionDefinition, FunctionReturn, If, For
+from scss.control import Variable, Expression, Function, Mixin, Include, MixinParam, Extend, Variables, Option, FunctionDefinition, FunctionReturn, If, For, SepValString
 from scss.function import warn, _nest
 from scss.grammar import *
 from scss.value import NumberValue, StringValue, ColorValue, QuotedStringValue
@@ -50,7 +50,10 @@ class Ruleset(ContentNode):
             and save it in cache.
         """
         if isinstance(target, ContentNode):
-            self.name += target.name
+            if target.name:
+                self.parent = target
+                self.name.parse(self)
+                self.name += target.name
             target.ruleset.append(self)
         self.root.cache['rset'][str(self.name).split()[0]].add(self)
         super(Ruleset, self).parse(target)
@@ -68,6 +71,11 @@ class Declaration(ParseNode):
     def parse(self, target):
         """ Parse nested declaration.
         """
+        if not isinstance(target, Node):
+            parent = ContentNode(None, None, [])
+            parent.parse(target)
+            target = parent
+
         super(Declaration, self).parse(target)
         self.name = str(self.data[0])
         while isinstance(target, Declaration):
@@ -197,6 +205,7 @@ class Stylesheet(object):
         COLOR_VALUE.setParseAction(ColorValue)
         quotedString.setParseAction(QuotedStringValue)
         EXPRESSION.setParseAction(Expression)
+        SEP_VAL_STRING.setParseAction(SepValString)
 
         # Vars
         VARIABLE.setParseAction(Variable)
@@ -275,16 +284,16 @@ class Stylesheet(object):
         assert isinstance(src, basestring)
         return STYLESHEET.parseString(src)
 
-    def parse(self, results):
-        map(lambda n: n.parse(self) if isinstance(n, Node) else None, results)
+    def parse(self, nodes):
+        map(lambda n: n.parse(self) if isinstance(n, Node) else None, nodes)
 
     def loads(self, src):
         """ Compile css from scss string.
         """
         assert isinstance(src, basestring)
-        results = self.scan(src.strip())
-        self.parse(results)
-        return ''.join(map(str, results))
+        nodes = self.scan(src.strip())
+        self.parse(nodes)
+        return ''.join(map(str, nodes))
 
     def load(self, f, precache=None):
         """ Compile scss from file.

@@ -67,6 +67,13 @@ class Expression(Variable):
             return first
 
 
+class SepValString(Expression):
+
+    @property
+    def value(self):
+        return ', '.join(str(e.value) for e in self.data)
+
+
 class Function(Expression):
 
     @property
@@ -128,10 +135,18 @@ class Mixin(Empty):
         self.root.cache['mix'][self.name] = self
 
     def include(self, target, params):
-        target.ctx = self.get_context(self.default, params)
+        ctx = self.get_context(self.default, params)
+        if target.ctx:
+            ctx.update(target.ctx)
+
+        self.ctx = ctx
+        for n in params:
+            n.parse(self)
+
         for node in self.data[3:]:
             if isinstance(node, Node):
                 copy = node.copy()
+                copy.ctx = ctx
                 copy.parse(target)
 
     @staticmethod
@@ -156,7 +171,8 @@ class Include(IncludeNode):
 class If(IncludeNode):
 
     def parse(self, target):
-        self.data[0].parse(target)
+        self.data[0].parse(self)
+        target.ctx.update(self.ctx)
         if isinstance(target, ParseNode):
             if self.data[0].value:
                 self.data[1].parse(target)
@@ -168,7 +184,7 @@ class For(IncludeNode):
     def parse(self, target):
         if isinstance(target, ParseNode):
             name = self.data[1].data[0][1:]
-            for i in xrange(int(float( self.data[2] )), int(float( self.data[3] ))+1):
-                target.ctx.update({name: NumberValue(i)})
-                node = self.data[4].copy()
-                node.parse(target)
+            for i in xrange(int(float(self.data[2])), int(float(self.data[3]))+1):
+                body = self.data[4].copy()
+                body.ctx.update({name: NumberValue(i)})
+                body.parse(target)

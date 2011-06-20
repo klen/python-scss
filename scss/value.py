@@ -231,7 +231,7 @@ class NumberValue(Value):
         self.value = self.def_value
         self.units = ''
 
-        if isinstance(t, ( ParseResults, list, tuple )):
+        if isinstance(t, (ParseResults, list, tuple)):
             if len(t) > 1:
                 self.units = t[1]
             self.value = float(t[0])
@@ -241,6 +241,7 @@ class NumberValue(Value):
 
         elif isinstance(t, Node):
             self.value = float(t.value)
+            self.units = getattr(t.value, 'units', '')
 
         elif isinstance(t, (int, float, str)):
             self.value = float(t)

@@ -5,11 +5,10 @@ class Node(object):
     """
     delim = ' '
     root = None
-    defctx = dict()
 
     def __init__(self, s, n, t):
         self.num, self.data = n, t
-        self.parent = self.__ctx = None
+        self.parent = self._ctx = None
 
     def __str__(self):
         return self.delim.join(map(str, self.data))
@@ -22,11 +21,18 @@ class Node(object):
 
     @property
     def ctx(self):
-        return self.__ctx or (self.parent.ctx if self.parent else self.defctx)
+        if self._ctx:
+            return self._ctx
+
+        if self.parent:
+            return self.parent.ctx
+
+        self._ctx = dict()
+        return self._ctx
 
     @ctx.setter
     def ctx(self, value):
-        self.__ctx = value
+        self._ctx = value
 
 
 class Empty(Node):
@@ -91,6 +97,7 @@ class IncludeNode(ParseNode):
     def parse(self, target):
         for node in self.data:
             if isinstance(node, Node):
+                node.ctx.update(self.ctx)
                 node.parse(target)
 
     def __str__(self):

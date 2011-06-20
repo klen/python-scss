@@ -17,7 +17,7 @@ class TestSCSS( unittest.TestCase ):
                     url('minion-webfont.ttf') format('truetype');
                     font-weight: normal;
                     font-style: normal;
-                    font-size: 100% * ( 12px / 16px );
+                    font-size: ( 12px / 16px ) * 100%;
             }
 
             @font-face {

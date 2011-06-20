@@ -9,7 +9,11 @@ from scss import parser, VERSION
 
 COMMANDS = ['import', 'option', 'mixin', 'include', 'for', 'if', 'else']
 
+
 def complete(text, state):
+    """ Auto complete si,e scss constructions
+        in interactive mode.
+    """
     for cmd in COMMANDS:
         if cmd.startswith(text):
             if not state:
@@ -17,9 +21,11 @@ def complete(text, state):
             else:
                 state -= 1
 
+
 def main(argv=None):
 
     try:
+        # Upgrade shell in interactive mode
         import atexit
         import readline
         history = os.path.join(os.environ['HOME'], ".scss-history")
@@ -30,6 +36,7 @@ def main(argv=None):
     except ( ImportError, IOError ):
         pass
 
+    # Create options
     p = optparse.OptionParser(
         usage="%prog [OPTION]... [INFILE] [OUTFILE]",
         version="%prog " + VERSION,
@@ -70,6 +77,7 @@ The location of the generated CSS can be set using a colon:
     opts, args = p.parse_args(argv or sys.argv[1:])
     precache = opts.cache
 
+    # Interactive mode
     if opts.shell:
         p = parser.Stylesheet()
         print 'SCSS v. %s interactive mode' % VERSION
@@ -80,13 +88,14 @@ The location of the generated CSS can be set using a colon:
                 s = raw_input('>>> ').strip()
                 if s == 'quit':
                     raise EOFError
-                print p.parse(s)
-            except ( EOFError, KeyboardInterrupt ):
+                print p.loads(s)
+            except (EOFError, KeyboardInterrupt):
                 print '\nBye bye.'
                 break
 
         sys.exit()
 
+    # Watch mode
     elif opts.watch:
         self, sep, target = opts.watch.partition(':')
         files = []
@@ -138,6 +147,7 @@ The location of the generated CSS can be set using a colon:
         sys.exit()
 
 
+    # Default compile files
     elif not args:
         infile = sys.stdin
         outfile = sys.stdout
@@ -172,8 +182,7 @@ The location of the generated CSS can be set using a colon:
                 sort = opts.sort,
                 cache = precache,
             ))
-        s.load( infile )
-        outfile.write( str(s) )
+        outfile.write(s.load(infile))
     except ValueError, e:
         raise SystemExit(e)
 
