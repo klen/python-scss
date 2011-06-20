@@ -17,7 +17,7 @@ def complete(text, state):
             else:
                 state -= 1
 
-def main():
+def main(argv=None):
 
     try:
         import atexit
@@ -67,7 +67,7 @@ The location of the generated CSS can be set using a colon:
         '-W', '--no-warnings', action='store_false', dest='warn',
         help="Disable warnings.")
 
-    opts, args = p.parse_args()
+    opts, args = p.parse_args(argv or sys.argv[1:])
     precache = opts.cache
 
     if opts.shell:
@@ -96,8 +96,8 @@ The location of the generated CSS can be set using a colon:
 
         if os.path.isdir(self):
             for f in os.listdir(self):
-                if os.path.isfile(f) and f.endswitch('.scss'):
-                    path = os.path.join(self, f)
+                path = os.path.join(self, f)
+                if os.path.isfile(path) and f.endswith('.scss'):
                     tpath = os.path.join(target or self, f[:-5] + '.css')
                     files.append([ path, tpath, 0 ])
         else:

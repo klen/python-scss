@@ -1,7 +1,13 @@
 Changes
 =======
 
+## 2011-06-19 0.7.2
+-------------------
+* Add argv parse to tools.main
+* Fix watch mode
+
 ## 2011-02-27 0.7.0
+-------------------
 * Add link on pyScss
 * Fix None type bug
 * Add if() function
