@@ -11,7 +11,7 @@ COMMANDS = ['import', 'option', 'mixin', 'include', 'for', 'if', 'else']
 
 
 def complete(text, state):
-    """ Auto complete si,e scss constructions
+    """ Auto complete scss constructions
         in interactive mode.
     """
     for cmd in COMMANDS:

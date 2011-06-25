@@ -25,9 +25,15 @@ def warn(warning):
 
 
 def unknown(name, *args):
+    """ Unknow scss function handler.
+        Simple return 'funcname(args)'
+    """
     return "%s(%s)" % ( name, ', '.join(str(a) for a in args) )
 
+
 def check_pil(func):
+    """ PIL module checking decorator.
+    """
     def __wrapper(*args, **kwargs):
         root = kwargs.get('root')
         if not Image:
@@ -41,32 +47,32 @@ def check_pil(func):
 # RGB functions
 # =============
 
-def _rgb(r, g, b, root=None):
+def _rgb(r, g, b, **kwargs):
     """ Converts an rgb(red, green, blue) triplet into a color.
     """
     return _rgba(r, g, b, 1.0)
 
-def _rgba(r, g, b, a, root=None):
+def _rgba(r, g, b, a, **kwargs):
     """ Converts an rgba(red, green, blue, alpha) quadruplet into a color.
     """
-    return ColorValue(( float(r), float(g), float(b), float(a) ))
+    return ColorValue((float(r), float(g), float(b), float(a)))
 
-def _red(color, root=None):
+def _red(color, **kwargs):
     """ Gets the red component of a color.
     """
     return NumberValue(color.value[0])
 
-def _green(color, root=None):
+def _green(color, **kwargs):
     """ Gets the green component of a color.
     """
     return NumberValue(color.value[1])
 
-def _blue(color, root=None):
+def _blue(color, **kwargs):
     """ Gets the blue component of a color.
     """
     return NumberValue(color.value[2])
 
-def _mix(color1, color2, weight=0.5, root=None):
+def _mix(color1, color2, weight=0.5, **kwargs):
     """ Mixes two colors together.
     """
     weight = float(weight)
@@ -80,47 +86,57 @@ def _mix(color1, color2, weight=0.5, root=None):
     w2 = 1 - w1
     q = [ w1, w1, w1, p ]
     r = [ w2, w2, w2, 1 - p ]
-    return ColorValue([ c1[i] * q[i] + c2[i] * r[i] for i in range(4) ])
+    return ColorValue([c1[i] * q[i] + c2[i] * r[i] for i in range(4) ])
 
 
 # HSL functions
 # =============
 
-def _hsl(h, s, l, root=None):
+def _hsl(h, s, l, **kwargs):
+    """ HSL color value.
+    """
     return _hsla(h, s, l, 1.0)
 
-def _hsla(h, s, l, a, root=None):
+def _hsla(h, s, l, a, **kwargs):
+    """ HSL with alpha channel color value.
+    """
     res = colorsys.hls_to_rgb(float(h), float(l), float(s))
-    return ColorValue(map( lambda x: x * 255.0, res ) + [float(a)])
+    return ColorValue(map(lambda x: x * 255.0, res) + [float(a)])
 
-def _hue(color, root=None):
-    h = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[0]
+def _hue(color, **kwargs):
+    """ Get hue value of HSL color.
+    """
+    h = colorsys.rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))[0]
     return NumberValue(h * 360.0)
 
-def _saturation(color, root=None):
-    s = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[2]
-    return NumberValue(s * 255.0)
-
-def _lightness(color, root=None):
+def _lightness(color, **kwargs):
+    """ Get lightness value of HSL color.
+    """
     l = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[1]
-    return NumberValue(l * 255.0)
+    return NumberValue(( l * 100, '%' ))
 
-def _adjust_hue(color, degrees, root=None):
+def _saturation(color, **kwargs):
+    """ Get saturation value of HSL color.
+    """
+    s = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[2]
+    return NumberValue(( s * 100, '%' ))
+
+def _adjust_hue(color, degrees, **kwargs):
     return hsl_op(OPRT['+'], color, degrees, 0, 0)
 
-def _lighten(color, amount, root=None):
+def _lighten(color, amount, **kwargs):
     return hsl_op(OPRT['+'], color, 0, 0, amount)
 
-def _darken(color, amount, root=None):
+def _darken(color, amount, **kwargs):
     return hsl_op(OPRT['-'], color, 0, 0, amount)
 
-def _saturate(color, amount, root=None):
+def _saturate(color, amount, **kwargs):
     return hsl_op(OPRT['+'], color, 0, amount, 0)
 
-def _desaturate(color, amount, root=None):
+def _desaturate(color, amount, **kwargs):
     return hsl_op(OPRT['-'], color, 0, amount, 0)
 
-def _grayscale(color, root=None):
+def _grayscale(color, **kwargs):
     return hsl_op(OPRT['-'], color, 0, 100, 0)
 
 def _complement(color, root=None):
@@ -283,9 +299,7 @@ def _nest(*args, **kwargs):
         ' '.join(s.strip() for s in p)
             if not '&' in p[1] else p[1].replace('&', p[0].strip())
                 for p in product(
-                    *( StringValue( sel ).value.split(',')
-                        for sel in args
-                    )
+                    *(StringValue(sel).value.split(',') for sel in args)
                 )
         )
 

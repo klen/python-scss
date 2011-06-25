@@ -1,5 +1,6 @@
 from scss import SORTING
 
+
 class Node(object):
     """ Base class for parsed objects.
     """

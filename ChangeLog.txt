@@ -1,6 +1,10 @@
 Changes
 =======
 
+## 2011-06-24 0.8.1
+-------------------
+* Fix color functions
+
 ## 2011-06-20 0.8.0
 -------------------
 * Big scss refactoring begin

@@ -68,11 +68,13 @@ class TestSCSS( unittest.TestCase ):
             .test {
                 color: $hsl;
                 hue: hue($hsl);
-                saturation: saturation($hsl);
-                background-color: adjust-hue( #811, 45deg);
+                s: saturation($hsl);
+                g: grayscale(#099);
+                l: lighten(#333, 50%);
+                ah: adjust-hue(#811, 45deg);
             }
         """
-        test = ".test{background-color:#886a10;color:rgba(127,0,0,0.40);hue:0;saturation:255}"
+        test = ".test{color:rgba(127,0,0,0.40);hue:0;s:100%;g:#4c4c4c;l:#b2b2b2;ah:#886a10}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)
 

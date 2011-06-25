@@ -16,10 +16,16 @@ hex2rgba = {
 
 
 def hsl_op(op, color, h, s, l):
-    other = (float(h), float(l), float(s))
-    self = rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))
-    res = hls_to_rgb(*map(lambda x, y: op(x, y) if op else y if y else x, self, other))
-    return ColorValue(( res[0] * 255.0, res[1] * 255.0, res[2] * 255.0, color.value[3] ))
+    color = ColorValue(color)
+    h, s, l = map(NumberValue, (h, s, l))
+    h.units = 'deg'
+    s.units = l.units = '%'
+    other_hls = map(float, (h, l, s))
+    self_hls = rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))
+    res_hls = map(lambda x, y: op(x, y) if op else y if y else x, self_hls, other_hls)
+    res_hls = map(lambda x: 1 if x > 1 else 0 if x < 0 else x, res_hls)
+    res = hls_to_rgb(*res_hls)
+    return ColorValue((res[0] * 255.0, res[1] * 255.0, res[2] * 255.0, color.value[3]))
 
 
 def rgba_op(op, color, r, g, b, a):
@@ -167,13 +173,16 @@ class ColorValue(Value):
 
         elif isinstance(t, (list, tuple)):
             r = self.value
-            c = map( lambda x, y: x if not x is None else y, t, r )
-            c = tuple( 0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4) )
+            c = map(lambda x, y: x if not x is None else y, t, r)
+            c = tuple(0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4))
             self.value = c
 
         elif isinstance(t, str):
             val = t[1:]
             self.value = hex2rgba[len(val)](val)
+
+        elif isinstance(t, ColorValue):
+            self.value = t.value
 
     def __float__(self):
         return float( sum(self.value[:3], 0.0) / 3 * self.value[3] )
@@ -186,16 +195,17 @@ class ColorValue(Value):
             return '#%s' % v
         return 'rgba(%d,%d,%d,%.2f)' % self.value
 
+    __repr__ = __str__
+
     @classmethod
     def _do_op(cls, self, other, op):
         if isinstance(other, ColorValue):
             return rgba_op(op, self, *other.value)
 
         elif isinstance(other, ( NumberValue, int )):
-            val = float(other)
             if op in (OPRT['*'], OPRT['/']):
-                return ColorValue(map(lambda x: op(x, val), self.value[:3]))
-            return hsl_op(op, self, 0, val, 0)
+                return ColorValue(map(lambda x: op(x, float(other)), self.value[:3]))
+            return hsl_op(op, self, 0, other, 0)
 
         else:
             return self
@@ -217,6 +227,8 @@ class BooleanValue(Value):
 
     def __str__(self):
         return 'true' if self.value else 'false'
+
+    __repr__ = __str__
 
     def __float__(self):
         return 1.0 if self.value else 0.0

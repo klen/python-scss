@@ -290,12 +290,6 @@ SCSS_:
     http://sass-lang.com/
 
 
-Related work
-============
-
-pyScss_ compiler is newer and more powerful. Use if for sass compatibility.
-
-
 Note
 ====
 
