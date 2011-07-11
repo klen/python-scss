@@ -49,7 +49,10 @@ ATTRIB = LBRACK + SkipTo("]") + RBRACK
 CLASS_NAME = Word('.', alphanums + "-_")
 HASH = Regex(r"#[-a-zA-Z_][-a-zA-Z0-9_]+")
 FILTER = HASH | CLASS_NAME | ATTRIB
-PSEUDO = Regex(r':{1,2}[A-Za-z0-9-_]+')
+
+# PSEUDO = Regex(r':{1,2}[A-Za-z0-9-_]+')
+PSEUDO = Regex(r':{1,2}[^\s;{}]+')
+
 SELECTOR = OneOrMore(ELEMENT_NAME | FILTER | INTERPOLATION_VAR | PSEUDO)
 SELECTOR.leaveWhitespace()
 SELECTOR_GROUP = SELECTOR + ZeroOrMore(Optional(Word("+>", max=1)) + SELECTOR)

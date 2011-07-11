@@ -24,7 +24,7 @@ class TestSCSS( unittest.TestCase ):
 
             // Test comment
             /* Css comment */
-            body {
+            body:not(.test) {
                 $font: Georgia;
 
                 margin-bottom: .5em;
@@ -48,7 +48,7 @@ class TestSCSS( unittest.TestCase ):
                 border:2px; }
 
             """
-        test = "@charset utf-8;\n@import url(test);\n@media print { a:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n\n }/* Css comment */\nbody {\n\tmargin-bottom: .5em;\n\tfont-family: Georgia , sans-serif;\n\t*font: 13px / 1.231 sans-serif}\n\n::selection {\n\tcolor: #f00}\n\n.test:hover {\n\tcolor: #f00}\n\n.test:hover:after {\n\tcontent: #00f}\n\npre, code, kbd, samp {\n\tfont: 12px / 10px;\n\tfont-family: monospace , sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}\n\n"
+        test = "@charset utf-8;\n@import url(test);\n@media print { a:hover, a:active {\n\toutline: none}\n\na, a:active, a:visited {\n\tcolor: #607890}\n\na:hover {\n\tcolor: #036}\n\n }/* Css comment */\nbody:not(.test) {\n\tmargin-bottom: .5em;\n\tfont-family: Georgia , sans-serif;\n\t*font: 13px / 1.231 sans-serif}\n\n::selection {\n\tcolor: #f00}\n\n.test:hover {\n\tcolor: #f00}\n\n.test:hover:after {\n\tcontent: #00f}\n\npre, code, kbd, samp {\n\tfont: 12px / 10px;\n\tfont-family: monospace , sans-serif}\n\nabbr[title], dfn[title] {\n\tborder: 2px}\n\n"
         out = self.parser.loads(src)
         self.assertEqual(test, out)
 

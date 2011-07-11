@@ -11,43 +11,17 @@ class TestSCSS( unittest.TestCase ):
     def test_math(self):
         src = """
 
-        $link-color:         #06c                  !default;
-        $link-hover-color:   #09f                  !default;
-        $link-focus-color:   $link-hover-color     !default;
-        $link-active-color:  lighten(adjust-hue($link-color, 75deg), 10%) !default;
-        $link-visited-color: darken($link-color, 10%) !default;
-
-        @mixin link-colors(
-            $normal,
-            $hover: false,
-            $active: false,
-            $visited: false,
-            $focus: false) {
-
-            color: $normal;
-
-            @if $visited {
-                &:visited {
-                    color: $visited; } }
-
-            @if $focus {
-                &:focus {
-                    color: $focus; } }
-
-            @if $hover {
-                &:hover {
-                    color: $hover; } }
-
-            @if $active {
-                &:active {
-                    color: $active; } }
+        a.red {
+            color:red
         }
 
-        a {
-            @include link-colors($link-color, $link-hover-color, $link-active-color, $link-visited-color, $link-focus-color);
+        div#autoscroll_container .ui-button-text-only:not(.ui-state-active) .ui-button-text {
+            // These two lines cause a blur effect.
+            color: transparent;
+            text-shadow: 0px 0px 4px #111111;
         }
 
         """
-        test = "960px"
+        test = ""
         out = self.parser.loads(src)
         self.assertEqual(test, out)

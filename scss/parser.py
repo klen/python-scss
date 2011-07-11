@@ -282,7 +282,8 @@ class Stylesheet(object):
         """ Scan scss from string and return nodes.
         """
         assert isinstance(src, basestring)
-        return STYLESHEET.parseString(src)
+        nodes = STYLESHEET.parseString(src)
+        return nodes
 
     def parse(self, nodes):
         map(lambda n: n.parse(self) if isinstance(n, Node) else None, nodes)
