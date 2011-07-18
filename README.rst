@@ -269,6 +269,8 @@ Contributing
 
 Development of python-scss happens at github: https://github.com/klen/python-scss
 
+* klen_ (Kirill Klenov)
+
 
 License
 =======
@@ -303,3 +305,4 @@ Note
 .. _pypi: http://packages.python.org/scss/
 .. _github: https://github.com/klen/python-scss
 .. _Zen sorting order: http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn#Sorting_Methods
+.. _klen: https://klen.github.com
