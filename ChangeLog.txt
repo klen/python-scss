@@ -1,6 +1,11 @@
 Changes
 =======
 
+## 2011-07-24 0.8.22
+--------------------
+* Fix -moz-linear-gradient
+* Thanks lgriesterer
+
 ## 2011-07-10 0.8.2
 -------------------
 * Fix :not selectors

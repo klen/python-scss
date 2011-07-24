@@ -24,7 +24,7 @@ PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/]*") | Regex(r"((https?|ftp|file):((
 # Values
 EXPRESSION = Forward()
 PARAMS = LPAREN + EXPRESSION + ZeroOrMore(COMMA + EXPRESSION) + RPAREN
-FUNCTION = Regex(r"[a-zA-Z_][-a-zA-Z0-9_]*") + PARAMS
+FUNCTION = Regex(r"-?[a-zA-Z_][-a-zA-Z0-9_]*") + PARAMS
 INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
 SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | COLOR_VALUE | quotedString
 VALUE = VARIABLE | SIMPLE_VALUE
