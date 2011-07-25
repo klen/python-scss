@@ -6,7 +6,7 @@ from scss.parser import Stylesheet
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylesheet()
+        self.parser = Stylesheet(options=dict(compress=True))
 
     def test_extend(self):
         src = """
@@ -22,6 +22,6 @@ class TestSCSS( unittest.TestCase ):
             border-width: 3px;
         }
         """
-        test = ".error, .seriousError {\n\tborder: 1px #f00;\n\tbackground-color: #fdd}\n\n.error .intrusion, .seriousError .intrusion {\n\tbackground-image: url('/image/hacked.png')}\n\n.seriousError {\n\tborder-width: 3px}\n\n"
+        test = ".error, .seriousError{border:1px #f00;background-color:#fdd}.error .intrusion, .seriousError .intrusion{background-image:url('/image/hacked.png')}.seriousError{border-width:3px}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)

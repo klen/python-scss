@@ -1,6 +1,12 @@
 Changes
 =======
 
+## 2011-07-25 0.8.3
+-------------------
+* Fix multipart string values in functions
+* Fix watch mode
+* Drop last semicolon in rule only with compress=option enabled.
+
 ## 2011-07-24 0.8.22
 --------------------
 * Fix -moz-linear-gradient

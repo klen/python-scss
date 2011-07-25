@@ -60,6 +60,8 @@ class Expression(Variable):
 
                     elif op == OPRT['or'] and first:
                         raise StopIteration
+                else:
+                    first = ' '.join(map(str, (first, res)))
 
         except StopIteration:
             while isinstance(first, Variable):

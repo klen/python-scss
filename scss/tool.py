@@ -126,8 +126,8 @@ The location of the generated CSS can be set using a colon:
             ttime = os.path.getmtime(infile)
             if mtime < ttime:
                 print " Parse '%s' to '%s' .. done" % ( infile, outfile )
-                s.load(open(infile, 'r'))
-                open(outfile, 'w').write(str(s))
+                out = s.load(open(infile, 'r'))
+                open(outfile, 'w').write(out)
                 f[2] = os.path.getmtime(outfile)
 
         print 'SCSS v. %s watch mode' % VERSION

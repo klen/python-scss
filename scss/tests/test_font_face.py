@@ -6,7 +6,7 @@ from scss.parser import Stylesheet
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylesheet()
+        self.parser = Stylesheet(options=dict(compress=True))
 
     def test_font_face(self):
         src = """
@@ -34,6 +34,6 @@ class TestSCSS( unittest.TestCase ):
                     font-family: 'MyMinionPro';
             }
         """
-        test = "@font-face {\n\tfont-weight: normal;\n\tfont-style: normal;\n\tfont-size: 75%;\n\tfont-family: 'MyMinionPro';\n\tsrc: url('minion-webfont.eot?') format('eot') , url('minion-webfont.woff') format('woff') , url('minion-webfont.ttf') format('truetype')}\n\n@font-face {\n\tfont-weight: normal;\n\tfont-style: italic;\n\tfont-family: 'MyMinionProItalic';\n\tsrc: url('minionpro-it-webfont.eot?') format('eot') , url('minionpro-it-webfont.woff') format('woff') , url('minionpro-it-webfont.ttf') format('truetype')}\n\nh1, h2, h3, time, ol#using .number {\n\tfont-weight: normal;\n\tfont-family: 'MyMinionPro'}\n\n"
+        test = "@font-face{font-weight:normal;font-style:normal;font-size:75%;font-family:'MyMinionPro';src:url('minion-webfont.eot?') format('eot') , url('minion-webfont.woff') format('woff') , url('minion-webfont.ttf') format('truetype')}@font-face{font-weight:normal;font-style:italic;font-family:'MyMinionProItalic';src:url('minionpro-it-webfont.eot?') format('eot') , url('minionpro-it-webfont.woff') format('woff') , url('minionpro-it-webfont.ttf') format('truetype')}h1, h2, h3, time, ol#using .number{font-weight:normal;font-family:'MyMinionPro'}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)

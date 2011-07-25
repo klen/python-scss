@@ -19,6 +19,8 @@ IDENT = Regex(r"-?[a-zA-Z_][-a-zA-Z0-9_]*")
 COLOR_VALUE = Regex(r"#[a-zA-Z0-9]{3,6}")
 VARIABLE = Regex(r"-?\$[-a-zA-Z_][-a-zA-Z0-9_]*")
 NUMBER_VALUE = Regex(r"-?\d+(?:\.\d*)?|\.\d+") + Optional(oneOf("em ex px cm mm in pt pc deg % "))
+POINT_PART = (NUMBER_VALUE | Regex(r"(top|bottom|left|right)"))
+POINT = POINT_PART + POINT_PART
 PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/]*") | Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)")
 
 # Values
@@ -27,7 +29,7 @@ PARAMS = LPAREN + EXPRESSION + ZeroOrMore(COMMA + EXPRESSION) + RPAREN
 FUNCTION = Regex(r"-?[a-zA-Z_][-a-zA-Z0-9_]*") + PARAMS
 INTERPOLATION_VAR = Suppress("#") + LACC + EXPRESSION + RACC
 SIMPLE_VALUE = FUNCTION | NUMBER_VALUE | PATH | IDENT | COLOR_VALUE | quotedString
-VALUE = VARIABLE | SIMPLE_VALUE
+VALUE = VARIABLE | POINT | SIMPLE_VALUE
 DIV_STRING = SIMPLE_VALUE + OneOrMore(Literal("/") + SIMPLE_VALUE)
 EXPRESSION << ((VALUE | PARAMS) + ZeroOrMore(oneOf("+ - / * and or == != <= < > >=") + ( VALUE | PARAMS )))
 

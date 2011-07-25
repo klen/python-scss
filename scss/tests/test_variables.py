@@ -6,7 +6,7 @@ from scss.parser import Stylesheet
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylesheet()
+        self.parser = Stylesheet(options=dict(compress=True))
 
     def test_variables(self):
         src = """
@@ -45,6 +45,6 @@ class TestSCSS( unittest.TestCase ):
                 font: -1.5em + 50px;
             }
             """
-        test = ".content-navigation {\n\tfloat: left;\n\tdisplay: -moz-inline-box;\n\tmargin: 5px -32px -12px;\n\tborder-color: #fd0;\n\tbackground-color: #7b1f3e;\n\tbackground-image: url(/test/test.png);\n\tcolor: #f3d40b}\n\n.border {\n\tmargin: 8px;\n\tpadding-top: 8px;\n\tpadding-left: -14px;\n\tborder-top-color: #fd0;\n\tcolor: rgba(120,35,64,0.40);\n\tfont: 30.5px}\n\n"
+        test = ".content-navigation{float:left;display:-moz-inline-box;margin:5px -32px -12px;border-color:#fd0;background-color:#7b1f3e;background-image:url(/test/test.png);color:#f3d40b}.border{margin:8px;padding-top:8px;padding-left:-14px;border-top-color:#fd0;color:rgba(120,35,64,0.40);font:30.5px}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)

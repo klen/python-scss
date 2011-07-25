@@ -70,6 +70,7 @@ class ContentNode(ParseNode):
                     key=lambda x: SORTING.get(x.name, 999 ))
 
         nl, ws, ts = self.root.cache['delims']
+        semicolon = '' if self.root.cache['opts'].get('compress') else ';'
 
         return ''.join((
 
@@ -81,8 +82,10 @@ class ContentNode(ParseNode):
 
                 "%s{%s%s" % (ws, nl, ts) if self.name else '',
 
-                #Declarations
+                # Declarations
                 (';%s%s' % ( nl, ts )).join(str(d) for d in self.declareset),
+
+                semicolon,
 
                 '}%s%s' % ( nl, nl ) if self.name else ''
 

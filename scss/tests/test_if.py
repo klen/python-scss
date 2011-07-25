@@ -6,7 +6,7 @@ from scss.parser import Stylesheet
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylesheet()
+        self.parser = Stylesheet(options=dict(compress=True))
 
     def test_if(self):
         src = """
@@ -47,6 +47,6 @@ class TestSCSS( unittest.TestCase ):
                 }
             }
         """
-        test = ".test {\n\tborder: 2px}\n\nspan {\n\tdisplay: none}\n\np {\n\tcolor: #f00}\n\np b {\n\tborder: 2px}\n\n"
+        test = ".test{border:2px}span{display:none}p{color:#f00}p b{border:2px}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)

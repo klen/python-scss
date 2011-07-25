@@ -28,7 +28,7 @@ class TestSCSS( unittest.TestCase ):
             }
         }
         """
-        test = "/* CSS Comment */\n#navbar {\n\theight: 100px;\n\tborder: 2px solid #f0f;\n\tcolor: #f03}\n\n#navbar li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px / 10px verdana}\n\n"
+        test = "/* CSS Comment */\n#navbar {\n\theight: 100px;\n\tborder: 2px solid #f0f;\n\tcolor: #f03;}\n\n#navbar li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px / 10px verdana;}\n\n"
         out = self.parser.loads(src)
         self.assertEqual(test, out)
 
@@ -74,7 +74,7 @@ class TestSCSS( unittest.TestCase ):
             }
         }
         """
-        test = "#navbar, p {\n\theight: 100px;\n\tborder: 2px solid #f0f;\n\tcolor: #f03}\n\n#navbar li, p li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px / 10px verdana}\n\n"
+        test = "#navbar, p {\n\theight: 100px;\n\tborder: 2px solid #f0f;\n\tcolor: #f03;}\n\n#navbar li, p li {\n\tfloat: left;\n\tmargin: 8.5px auto;\n\theight: 13px;\n\tbackground-color: #c00;\n\tfont: 8px / 10px verdana;}\n\n"
         out = self.parser.loads(src)
         self.assertEqual(test, out)
 
@@ -97,6 +97,6 @@ class TestSCSS( unittest.TestCase ):
             }
         }
         """
-        test = "/* CSS Comment */\n#navbar, p {\n\theight: 100px;\n\tcolor: #f03;\n\tborder: 2px solid #f0f}\n\n#navbar li, p li {\n\tbackground-color: #c00;\n\tfloat: left;\n\tfont: 8px / 10px verdana;\n\tmargin: 8.5px auto;\n\theight: 13px}\n\n"
+        test = "/* CSS Comment */\n#navbar, p {\n\theight: 100px;\n\tcolor: #f03;\n\tborder: 2px solid #f0f;}\n\n#navbar li, p li {\n\tbackground-color: #c00;\n\tfloat: left;\n\tfont: 8px / 10px verdana;\n\tmargin: 8.5px auto;\n\theight: 13px;}\n\n"
         out = self.parser.loads(src)
         self.assertEqual(test, out)

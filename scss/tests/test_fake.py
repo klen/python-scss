@@ -10,16 +10,9 @@ class TestSCSS( unittest.TestCase ):
 
     def test_math(self):
         src = """
-
-        a.red {
-            color:red
-        }
-
-        div#autoscroll_container .ui-button-text-only:not(.ui-state-active) .ui-button-text {
-            // These two lines cause a blur effect.
-            color: transparent;
-            text-shadow: 0px 0px 4px #111111;
-        }
+            .bug {
+                background: -webkit-gradient(linear, top left, 100% 100%, from(#ddd), to(#aaa));
+            }
 
         """
         test = ""

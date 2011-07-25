@@ -6,7 +6,7 @@ from scss.parser import Stylesheet
 class TestSCSS( unittest.TestCase ):
 
     def setUp(self):
-        self.parser = Stylesheet()
+        self.parser = Stylesheet(options=dict(compress=True))
 
     def test_mixin(self):
         src = """
@@ -36,6 +36,6 @@ class TestSCSS( unittest.TestCase ):
         #navbar li { @include rounded-top; }
         #footer { @include rounded-top(5px); }
         """
-        test = ".global {\n\tborder: #f00;\n\tvertical-align: baseline;\n\tfont-weight: inherit;\n\tfont-style: inherit;\n\tfont-size: 100%;\n\tfont-family: inherit}\n\n#navbar li {\n\tborder-top-radius: 10px;\n\t-moz-border-radius-top: 10px;\n\t-webkit-border-top-radius: 10px}\n\n#footer {\n\tborder-top-radius: 5px;\n\t-moz-border-radius-top: 5px;\n\t-webkit-border-top-radius: 5px}\n\n"
+        test = ".global{border:#f00;vertical-align:baseline;font-weight:inherit;font-style:inherit;font-size:100%;font-family:inherit}#navbar li{border-top-radius:10px;-moz-border-radius-top:10px;-webkit-border-top-radius:10px}#footer{border-top-radius:5px;-moz-border-radius-top:5px;-webkit-border-top-radius:5px}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)
