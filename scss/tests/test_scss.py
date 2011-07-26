@@ -12,13 +12,11 @@ class TestSCSS( unittest.TestCase ):
         src = """
             .bug {
                 background: -webkit-gradient(linear, top left, 100% 100%, from(#ddd), to(#aaa));
-            }
-
-            .bug-moz {
                 background: -moz-linear-gradient (top, #DDD, #AAA);
+                margin: 2px -5em -1px 0;
             }
         """
-        test = ".bug{background:-webkit-gradient(linear, top left, 100% 100%, from(#ddd), to(#aaa))}.bug-moz{background:-moz-linear-gradient(top, #ddd, #aaa)}"
+        test = ".bug{margin:2px -5em -1px 0;background:-webkit-gradient(linear, top left, 100% 100%, from(#ddd), to(#aaa));background:-moz-linear-gradient(top, #ddd, #aaa)}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)
 

@@ -37,7 +37,7 @@ class TestSCSS( unittest.TestCase ):
                 font: 8px/10px $font;
                 margin: 3px + 5.5px auto;
                 height: 5px + (4px * (2 + $items));
-                width: $navbar-width/$items - 10px;
+                width: $navbar-width / $items - 10px;
                 &:hover { background-color: $navbar-color - 10%; } }"""
         test = "#navbar{width:800px;border-bottom:2px solid #646437}#navbar div1, #navbar div2, #navbar div3{color:#f00}p #navbar div1, p #navbar div2, p #navbar div3{color:#00f}li{float:left;margin:8.5px auto;width:256.667px;height:25px;background-color:#313104;background-image:url(test/value.png);font:8px / 10px 'Verdana', monospace}li:hover{background-color:#5c5c3e}"
         out = self.parser.loads(src)

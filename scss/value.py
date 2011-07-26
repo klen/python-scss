@@ -149,6 +149,16 @@ class StringValue(Value):
         return self.value
 
 
+class PointValue(Value):
+
+    @property
+    def value(self):
+        return ' '.join(map(str, self.data))
+
+    def __str__(self):
+        return self.value
+
+
 class QuotedStringValue(StringValue):
 
     def __init__(self, t):

@@ -10,7 +10,7 @@ from scss.base import Node, Empty, ParseNode, ContentNode, IncludeNode
 from scss.control import Variable, Expression, Function, Mixin, Include, MixinParam, Extend, Variables, Option, FunctionDefinition, FunctionReturn, If, For, SepValString
 from scss.function import warn, _nest
 from scss.grammar import *
-from scss.value import NumberValue, StringValue, ColorValue, QuotedStringValue
+from scss.value import NumberValue, StringValue, ColorValue, QuotedStringValue, PointValue
 
 
 class Comment(Node):
@@ -205,6 +205,7 @@ class Stylesheet(object):
         NUMBER_VALUE.setParseAction(NumberValue)
         IDENT.setParseAction(StringValue)
         PATH.setParseAction(StringValue)
+        POINT.setParseAction(PointValue)
         COLOR_VALUE.setParseAction(ColorValue)
         quotedString.setParseAction(QuotedStringValue)
         EXPRESSION.setParseAction(Expression)

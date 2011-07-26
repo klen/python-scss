@@ -14,6 +14,12 @@ class Node(object):
     def __str__(self):
         return self.delim.join(map(str, self.data))
 
+    def __repr__(self):
+        return '(%s%s)' % (
+                self.__class__.__name__,
+                ': %s' % ' '.join(map(repr, self.data)) if self.data else ''
+        )
+
     def parse(self, target):
         self.parent = target
 

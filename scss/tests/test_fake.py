@@ -10,10 +10,7 @@ class TestSCSS( unittest.TestCase ):
 
     def test_math(self):
         src = """
-            .bug {
-                background: -webkit-gradient(linear, top left, 100% 100%, from(#ddd), to(#aaa));
-            }
-
+           margin: 2px - 5em -1px 0;
         """
         test = ""
         out = self.parser.loads(src)

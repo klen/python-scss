@@ -31,7 +31,7 @@ class TestSCSS( unittest.TestCase ):
                 background-image: url('/test/' + $image);
                 display: -moz-inline-box;
                 color: $blue - 9%;
-                margin: $len (-$margin * 2 ) ( -12px );
+                margin: $len (-$margin * 2 ) -12px;
             }
 
             .border {

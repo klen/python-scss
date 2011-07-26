@@ -1,6 +1,10 @@
 Changes
 =======
 
+## 2011-07-25 0.8.4
+-------------------
+* Fixed math operation
+
 ## 2011-07-25 0.8.3
 -------------------
 * Fix multipart string values in functions

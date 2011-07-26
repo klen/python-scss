@@ -24,10 +24,11 @@ def warn(warning):
     print >> sys.stderr, "\nWarning: %s" % str( warning )
 
 
-def unknown(name, *args):
+def unknown(*args, **kwargs):
     """ Unknow scss function handler.
         Simple return 'funcname(args)'
     """
+    name = kwargs.get('name', '')
     return "%s(%s)" % ( name, ', '.join(str(a) for a in args) )
 
 
@@ -139,21 +140,21 @@ def _desaturate(color, amount, **kwargs):
 def _grayscale(color, **kwargs):
     return hsl_op(OPRT['-'], color, 0, 100, 0)
 
-def _complement(color, root=None):
+def _complement(color, **kwargs):
     return hsl_op(OPRT['+'], color, 180.0, 0, 0)
 
 
 # Opacity functions
 # =================
 
-def _alpha(color, root=None):
+def _alpha(color, **kwargs):
     c = ColorValue(color).value
     return NumberValue(c[3])
 
-def _opacify(color, amount, root=None):
+def _opacify(color, amount, **kwargs):
     return rgba_op(OPRT['+'], color, 0, 0, 0, amount)
 
-def _transparentize(color, amount, root=None):
+def _transparentize(color, amount, **kwargs):
     return rgba_op(OPRT['-'], color, 0, 0, 0, amount)
 
 
@@ -170,42 +171,42 @@ def _quote(*args, **kwargs):
 # Number functions
 # =================
 
-def _percentage(value, root=None):
+def _percentage(value, **kwargs):
     value = NumberValue(value)
     if not value.units == '%':
         value.value *= 100
         value.units = '%'
     return value
 
-def _abs(value, root=None):
+def _abs(value, **kwargs):
     return abs(float(value))
 
-def _pi(root=None):
+def _pi(**kwargs):
     return NumberValue(math.pi)
 
-def _sin(value, root=None):
+def _sin(value, **kwargs):
     return math.sin(value)
 
-def _cos(value, root=None):
+def _cos(value, **kwargs):
     return math.cos(value)
 
-def _tan(value, root=None):
+def _tan(value, **kwargs):
     return math.tan(value)
 
-def _round(value, root=None):
+def _round(value, **kwargs):
     return round(value)
 
-def _ceil(value, root=None):
+def _ceil(value, **kwargs):
     return math.ceil(value)
 
-def _floor(value, root=None):
+def _floor(value, **kwargs):
     return math.floor(value)
 
 
 # Introspection functions
 # =======================
 
-def _type_of(obj, root=None):
+def _type_of(obj, **kwargs):
     if isinstance(obj, BooleanValue):
         return StringValue('bool')
     if isinstance(obj, NumberValue):
@@ -218,15 +219,15 @@ def _type_of(obj, root=None):
         return StringValue('list')
     return 'unknown'
 
-def _unit(value, root=None):
+def _unit(value, **kwargs):
     return NumberValue(value).units
 
-def _unitless(value, root=None):
+def _unitless(value, **kwargs):
     if NumberValue(value).units:
         return BooleanValue(False)
     return BooleanValue(True)
 
-def _comparable(n1, n2, root=None):
+def _comparable(n1, n2, **kwargs):
     n1, n2 = NumberValue(n1), NumberValue(n2)
     type1 = CONV_TYPE.get(n1.units)
     type2 = CONV_TYPE.get(n2.units)
@@ -236,16 +237,16 @@ def _comparable(n1, n2, root=None):
 # Color functions
 # ================
 
-def _adjust_color(color, saturation=0.0, lightness=0.0, red=0.0, green=0.0, blue=0.0, alpha=0.0, root=None):
+def _adjust_color(color, saturation=0.0, lightness=0.0, red=0.0, green=0.0, blue=0.0, alpha=0.0, **kwargs):
     return __asc_color(OPRT['+'], color, saturation, lightness, red, green, blue, alpha)
 
-def _scale_color(color, saturation=1.0, lightness=1.0, red=1.0, green=1.0, blue=1.0, alpha=1.0, root=None):
+def _scale_color(color, saturation=1.0, lightness=1.0, red=1.0, green=1.0, blue=1.0, alpha=1.0, **kwargs):
     return __asc_color(OPRT['*'], color, saturation, lightness, red, green, blue, alpha)
 
-def _change_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None, root=None):
+def _change_color(color, saturation=None, lightness=None, red=None, green=None, blue=None, alpha=None, **kwargs):
     return __asc_color(None, color, saturation, lightness, red, green, blue, alpha)
 
-def _invert(color, root=None):
+def _invert(color, **kwargs):
     """ Returns the inverse (negative) of a color.
         The red, green, and blue values are inverted, while the opacity is left alone.
     """
@@ -256,16 +257,16 @@ def _invert(color, root=None):
     c[2] = 255.0 - c[2]
     return col
 
-def _adjust_lightness(color, amount, root=None):
+def _adjust_lightness(color, amount, **kwargs):
     return hsl_op(OPRT['+'], color, 0, 0, amount)
 
-def _adjust_saturation(color, amount, root=None):
+def _adjust_saturation(color, amount, **kwargs):
     return hsl_op(OPRT['+'], color, 0, amount, 0)
 
-def _scale_lightness(color, amount, root=None):
+def _scale_lightness(color, amount, **kwargs):
     return hsl_op(OPRT['*'], color, 0, 0, amount)
 
-def _scale_saturation(color, amount, root=None):
+def _scale_saturation(color, amount, **kwargs):
     return hsl_op(OPRT['*'], color, 0, amount, 0)
 
 
@@ -275,10 +276,10 @@ def _scale_saturation(color, amount, root=None):
 def _color_stops(*args, **kwargs):
     raise NotImplementedError
 
-def _elements_of_type(display, root=None):
+def _elements_of_type(display, **kwargs):
     return StringValue(ELEMENTS_OF_TYPE.get(StringValue(display).value, ''))
 
-def _enumerate(s, b, e, root=None):
+def _enumerate(s, b, e, **kwargs):
     return ', '.join(
         "%s%d" % (StringValue(s).value, x) for x in xrange(int(b.value), int(e.value+1))
     )
@@ -286,7 +287,7 @@ def _enumerate(s, b, e, root=None):
 def _font_files(*args, **kwargs):
     raise NotImplementedError
 
-def _headings(a=None, b=None, root=None):
+def _headings(a=None, b=None, **kwargs):
     h = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
     if not a or StringValue(a).value == 'all':
         a, b = 1, 6
@@ -304,21 +305,24 @@ def _nest(*args, **kwargs):
         )
 
 @check_pil
-def _image_width(image, root=None):
+def _image_width(image, **kwargs):
+    root = kwargs.get('root')
     path = os.path.abspath(os.path.join(root.get_opt('path'), StringValue(image).value))
-    size = __get_size(path, root)
+    size = __get_size(path, root=root)
     return NumberValue([size[0], 'px'])
 
 @check_pil
-def _image_height(image, root=None):
+def _image_height(image, **kwargs):
+    root = kwargs.get('root')
     path = os.path.abspath(os.path.join(root.get_opt('path'), StringValue(image).value))
-    size = __get_size(path, root)
+    size = __get_size(path, root=root)
     return NumberValue([size[1], 'px'])
 
-def _image_url(image, root=None):
+def _image_url(image, **kwargs):
     return QuotedStringValue(image).value
 
-def _inline_image(image, mimetype=None, root=None):
+def _inline_image(image, mimetype=None, **kwargs):
+    root = kwargs.get('root')
     path = os.path.abspath(os.path.join(root.get_opt('path'), StringValue(image).value))
     if os.path.exists(path):
         mimetype = StringValue(mimetype).value or mimetypes.guess_type(path)[0]
@@ -335,7 +339,7 @@ def _inline_image(image, mimetype=None, root=None):
 # Misc
 # ====
 
-def _if(cond, body, els, root=None):
+def _if(cond, body, els, **kwargs):
     if BooleanValue( cond ).value:
         return body
     return els
@@ -496,7 +500,8 @@ def __asc_color(op, color, saturation, lightness, red, green, blue, alpha):
         color = rgba_op(op, color, red, green, blue, alpha)
     return color
 
-def __get_size(path, root):
+def __get_size(path, **kwargs):
+    root = kwargs.get('root')
     if not IMAGES.has_key(path):
 
         if not os.path.exists(path):

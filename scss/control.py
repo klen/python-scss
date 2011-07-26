@@ -50,7 +50,7 @@ class Expression(Variable):
             first = next(it)
             while True:
                 res = next(it)
-                op = OPRT.get(res, None)
+                op = OPRT.get(res.strip(), None)
                 if op:
                     second = next(it)
                     first = op(first, second)
@@ -60,8 +60,6 @@ class Expression(Variable):
 
                     elif op == OPRT['or'] and first:
                         raise StopIteration
-                else:
-                    first = ' '.join(map(str, (first, res)))
 
         except StopIteration:
             while isinstance(first, Variable):
@@ -83,9 +81,10 @@ class Function(Expression):
         name = self.data[0]
         func_name_a = "%s:%d" % (name, len(self.data) - 1)
         func_name_n = "%s:n" % name
+        func = FUNCTION_LIST.get(func_name_a, FUNCTION_LIST.get(func_name_n, unknown))
+
         params = map(lambda v: v.value, self.data[1:])
-        func = FUNCTION_LIST.get(func_name_a) or FUNCTION_LIST.get(func_name_n)
-        return func(*params, root=self.root) if func else unknown(name, *params)
+        return func(*params, root=self.root, name=name)
 
 
 class FunctionDefinition(Empty):
