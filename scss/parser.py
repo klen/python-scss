@@ -1,6 +1,9 @@
 import cPickle
 import os.path
+import sys
 from collections import defaultdict
+
+from pyparsing import ParseBaseException
 
 from scss import SORTING
 from scss.base import Node, Empty, ParseNode, ContentNode, IncludeNode
@@ -282,8 +285,15 @@ class Stylesheet(object):
         """ Scan scss from string and return nodes.
         """
         assert isinstance(src, basestring)
-        nodes = STYLESHEET.parseString(src)
-        return nodes
+        try:
+            nodes = STYLESHEET.parseString(src, parseAll=True)
+            return nodes
+        except ParseBaseException:
+            err = sys.exc_info()[1]
+            print >> sys.stderr, err.line
+            print >> sys.stderr, " "*(err.column-1) + "^"
+            print >> sys.stderr, err
+            sys.exit(1)
 
     def parse(self, nodes):
         map(lambda n: n.parse(self) if isinstance(n, Node) else None, nodes)
