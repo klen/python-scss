@@ -317,7 +317,7 @@ class Stylesheet(object):
             path = os.path.abspath(f.name)
 
         else:
-            path = os.path.abspath(f.name)
+            path = os.path.abspath(f)
             f = open(f)
 
         cache_path = os.path.splitext(path)[0] + '.ccss'
