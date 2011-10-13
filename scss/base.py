@@ -25,9 +25,8 @@ class Node(object):
 
     def copy(self):
         return self
-
-    @property
-    def ctx(self):
+        
+    def _get_ctx(self):
         if self._ctx:
             return self._ctx
 
@@ -36,12 +35,12 @@ class Node(object):
 
         self._ctx = dict()
         return self._ctx
-
-    @ctx.setter
-    def ctx(self, value):
+        
+    def _set_ctx(self, value):
         self._ctx = value
-
-
+        
+    ctx = property(_get_ctx, _set_ctx)
+    
 class Empty(Node):
 
     def __str__(self):

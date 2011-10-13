@@ -84,7 +84,8 @@ class Function(Expression):
         func = FUNCTION_LIST.get(func_name_a, FUNCTION_LIST.get(func_name_n, unknown))
 
         params = map(lambda v: v.value, self.data[1:])
-        return func(*params, root=self.root, name=name)
+        kwargs = dict(root=self.root, name=name)
+        return func(*params, **kwargs)
 
 
 class FunctionDefinition(Empty):

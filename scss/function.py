@@ -4,8 +4,21 @@ import math
 import mimetypes
 import os.path
 import sys
-from itertools import product
 
+try:
+    from itertools import product
+    
+except ImportError:
+    def product(*args, **kwds):
+        # product('ABCD', 'xy') --> Ax Ay Bx By Cx Cy Dx Dy
+        # product(range(2), repeat=3) --> 000 001 010 011 100 101 110 111
+        pools = map(tuple, args) * kwds.get('repeat', 1)
+        result = [[]]
+        for pool in pools:
+            result = [x+[y] for x in result for y in pool]
+        for prod in result:
+            yield tuple(prod)
+            
 from scss import OPRT, CONV_TYPE, ELEMENTS_OF_TYPE
 from scss.value import NumberValue, StringValue, QuotedStringValue, ColorValue, BooleanValue, hsl_op, rgba_op
 
