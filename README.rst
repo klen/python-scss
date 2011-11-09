@@ -226,7 +226,7 @@ Options
 
 Python-scss has the following options:
 
-- **compress**: Compress ouput css, default is False
+- **compress**: Compress output css, default is False
 
 - **cache**: Precache compile result, default is False
 
@@ -235,7 +235,7 @@ Python-scss has the following options:
 - **sort**: Sort declaration, default is True
   Declaration sorted in `Zen sorting order`_
 
-- **warn**: Enable or disable warnings: unwnown mixin, declaration name, extend ruleset, default is True
+- **warn**: Enable or disable warnings: unknown mixin, declaration name, extend ruleset, default is True
 
 Option can be defined... 
 
