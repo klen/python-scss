@@ -25,7 +25,7 @@ class Node(object):
 
     def copy(self):
         return self
-        
+
     def _get_ctx(self):
         if self._ctx:
             return self._ctx
@@ -35,12 +35,12 @@ class Node(object):
 
         self._ctx = dict()
         return self._ctx
-        
+
     def _set_ctx(self, value):
         self._ctx = value
-        
+
     ctx = property(_get_ctx, _set_ctx)
-    
+
 class Empty(Node):
 
     def __str__(self):
@@ -72,7 +72,7 @@ class ContentNode(ParseNode):
         # Sort declaration
         if self.root.get_opt('sort'):
             self.declareset.sort(
-                    key=lambda x: SORTING.get(x.name, 999 ))
+                    key=lambda x: SORTING.get(x.name.lstrip('_#*'), 999 ))
 
         nl, ws, ts = self.root.cache['delims']
         semicolon = '' if self.root.cache['opts'].get('compress') else ';'

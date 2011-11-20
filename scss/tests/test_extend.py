@@ -11,7 +11,7 @@ class TestSCSS( unittest.TestCase ):
     def test_extend(self):
         src = """
         .error {
-            border: 1px #f00;
+            _border: 1px #f00;
             background-color: #fdd;
         }
         .error .intrusion {
@@ -22,6 +22,6 @@ class TestSCSS( unittest.TestCase ):
             border-width: 3px;
         }
         """
-        test = ".error, .seriousError{border:1px #f00;background-color:#fdd}.error .intrusion, .seriousError .intrusion{background-image:url('/image/hacked.png')}.seriousError{border-width:3px}"
+        test = ".error, .seriousError{_border:1px #f00;background-color:#fdd}.error .intrusion, .seriousError .intrusion{background-image:url('/image/hacked.png')}.seriousError{border-width:3px}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)

@@ -93,7 +93,17 @@ class Declaration(ParseNode):
         """ Warning on unknown declaration
             and write current in outstring.
         """
-        if (not SORTING.has_key(self.name.strip('*_'))
+        name = self.name.strip('*_#')
+        if name.startswith('-moz-'):
+            name = name[5:]
+        elif name.startswith('-webkit-'):
+            name = name[8:]
+        elif name.startswith('-o-'):
+            name = name[3:]
+        elif name.startswith('-ms-'):
+            name = name[4:]
+
+        if (not SORTING.has_key(name)
                 and self.root.get_opt('warn')):
             warn("Unknown declaration: %s" % self.name)
 

@@ -60,7 +60,7 @@ class TestSCSS( unittest.TestCase ):
                 border:2px; }
 
             """
-        test = "@charset utf-8;\n@import url(test);\n@media print { a:hover, a:active{outline:none}a, a:active, a:visited{color:#607890}a:hover{color:#036} }body:not(.test){margin-bottom:.5em;font-family:Georgia , sans-serif;*font:13px / 1.231 sans-serif}::selection{color:#f00}.test:hover{color:#f00}.test:hover:after{content:#00f}pre, code, kbd, samp{font:12px / 10px;font-family:monospace , sans-serif}abbr[title], dfn[title]{border:2px}"
+        test = "@charset utf-8;\n@import url(test);\n@media print { a:hover, a:active{outline:none}a, a:active, a:visited{color:#607890}a:hover{color:#036} }body:not(.test){margin-bottom:.5em;*font:13px / 1.231 sans-serif;font-family:Georgia , sans-serif}::selection{color:#f00}.test:hover{color:#f00}.test:hover:after{content:#00f}pre, code, kbd, samp{font:12px / 10px;font-family:monospace , sans-serif}abbr[title], dfn[title]{border:2px}"
         out = self.parser.loads(src)
         self.assertEqual(test, out)
 

@@ -11,29 +11,11 @@ __license__ = LICENSE = "GNU LGPL"
 
 
 CONV = {
-    'size': {
-        'em': 13.0,
-        'px': 1.0
-    },
-    'length': {
-        'mm':  1.0,
-        'cm':  10.0,
-        'in':  25.4,
-        'pt':  25.4 / 72,
-        'pc':  25.4 / 6
-    },
-    'time': {
-        'ms':  1.0,
-        's':   1000.0
-    },
-    'freq': {
-        'hz':  1.0,
-        'khz': 1000.0
-    },
-    'any': {
-        '%': 1.0 / 100,
-        'deg': 1.0 / 360
-    }
+    'size': {'em': 13.0, 'px': 1.0},
+    'length': {'mm':  1.0, 'cm':  10.0, 'in':  25.4, 'pt':  25.4 / 72, 'pc':  25.4 / 6},
+    'time': {'ms':  1.0, 's':   1000.0},
+    'freq': {'hz':  1.0, 'khz': 1000.0},
+    'any': {'%': 1.0 / 100, 'deg': 1.0 / 360, 's': 1.0 / 60}
 }
 CONV_TYPE = {}
 CONV_FACTOR = {}
@@ -240,8 +222,6 @@ SORTING = dict((v, k) for k, v in enumerate((
     'clip',
     'box-sizing',
     'box-shadow',
-    '-webkit-box-shadow',
-    '-moz-box-shadow',
 
     # Sizing
     'margin',
@@ -272,8 +252,6 @@ SORTING = dict((v, k) for k, v in enumerate((
     'border-collapse',
     'border-color',
     'border-image',
-    '-webkit-border-image',
-    '-moz-border-image',
     'border-top-image',
     'border-right-image',
     'border-bottom-image',
@@ -304,9 +282,6 @@ SORTING = dict((v, k) for k, v in enumerate((
     'border-left-width',
     'border-left-style',
     'border-left-color',
-    '-webkit-border-radius',
-    '-moz-border-radius',
-    '-khtml-border-radius',
     'border-radius',
     'border-top-right-radius',
     'border-top-left-radius',
@@ -390,7 +365,15 @@ SORTING = dict((v, k) for k, v in enumerate((
     'page-break-inside',
     'page-break-after',
     'orphans',
-    'widows'
+    'widows',
+
+    # Transfom
+    'transition',
+    'transition-delay',
+    'transition-duration',
+    'transition-property',
+    'transition-timing-function',
+
 )))
 
 
