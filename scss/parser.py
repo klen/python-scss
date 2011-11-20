@@ -93,8 +93,8 @@ class Declaration(ParseNode):
         """ Warning on unknown declaration
             and write current in outstring.
         """
-        if ( not SORTING.has_key(self.name.strip('*_'))
-                and self.root.get_opt('warn') ):
+        if (not SORTING.has_key(self.name.strip('*_'))
+                and self.root.get_opt('warn')):
             warn("Unknown declaration: %s" % self.name)
 
         return (":%s" % self.root.cache['delims'][1] ).join(
@@ -199,7 +199,8 @@ class Stylesheet(object):
         self.setup()
         Node.root = self
 
-    def setup(self):
+    @staticmethod
+    def setup():
 
         # Values
         NUMBER_VALUE.setParseAction(NumberValue)
@@ -282,7 +283,8 @@ class Stylesheet(object):
         self.cache['mix'].update(cache.get('mix'))
         map(self.set_var, cache['ctx'].values())
 
-    def scan(self, src):
+    @staticmethod
+    def scan(src):
         """ Scan scss from string and return nodes.
         """
         assert isinstance(src, basestring)
