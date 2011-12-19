@@ -264,11 +264,14 @@ def _invert(color, **kwargs):
         The red, green, and blue values are inverted, while the opacity is left alone.
     """
     col = ColorValue(color)
-    c = col.value
-    c[0] = 255.0 - c[0]
-    c[1] = 255.0 - c[1]
-    c[2] = 255.0 - c[2]
-    return col
+    args = [
+            255.0 - col.value[0],
+            255.0 - col.value[1],
+            255.0 - col.value[2],
+            col.value[3],
+        ]
+    inverted = ColorValue(args)
+    return inverted
 
 def _adjust_lightness(color, amount, **kwargs):
     return hsl_op(OPRT['+'], color, 0, 0, amount)
