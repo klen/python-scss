@@ -1,6 +1,10 @@
 Changes
 =======
 
+## 2011-12-19 0.8.72
+--------------------
+* Fix broken invert function (Ceesjan Luiten)
+
 ## 2011-11-21 0.8.71
 --------------------
 * Some fix in warnings
