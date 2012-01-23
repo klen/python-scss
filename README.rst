@@ -1,6 +1,11 @@
 Python-scss
 ===========
 
+Warning:
+
+*Im not support python-scss anymore. Use pyScss_.*
+
+
 Python-scss is SCSS_ compiler for python. Documentation available at pypi_ or github_.
 This is part of zeta-library_.
 
@@ -306,3 +311,4 @@ Note
 .. _github: https://github.com/klen/python-scss
 .. _Zen sorting order: http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn#Sorting_Methods
 .. _klen: https://klen.github.com
+.. _pyScss: https://github.com/Kronuz/pyScss
