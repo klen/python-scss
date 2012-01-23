@@ -3,7 +3,7 @@ Python-scss
 
 Warning:
 
-*Im not support python-scss anymore. Use pyScss_.*
+**Im not support python-scss anymore. Use pyScss_**
 
 
 Python-scss is SCSS_ compiler for python. Documentation available at pypi_ or github_.
