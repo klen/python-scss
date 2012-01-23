@@ -3,7 +3,7 @@ Python-scss
 
 Warning:
 
-**Im not support python-scss anymore. Use pyScss_**
+Im not support python-scss anymore. Use pyscss_ by Kronus.
 
 
 Python-scss is SCSS_ compiler for python. Documentation available at pypi_ or github_.
@@ -311,4 +311,5 @@ Note
 .. _github: https://github.com/klen/python-scss
 .. _Zen sorting order: http://code.google.com/p/zen-coding/wiki/ZenCSSPropertiesEn#Sorting_Methods
 .. _klen: https://klen.github.com
-.. _pyScss: https://github.com/Kronuz/pyScss
+.. _pyscss: https://github.com/Kronuz/pyScss
+
