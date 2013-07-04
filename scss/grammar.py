@@ -19,7 +19,7 @@ IDENT = Regex(r"-?[a-zA-Z_][-a-zA-Z0-9_]*")
 COLOR_VALUE = Regex(r"#[a-zA-Z0-9]{3,6}")
 VARIABLE = Regex(r"-?\$[-a-zA-Z_][-a-zA-Z0-9_]*")
 NUMBER_VALUE = Regex(r"-?\d+(?:\.\d*)?|\.\d+") + Optional(Regex(r"(em|ex|px|cm|mm|in|pt|pc|deg|s|%)(?![-\w])"))
-PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/\?\=]*") | Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)")
+PATH = Regex(r"[-\w\d_\.]*\/{1,2}[-\w\d_\.\/\?\=\&]*") | Regex(r"((https?|ftp|file):((//)|(\\\\))+[\w\d:#@%/;$()~_?\+-=\\\.&]*)")
 POINT_PART = (NUMBER_VALUE | Regex(r"(top|bottom|left|right)"))
 POINT = POINT_PART + POINT_PART
 
