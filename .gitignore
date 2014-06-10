@@ -1,4 +1,6 @@
+.idea
 .ropeproject
 docs/_*
 *.pyc
 compass
+venv
