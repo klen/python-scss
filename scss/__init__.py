@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import scss.compat as compat
 import operator
 
 
@@ -29,7 +30,7 @@ OPRT = {
     '+'  : operator.__add__,
     '-'  : operator.__sub__,
     '*'  : operator.__mul__,
-    '/'  : operator.__div__,
+    '/'  : compat.div,
     '!'  : operator.__neg__,
     '<'  : operator.__lt__,
     '<=' : operator.__le__,

@@ -1,5 +1,7 @@
 """ Command-line tool to parse scss file.
 """
+from __future__ import print_function
+
 import optparse
 import sys, os
 import time
@@ -80,17 +82,17 @@ The location of the generated CSS can be set using a colon:
     # Interactive mode
     if opts.shell:
         p = parser.Stylesheet()
-        print 'SCSS v. %s interactive mode' % VERSION
-        print '================================'
-        print 'Ctrl+D or quit for exit'
+        print('SCSS v. %s interactive mode' % VERSION)
+        print('================================')
+        print('Ctrl+D or quit for exit')
         while True:
             try:
-                s = raw_input('>>> ').strip()
+                s = input('>>> ').strip()
                 if s == 'quit':
                     raise EOFError
-                print p.loads(s)
+                print(p.loads(s))
             except (EOFError, KeyboardInterrupt):
-                print '\nBye bye.'
+                print('\nBye bye.')
                 break
 
         sys.exit()
@@ -100,7 +102,7 @@ The location of the generated CSS can be set using a colon:
         self, sep, target = opts.watch.partition(':')
         files = []
         if not os.path.exists(self):
-            print >> sys.stderr, "Path don't exist: %s" % self
+            print(sys.stderr, "Path don't exist: %s" % self, file=sys.stderr)
             sys.exit(1)
 
         if os.path.isdir(self):
@@ -125,14 +127,14 @@ The location of the generated CSS can be set using a colon:
             infile, outfile, mtime = f
             ttime = os.path.getmtime(infile)
             if mtime < ttime:
-                print " Parse '%s' to '%s' .. done" % ( infile, outfile )
+                print(" Parse '%s' to '%s' .. done" % ( infile, outfile ))
                 out = s.load(open(infile, 'r'))
                 open(outfile, 'w').write(out)
                 f[2] = os.path.getmtime(outfile)
 
-        print 'SCSS v. %s watch mode' % VERSION
-        print '================================'
-        print 'Ctrl+C for exit\n'
+        print('SCSS v. %s watch mode' % VERSION)
+        print('================================')
+        print('Ctrl+C for exit\n')
         while True:
             try:
                 for f in files:
@@ -141,7 +143,7 @@ The location of the generated CSS can be set using a colon:
             except OSError:
                 pass
             except KeyboardInterrupt:
-                print "\nSCSS stoped."
+                print("\nSCSS stoped.")
                 break
 
         sys.exit()
@@ -157,7 +159,7 @@ The location of the generated CSS can be set using a colon:
         try:
             infile = open(args[0], 'r')
             outfile = sys.stdout
-        except IOError, e:
+        except IOError as e:
             sys.stderr.write(str(e))
             sys.exit()
 
@@ -165,7 +167,7 @@ The location of the generated CSS can be set using a colon:
         try:
             infile = open(args[0], 'r')
             outfile = open(args[1], 'w')
-        except IOError, e:
+        except IOError as e:
             sys.stderr.write(str(e))
             sys.exit()
 
@@ -183,7 +185,7 @@ The location of the generated CSS can be set using a colon:
                 cache = precache,
             ))
         outfile.write(s.load(infile))
-    except ValueError, e:
+    except ValueError as e:
         raise SystemExit(e)
 
 

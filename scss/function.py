@@ -1,9 +1,13 @@
+from __future__ import print_function
+
 import base64
 import colorsys
 import math
 import mimetypes
 import os.path
 import sys
+
+from scss.compat import PY3
 
 try:
     from itertools import product
@@ -34,7 +38,7 @@ IMAGES = dict()
 def warn(warning):
     """ Write warning messages in stderr.
     """
-    print >> sys.stderr, "\nWarning: %s" % str( warning )
+    print("\nWarning: %s" % str( warning ), file=sys.stderr)
 
 
 def unknown(*args, **kwargs):
@@ -115,24 +119,24 @@ def _hsla(h, s, l, a, **kwargs):
     """ HSL with alpha channel color value.
     """
     res = colorsys.hls_to_rgb(float(h), float(l), float(s))
-    return ColorValue(map(lambda x: x * 255.0, res) + [float(a)])
+    return ColorValue([x * 255.0 for x in res] + [float(a)])
 
 def _hue(color, **kwargs):
     """ Get hue value of HSL color.
     """
-    h = colorsys.rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))[0]
+    h = colorsys.rgb_to_hls(*[x / 255.0 for x in color.value[:3]])[0]
     return NumberValue(h * 360.0)
 
 def _lightness(color, **kwargs):
     """ Get lightness value of HSL color.
     """
-    l = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[1]
+    l = colorsys.rgb_to_hls( *[x / 255.0 for x in color.value[:3]] )[1]
     return NumberValue(( l * 100, '%' ))
 
 def _saturation(color, **kwargs):
     """ Get saturation value of HSL color.
     """
-    s = colorsys.rgb_to_hls( *map(lambda x: x / 255.0, color.value[:3]) )[2]
+    s = colorsys.rgb_to_hls( *[x / 255.0 for x in color.value[:3]] )[2]
     return NumberValue(( s * 100, '%' ))
 
 def _adjust_hue(color, degrees, **kwargs):
@@ -207,13 +211,13 @@ def _tan(value, **kwargs):
     return math.tan(value)
 
 def _round(value, **kwargs):
-    return round(value)
+    return float(round(value))
 
 def _ceil(value, **kwargs):
-    return math.ceil(value)
+    return float(math.ceil(value))
 
 def _floor(value, **kwargs):
-    return math.floor(value)
+    return float(math.floor(value))
 
 
 # Introspection functions
@@ -297,7 +301,7 @@ def _elements_of_type(display, **kwargs):
 
 def _enumerate(s, b, e, **kwargs):
     return ', '.join(
-        "%s%d" % (StringValue(s).value, x) for x in xrange(int(b.value), int(e.value+1))
+        "%s%d" % (StringValue(s).value, x) for x in range(int(b.value), int(e.value+1))
     )
 
 def _font_files(*args, **kwargs):
@@ -343,7 +347,11 @@ def _inline_image(image, mimetype=None, **kwargs):
     if os.path.exists(path):
         mimetype = StringValue(mimetype).value or mimetypes.guess_type(path)[0]
         f = open(path, 'rb')
-        url = 'data:' + mimetype + ';base64,' + base64.b64encode(f.read())
+        if PY3:
+            data = base64.b64encode(f.read()).decode('utf-8')
+        else:
+            data = base64.b64encode(f.read())
+        url = 'data:' + mimetype + ';base64,' + data
     else:
         if root and root.get_opt('warn'):
             warn("Not found image: %s" % path)
@@ -518,7 +526,7 @@ def __asc_color(op, color, saturation, lightness, red, green, blue, alpha):
 
 def __get_size(path, **kwargs):
     root = kwargs.get('root')
-    if not IMAGES.has_key(path):
+    if path not in IMAGES:
 
         if not os.path.exists(path):
 
