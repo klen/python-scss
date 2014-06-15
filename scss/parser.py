@@ -2,23 +2,27 @@ from __future__ import print_function
 
 import os.path
 import sys
-from collections import defaultdict
 
+from collections import defaultdict
 from pyparsing import ParseBaseException
 
-from scss import SORTING
-from scss.base import Node, Empty, ParseNode, ContentNode, IncludeNode
-from scss.compat import pickle, bytes_, unicode_, file_
-from scss.control import Variable, Expression, Function, Mixin, Include, MixinParam, Extend, Variables, Option, FunctionDefinition, FunctionReturn, If, For, SepValString
-from scss.function import warn, _nest
-from scss.grammar import *
-from scss.value import NumberValue, StringValue, ColorValue, QuotedStringValue, PointValue
+from . import SORTING
+from .base import Node, Empty, ParseNode, ContentNode, IncludeNode
+from .compat import pickle, bytes_, unicode_, file_
+from .control import (
+    Variable, Expression, Function, Mixin, Include, MixinParam, Extend,
+    Variables, Option, FunctionDefinition, FunctionReturn, If, For, SepValString)
+from .function import warn, _nest
+from .grammar import *
+from .value import NumberValue, StringValue, ColorValue, QuotedStringValue, PointValue
 
 
 class Comment(Node):
+
     """ Comment node.
     """
     delim = ''
+
     def __str__(self):
         """ Clean comments if option `comments` disabled
             or enabled option `compress`
@@ -29,8 +33,10 @@ class Comment(Node):
 
 
 class Warn(Empty):
+
     """ Warning node @warn.
     """
+
     def parse(self, target):
         """ Write message to stderr.
         """
@@ -39,8 +45,10 @@ class Warn(Empty):
 
 
 class Import(Node):
+
     """ Import node @import.
     """
+
     def __str__(self):
         """ Write @import to outstring.
         """
@@ -48,8 +56,10 @@ class Import(Node):
 
 
 class Ruleset(ContentNode):
+
     """ Rule node.
     """
+
     def parse(self, target):
         """ Parse nested rulesets
             and save it in cache.
@@ -65,8 +75,10 @@ class Ruleset(ContentNode):
 
 
 class Declaration(ParseNode):
+
     """ Declaration node.
     """
+
     def __init__(self, s, n, t):
         """ Add self.name and self.expr to object.
         """
@@ -84,10 +96,13 @@ class Declaration(ParseNode):
         super(Declaration, self).parse(target)
         self.name = str(self.data[0])
         while isinstance(target, Declaration):
-            self.name = '-'.join(( str(target.data[0]), self.name))
+            self.name = '-'.join((str(target.data[0]), self.name))
             target = target.parent
 
-        self.expr = ' '.join(str(n) for n in self.data[2:] if not isinstance(n, Declaration))
+        self.expr = ' '.join(str
+                             (n)
+                             for n in self.data
+                             [2:] if not isinstance(n, Declaration))
         if self.expr:
             target.declareset.append(self)
 
@@ -108,11 +123,12 @@ class Declaration(ParseNode):
         if name not in SORTING and self.root.get_opt('warn'):
             warn("Unknown declaration: %s" % self.name)
 
-        return (":%s" % self.root.cache['delims'][1] ).join(
-                (self.name, self.expr))
+        return (":%s" % self.root.cache['delims'][1]).join(
+            (self.name, self.expr))
 
 
 class DeclarationName(ParseNode):
+
     """ Name of declaration node.
         For spliting it in one string.
     """
@@ -120,6 +136,7 @@ class DeclarationName(ParseNode):
 
 
 class SelectorTree(ParseNode):
+
     """ Tree of selectors in ruleset.
     """
     delim = ', '
@@ -129,7 +146,9 @@ class SelectorTree(ParseNode):
         """
         self_test = ', '.join(map(str, self.data))
         target_test = ', '.join(map(str, target.data))
-        self.data = (self_test + ', ' + self_test.replace(str(self.data[0].data[0]), target_test)).split(', ')
+        self.data = (
+            self_test + ', ' + self_test.replace(str(self.data[0].data[0]),
+                                                 target_test)).split(', ')
 
     def __add__(self, target):
         """ Add selectors from parent nodes.
@@ -142,6 +161,7 @@ class SelectorTree(ParseNode):
 
 
 class Selector(ParseNode):
+
     """ Simple selector node.
     """
     delim = ''
@@ -153,8 +173,10 @@ class Selector(ParseNode):
 
 
 class VarDefinition(ParseNode, Empty):
+
     """ Variable definition.
     """
+
     def __init__(self, s, n, t):
         """ Save self.name, self.default, self.expression
         """
@@ -168,38 +190,39 @@ class VarDefinition(ParseNode, Empty):
         """
         super(VarDefinition, self).parse(target)
         if isinstance(self.parent, ParseNode):
-            self.parent.ctx.update({ self.name: self.expression.value })
+            self.parent.ctx.update({self.name: self.expression.value})
         self.root.set_var(self)
 
 
 class Stylesheet(object):
+
     """ Root stylesheet node.
     """
 
     def_delims = '\n', ' ', '\t'
 
-    def __init__(self, cache = None, options=None):
+    def __init__(self, cache=None, options=None):
         self.cache = cache or dict(
 
             # Variables context
-            ctx = dict(),
+            ctx=dict(),
 
             # Mixin context
-            mix = dict(),
+            mix=dict(),
 
             # Rules context
-            rset = defaultdict(set),
+            rset=defaultdict(set),
 
             # Options context
-            opts = dict(
-                comments = True,
-                warn = True,
-                sort = True,
-                path = os.getcwd(),
+            opts=dict(
+                comments=True,
+                warn=True,
+                sort=True,
+                path=os.getcwd(),
             ),
 
             # CSS delimeters
-            delims = self.def_delims,
+            delims=self.def_delims,
 
         )
 
@@ -278,7 +301,10 @@ class Stylesheet(object):
         self.cache['opts'][name] = value
 
         if name == 'compress':
-            self.cache['delims'] = self.def_delims if not value else ('', '', '')
+            self.cache['delims'] = self.def_delims if not value else (
+                '',
+                '',
+                '')
 
     def get_opt(self, name):
         """ Get option.
@@ -305,7 +331,7 @@ class Stylesheet(object):
         except ParseBaseException:
             err = sys.exc_info()[1]
             print(err.line, file=sys.stderr)
-            print(" "*(err.column-1) + "^", file=sys.stderr)
+            print(" " * (err.column - 1) + "^", file=sys.stderr)
             print(err, file=sys.stderr)
             sys.exit(1)
 
@@ -356,7 +382,7 @@ class Stylesheet(object):
         return ''.join(map(str, nodes))
 
 
-def parse( src, cache=None ):
+def parse(src, cache=None):
     """ Parse from string.
     """
     parser = Stylesheet(cache)
@@ -368,3 +394,5 @@ def load(path, cache=None, precache=False):
     """
     parser = Stylesheet(cache)
     return parser.load(path, precache=precache)
+
+# pylama:ignore=D,W0401

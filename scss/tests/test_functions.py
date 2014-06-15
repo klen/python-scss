@@ -1,9 +1,13 @@
 import unittest
 
 from scss.parser import Stylesheet
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 
-class TestSCSS( unittest.TestCase ):
+class TestSCSS(unittest.TestCase):
 
     def setUp(self):
         self.parser = Stylesheet(options=dict(compress=True))
@@ -163,6 +167,7 @@ class TestSCSS( unittest.TestCase ):
         out = self.parser.loads(src)
         self.assertEqual(test, out)
 
+    @unittest.skipIf(not Image, 'PIL not found')
     def test_image_functions(self):
         src = """
             img.test {

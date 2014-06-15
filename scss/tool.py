@@ -1,21 +1,20 @@
-""" Command-line tool to parse scss file.
-"""
+""" Command-line tool to parse scss file. """
+
 from __future__ import print_function
 
 import optparse
-import sys, os
+import sys
+import os
 import time
 
-from scss import parser, VERSION
+from . import parser, __version__
 
 
 COMMANDS = ['import', 'option', 'mixin', 'include', 'for', 'if', 'else']
 
 
 def complete(text, state):
-    """ Auto complete scss constructions
-        in interactive mode.
-    """
+    """ Auto complete scss constructions in interactive mode. """
     for cmd in COMMANDS:
         if cmd.startswith(text):
             if not state:
@@ -24,7 +23,7 @@ def complete(text, state):
                 state -= 1
 
 
-def main(argv=None):
+def main(argv=None): # noqa
 
     try:
         # Upgrade shell in interactive mode
@@ -35,13 +34,13 @@ def main(argv=None):
         readline.parse_and_bind("tab: complete")
         readline.set_completer(complete)
         readline.read_history_file(history)
-    except ( ImportError, IOError ):
+    except (ImportError, IOError):
         pass
 
     # Create options
     p = optparse.OptionParser(
         usage="%prog [OPTION]... [INFILE] [OUTFILE]",
-        version="%prog " + VERSION,
+        version="%prog " + __version__,
         epilog="SCSS compiler.",
         description="Compile INFILE or standard input, to OUTFILE or standard output.")
 
@@ -82,7 +81,7 @@ The location of the generated CSS can be set using a colon:
     # Interactive mode
     if opts.shell:
         p = parser.Stylesheet()
-        print('SCSS v. %s interactive mode' % VERSION)
+        print('SCSS v. %s interactive mode' % __version__)
         print('================================')
         print('Ctrl+D or quit for exit')
         while True:
@@ -99,7 +98,7 @@ The location of the generated CSS can be set using a colon:
 
     # Watch mode
     elif opts.watch:
-        self, sep, target = opts.watch.partition(':')
+        self, _, target = opts.watch.partition(':')
         files = []
         if not os.path.exists(self):
             print(sys.stderr, "Path don't exist: %s" % self, file=sys.stderr)
@@ -110,29 +109,29 @@ The location of the generated CSS can be set using a colon:
                 path = os.path.join(self, f)
                 if os.path.isfile(path) and f.endswith('.scss'):
                     tpath = os.path.join(target or self, f[:-5] + '.css')
-                    files.append([ path, tpath, 0 ])
+                    files.append([path, tpath, 0])
         else:
-            files.append([ self, target or self[:-5] + '.css', 0 ])
+            files.append([self, target or self[:-5] + '.css', 0])
 
         s = parser.Stylesheet(
             options=dict(
-                comments = opts.comments,
-                compress = opts.compress,
-                warn = opts.warn,
-                sort = opts.sort,
-                cache = precache,
+                comments=opts.comments,
+                compress=opts.compress,
+                warn=opts.warn,
+                sort=opts.sort,
+                cache=precache,
             ))
 
         def parse(f):
             infile, outfile, mtime = f
             ttime = os.path.getmtime(infile)
             if mtime < ttime:
-                print(" Parse '%s' to '%s' .. done" % ( infile, outfile ))
+                print(" Parse '%s' to '%s' .. done" % (infile, outfile))
                 out = s.load(open(infile, 'r'))
                 open(outfile, 'w').write(out)
                 f[2] = os.path.getmtime(outfile)
 
-        print('SCSS v. %s watch mode' % VERSION)
+        print('SCSS v. %s watch mode' % __version__)
         print('================================')
         print('Ctrl+C for exit\n')
         while True:
@@ -147,7 +146,6 @@ The location of the generated CSS can be set using a colon:
                 break
 
         sys.exit()
-
 
     # Default compile files
     elif not args:
@@ -178,11 +176,11 @@ The location of the generated CSS can be set using a colon:
     try:
         s = parser.Stylesheet(
             options=dict(
-                comments = opts.comments,
-                compress = opts.compress,
-                warn = opts.warn,
-                sort = opts.sort,
-                cache = precache,
+                comments=opts.comments,
+                compress=opts.compress,
+                warn=opts.warn,
+                sort=opts.sort,
+                cache=precache,
             ))
         outfile.write(s.load(infile))
     except ValueError as e:

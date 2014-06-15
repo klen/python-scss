@@ -22,20 +22,26 @@ def hsl_op(op, color, h, s, l):
     s.units = l.units = '%'
     other_hls = map(float, (h, l, s))
     self_hls = rgb_to_hls(*map(lambda x: x / 255.0, color.value[:3]))
-    res_hls = map(lambda x, y: op(x, y) if op else y if y else x, self_hls, other_hls)
+    res_hls = map(
+        lambda x, y: op(x, y) if op else y if y else x, self_hls, other_hls)
     res_hls = map(lambda x: 1 if x > 1 else 0 if x < 0 else x, res_hls)
     res = hls_to_rgb(*res_hls)
-    return ColorValue((res[0] * 255.0, res[1] * 255.0, res[2] * 255.0, color.value[3]))
+    return ColorValue(
+        (res[0] * 255.0,
+         res[1] * 255.0,
+         res[2] * 255.0,
+         color.value[3]))
 
 
 def rgba_op(op, color, r, g, b, a):
     other = (float(r), float(g), float(b), float(a))
-    res = list(map(op or ( lambda x, y: x or y ), color.value, other))
+    res = list(map(op or (lambda x, y: x or y), color.value, other))
     res[3] = 1 if float(a) == color.value[3] == 1 else res[3]
     return ColorValue(res)
 
 
 class Value(Node):
+
     """ Abstract value.
     """
     @classmethod
@@ -95,8 +101,6 @@ class Value(Node):
     def __nonzero__(self):
         return getattr(self, 'value') and True or False
 
-    __bool__ = __nonzero__
-
     def __bool__(self):
         return bool(self.value) if self.value != 'false' else False
 
@@ -109,8 +113,8 @@ class Value(Node):
 
 class StringValueMeta(type):
 
-    def __call__(mcs, *args, **kwargs):
-        test = mcs.__new__(mcs)
+    def __call__(cls, *args, **kwargs):
+        test = cls.__new__(cls)
         test.__init__(*args, **kwargs)
 
         if test.value in ('true', 'false'):
@@ -185,8 +189,11 @@ class ColorValue(Value):
 
         elif isinstance(t, (list, tuple)):
             r = self.value
-            c = list(map(lambda x, y: x if not x is None else y, t, r))
-            c = tuple(0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4))
+            c = list(map(lambda x, y: x if x is not None else y, t, r))
+            c = tuple(
+                0.0
+                if c[i] < 0 else r[i] if c[i] > r[i] else c[i]
+                for i in range(4))
             self.value = c
 
         elif isinstance(t, str):
@@ -197,7 +204,7 @@ class ColorValue(Value):
             self.value = t.value
 
     def __float__(self):
-        return float( sum(self.value[:3], 0.0) / 3 * self.value[3] )
+        return float(sum(self.value[:3], 0.0) / 3 * self.value[3])
 
     def __str__(self):
         if self.value[3] == 1:
@@ -214,9 +221,12 @@ class ColorValue(Value):
         if isinstance(other, ColorValue):
             return rgba_op(op, self, *other.value)
 
-        elif isinstance(other, ( NumberValue, int )):
+        elif isinstance(other, (NumberValue, int)):
             if op in (OPRT['*'], OPRT['/']):
-                return ColorValue([op(x, float(other)) for x in self.value[:3]])
+                return ColorValue(
+                    [op
+                     (x, float(other))
+                     for x in self.value[: 3]])
             return hsl_op(op, self, 0, other, 0)
 
         else:
@@ -288,3 +298,5 @@ class NumberValue(Value):
         value = op(float(first), float(second))
         value /= CONV_FACTOR.get(units, 1.0)
         return cls((value, units))
+
+# pylama:ignore=D,W0110

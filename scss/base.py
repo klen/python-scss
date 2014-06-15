@@ -1,9 +1,10 @@
-from scss import SORTING
+from . import SORTING
 
 
 class Node(object):
-    """ Base class for parsed objects.
-    """
+
+    """ Base class for parsed objects. """
+
     delim = ' '
     root = None
 
@@ -16,8 +17,8 @@ class Node(object):
 
     def __repr__(self):
         return '(%s%s)' % (
-                self.__class__.__name__,
-                ': %s' % ' '.join(map(repr, self.data)) if self.data else ''
+            self.__class__.__name__,
+            ': %s' % ' '.join(map(repr, self.data)) if self.data else ''
         )
 
     def parse(self, target):
@@ -40,6 +41,7 @@ class Node(object):
         self._ctx = value
 
     ctx = property(_get_ctx, _set_ctx)
+
 
 class Empty(Node):
 
@@ -72,7 +74,7 @@ class ContentNode(ParseNode):
         # Sort declaration
         if self.root.get_opt('sort'):
             self.declareset.sort(
-                    key=lambda x: SORTING.get(x.name.lstrip('_#*'), 999 ))
+                key=lambda x: SORTING.get(x.name.lstrip('_#*'), 999))
 
         nl, ws, ts = self.root.cache['delims']
         semicolon = '' if self.root.cache['opts'].get('compress') else ';'
@@ -88,11 +90,11 @@ class ContentNode(ParseNode):
                 "%s{%s%s" % (ws, nl, ts) if self.name else '',
 
                 # Declarations
-                (';%s%s' % ( nl, ts )).join(str(d) for d in self.declareset),
+                (';%s%s' % (nl, ts)).join(str(d) for d in self.declareset),
 
                 semicolon,
 
-                '}%s%s' % ( nl, nl ) if self.name else ''
+                '}%s%s' % (nl, nl) if self.name else ''
 
             )) if self.declareset else '',
 
@@ -113,3 +115,5 @@ class IncludeNode(ParseNode):
         node = ContentNode(None, None, [])
         self.parse(node)
         return str(node)
+
+# pylama:ignore=D

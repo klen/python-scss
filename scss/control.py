@@ -1,14 +1,17 @@
-from scss import OPRT
-from scss.base import ParseNode, Empty, Node, IncludeNode
-from scss.function import FUNCTION_LIST, unknown, warn
-from scss.value import StringValue, Value, BooleanValue, NumberValue
+from . import OPRT
+from .base import ParseNode, Empty, Node, IncludeNode
+from .function import FUNCTION_LIST, unknown, warn
+from .value import StringValue, Value, BooleanValue, NumberValue
 
 
 class Option(Empty):
+
     """ Set parser option.
     """
+
     def parse(self, target):
-        opts = [(x.value, BooleanValue(y).value) for x, y in zip(*[iter(self.data[1:])]*2)]
+        opts = [(x.value, BooleanValue(y).value)
+                for x, y in zip(*[iter(self.data[1:])] * 2)]
         for v in opts:
             self.root.set_opt(*v)
 
@@ -82,9 +85,13 @@ class Function(Expression):
         name = self.data[0]
         func_name_a = "%s:%d" % (name, len(self.data) - 1)
         func_name_n = "%s:n" % name
-        func = FUNCTION_LIST.get(func_name_a, FUNCTION_LIST.get(func_name_n, unknown))
+        func = FUNCTION_LIST.get(
+            func_name_a,
+            FUNCTION_LIST.get(
+                func_name_n,
+                unknown))
 
-        params = list(map(lambda v: v.value, self.data[1:]))
+        params = [v.value for v in self.data[1:]]
         kwargs = dict(root=self.root, name=name)
         return func(*params, **kwargs)
 
@@ -114,6 +121,7 @@ class FunctionReturn(Variable):
 
 
 class MixinParam(Empty):
+
     def __init__(self, s, n, t):
         super(MixinParam, self).__init__(s, n, t)
         self.name = self.data[0].data[0][1:]
@@ -170,7 +178,7 @@ class Include(IncludeNode):
             if mixin:
                 mixin.include(target, params)
             else:
-                warn("Required mixin not found: %s:%d." % ( name, len(params)))
+                warn("Required mixin not found: %s:%d." % (name, len(params)))
 
 
 class If(IncludeNode):
@@ -186,10 +194,13 @@ class If(IncludeNode):
 
 
 class For(IncludeNode):
+
     def parse(self, target):
         if isinstance(target, ParseNode):
             name = self.data[1].data[0][1:]
-            for i in range(int(float(self.data[2])), int(float(self.data[3]))+1):
+            for i in range(int(float(self.data[2])), int(float(self.data[3])) + 1):
                 body = self.data[4].copy()
                 body.ctx.update({name: NumberValue(i)})
                 body.parse(target)
+
+# pylama:ignore=D,W0212

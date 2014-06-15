@@ -3,7 +3,7 @@ import unittest
 from scss.parser import Stylesheet
 
 
-class TestSCSS( unittest.TestCase ):
+class TestSCSS(unittest.TestCase):
 
     def setUp(self):
         self.parser = Stylesheet()

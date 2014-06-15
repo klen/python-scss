@@ -1,31 +1,41 @@
 #!/usr/bin/env python
-import os
+
+""" SCSS - python parser. """
+
+import re
+from os import path as op
 
 from setuptools import setup, find_packages
 
-from scss import VERSION, PROJECT, LICENSE
 
-
-def read( fname ):
+def _read(fname):
     try:
-        return open( os.path.join( os.path.dirname( __file__ ), fname ) ).read()
+        return open(op.join(op.dirname(__file__), fname)).read()
     except IOError:
         return ''
 
+_meta = _read('scss/__init__.py')
+_license = re.search(r'^__license__\s*=\s*"(.*)"', _meta, re.M).group(1)
+_project = re.search(r'^__project__\s*=\s*"(.*)"', _meta, re.M).group(1)
+_version = re.search(r'^__version__\s*=\s*"(.*)"', _meta, re.M).group(1)
 
-META_DATA = dict(
-    name=PROJECT,
-    version=VERSION,
-    license=LICENSE,
-    description=read( 'DESCRIPTION' ),
-    long_description=read( 'README.rst' ),
+install_requires = [
+    l for l in _read('requirements.txt').split('\n')
+    if l and not l.startswith('#')]
+
+setup(
+    name=_project,
+    version=_version,
+    license=_license,
+    description=_read('DESCRIPTION'),
+    long_description=_read('README.rst'),
     platforms=('Any'),
 
     author='Kirill Klenov',
     author_email='horneds@gmail.com',
     url='http://github.com/klen/python-scss',
 
-    keywords= 'css sass scss precompiler',
+    keywords='css sass scss precompiler',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -40,7 +50,7 @@ META_DATA = dict(
 
     packages=find_packages(),
 
-    install_requires = [ 'pyparsing' ],
+    install_requires=install_requires,
 
     entry_points={
         'console_scripts': [
@@ -48,9 +58,3 @@ META_DATA = dict(
         ]
     },
 )
-
-
-if __name__ == "__main__":
-    setup( **META_DATA )
-
-

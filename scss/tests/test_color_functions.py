@@ -2,6 +2,7 @@ import unittest
 
 from scss.parser import Stylesheet
 
+
 def verify_testcases(func):
     """Runs the output of the function through SCSS and compares output.
 
@@ -17,10 +18,13 @@ def verify_testcases(func):
             self.assertEqual(expected_output, out)
     return assert_testcases
 
-class TestSCSS( unittest.TestCase ):
+
+class TestSCSS(unittest.TestCase):
+
     """Test color functions
 
     """
+
     def setUp(self):
         self.parser = Stylesheet(options=dict(compress=True))
 
@@ -32,9 +36,9 @@ class TestSCSS( unittest.TestCase ):
             ('invert(#567)', '#a98'),
             ('invert(invert(#123456))', '#123456'),
             ('invert(rgba(100, 110, 120, 0.7))', 'rgba(155,145,135,0.70)'),
-            ('invert(hsla(0, 50%, 50%, 0.7))',   'rgba(63,191,191,0.70)'),
+            ('invert(hsla(0, 50%, 50%, 0.7))', 'rgba(63,191,191,0.70)'),
         ]
-    
+
     @verify_testcases
     def test_adjust_lightness(self):
         # First example is taken from

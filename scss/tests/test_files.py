@@ -15,8 +15,8 @@ class ScssCache(unittest.TestCase):
     def test_cache(self):
         src = open(self.path).read()
         test = parser.parse(src)
-        file = open(self.path)
-        out = parser.load(file, precache=True)
+        f = open(self.path)
+        out = parser.load(f, precache=True)
         self.assertEqual(test, out)
-        cached_out = parser.load(file, precache=True)
+        cached_out = parser.load(f, precache=True)
         self.assertEqual(test, cached_out)

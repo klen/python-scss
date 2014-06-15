@@ -30,3 +30,4 @@ if PY3:
 else:
     import cPickle as pickle
 
+# pylama:ignore=W0611,D
