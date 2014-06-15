@@ -1,4 +1,5 @@
-import cPickle
+from __future__ import print_function
+
 import os.path
 import sys
 from collections import defaultdict
@@ -7,6 +8,7 @@ from pyparsing import ParseBaseException
 
 from scss import SORTING
 from scss.base import Node, Empty, ParseNode, ContentNode, IncludeNode
+from scss.compat import pickle, bytes_, unicode_, file_
 from scss.control import Variable, Expression, Function, Mixin, Include, MixinParam, Extend, Variables, Option, FunctionDefinition, FunctionReturn, If, For, SepValString
 from scss.function import warn, _nest
 from scss.grammar import *
@@ -103,8 +105,7 @@ class Declaration(ParseNode):
         elif name.startswith('-ms-'):
             name = name[4:]
 
-        if (not SORTING.has_key(name)
-                and self.root.get_opt('warn')):
+        if name not in SORTING and self.root.get_opt('warn'):
             warn("Unknown declaration: %s" % self.name)
 
         return (":%s" % self.root.cache['delims'][1] ).join(
@@ -297,24 +298,26 @@ class Stylesheet(object):
     def scan(src):
         """ Scan scss from string and return nodes.
         """
-        assert isinstance(src, basestring)
+        assert isinstance(src, (unicode_, bytes_))
         try:
             nodes = STYLESHEET.parseString(src, parseAll=True)
             return nodes
         except ParseBaseException:
             err = sys.exc_info()[1]
-            print >> sys.stderr, err.line
-            print >> sys.stderr, " "*(err.column-1) + "^"
-            print >> sys.stderr, err
+            print(err.line, file=sys.stderr)
+            print(" "*(err.column-1) + "^", file=sys.stderr)
+            print(err, file=sys.stderr)
             sys.exit(1)
 
     def parse(self, nodes):
-        map(lambda n: n.parse(self) if isinstance(n, Node) else None, nodes)
+        for n in nodes:
+            if isinstance(n, Node):
+                n.parse(self)
 
     def loads(self, src):
         """ Compile css from scss string.
         """
-        assert isinstance(src, basestring)
+        assert isinstance(src, (unicode_, bytes_))
         nodes = self.scan(src.strip())
         self.parse(nodes)
         return ''.join(map(str, nodes))
@@ -325,7 +328,7 @@ class Stylesheet(object):
         """
         precache = precache or self.get_opt('cache') or False
         nodes = None
-        if isinstance(f, file):
+        if isinstance(f, file_):
             path = os.path.abspath(f.name)
 
         else:
@@ -339,7 +342,7 @@ class Stylesheet(object):
             ttime = os.path.getmtime(path)
             if ptime > ttime:
                 dump = open(cache_path, 'rb').read()
-                nodes = cPickle.loads(dump)
+                nodes = pickle.loads(dump)
 
         if not nodes:
             src = f.read()
@@ -347,7 +350,7 @@ class Stylesheet(object):
 
         if precache:
             f = open(cache_path, 'wb')
-            cPickle.dump(nodes, f)
+            pickle.dump(nodes, f, protocol=1)
 
         self.parse(nodes)
         return ''.join(map(str, nodes))

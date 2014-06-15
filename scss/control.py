@@ -8,8 +8,7 @@ class Option(Empty):
     """ Set parser option.
     """
     def parse(self, target):
-        opts = map(lambda (x, y): (x.value, BooleanValue(y).value),
-                    zip(*[iter(self.data[1:])]*2))
+        opts = [(x.value, BooleanValue(y).value) for x, y in zip(*[iter(self.data[1:])]*2)]
         for v in opts:
             self.root.set_opt(*v)
 
@@ -28,6 +27,8 @@ class Variable(Value, ParseNode):
 
     def __nonzero__(self):
         return True
+
+    __bool__ = __nonzero__
 
     @property
     def value(self):
@@ -83,7 +84,7 @@ class Function(Expression):
         func_name_n = "%s:n" % name
         func = FUNCTION_LIST.get(func_name_a, FUNCTION_LIST.get(func_name_n, unknown))
 
-        params = map(lambda v: v.value, self.data[1:])
+        params = list(map(lambda v: v.value, self.data[1:]))
         kwargs = dict(root=self.root, name=name)
         return func(*params, **kwargs)
 
@@ -153,8 +154,10 @@ class Mixin(Empty):
 
     @staticmethod
     def get_context(default, params=''):
-        test = map(lambda x, y: (x, y), default, params)
-        return dict(( mp.name, v or mp.value ) for mp, v in test if mp)
+        return {
+            mp.name: (params[i] if i < len(params) else None) or mp.value
+            for i, mp in enumerate(default) if mp
+        }
 
 
 class Include(IncludeNode):
@@ -186,7 +189,7 @@ class For(IncludeNode):
     def parse(self, target):
         if isinstance(target, ParseNode):
             name = self.data[1].data[0][1:]
-            for i in xrange(int(float(self.data[2])), int(float(self.data[3]))+1):
+            for i in range(int(float(self.data[2])), int(float(self.data[3]))+1):
                 body = self.data[4].copy()
                 body.ctx.update({name: NumberValue(i)})
                 body.parse(target)

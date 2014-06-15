@@ -5,7 +5,7 @@ from pyparsing import ParseResults
 
 from scss import OPRT, CONV_FACTOR, COLORS
 from scss.base import Node
-
+from scss.compat import with_metaclass
 
 hex2rgba = {
     8: lambda c: (int(c[0:2], 16), int(c[2:4], 16), int(c[4:6], 16), int(c[6:8], 16)),
@@ -30,7 +30,7 @@ def hsl_op(op, color, h, s, l):
 
 def rgba_op(op, color, r, g, b, a):
     other = (float(r), float(g), float(b), float(a))
-    res = map(op or ( lambda x, y: x or y ), color.value, other)
+    res = list(map(op or ( lambda x, y: x or y ), color.value, other))
     res[3] = 1 if float(a) == color.value[3] == 1 else res[3]
     return ColorValue(res)
 
@@ -55,6 +55,8 @@ class Value(Node):
 
     def __div__(self, other):
         return self._do_op(self, other, OPRT['/'])
+
+    __truediv__ = __div__
 
     def __rdiv__(self, other):
         return self._do_op(other, self, OPRT['/'])
@@ -93,6 +95,8 @@ class Value(Node):
     def __nonzero__(self):
         return getattr(self, 'value') and True or False
 
+    __bool__ = __nonzero__
+
     def __bool__(self):
         return bool(self.value) if self.value != 'false' else False
 
@@ -112,15 +116,13 @@ class StringValueMeta(type):
         if test.value in ('true', 'false'):
             return BooleanValue(test.value)
 
-        elif COLORS.has_key(test.value):
+        elif test.value in COLORS:
             return ColorValue(COLORS.get(test.value))
 
         return test
 
 
-class StringValue(Value):
-
-    __metaclass__ = StringValueMeta
+class StringValue(with_metaclass(Value, StringValueMeta)):
 
     def_value = ''
 
@@ -183,7 +185,7 @@ class ColorValue(Value):
 
         elif isinstance(t, (list, tuple)):
             r = self.value
-            c = map(lambda x, y: x if not x is None else y, t, r)
+            c = list(map(lambda x, y: x if not x is None else y, t, r))
             c = tuple(0.0 if c[i] < 0 else r[i] if c[i] > r[i] else c[i] for i in range(4))
             self.value = c
 
@@ -214,7 +216,7 @@ class ColorValue(Value):
 
         elif isinstance(other, ( NumberValue, int )):
             if op in (OPRT['*'], OPRT['/']):
-                return ColorValue(map(lambda x: op(x, float(other)), self.value[:3]))
+                return ColorValue([op(x, float(other)) for x in self.value[:3]])
             return hsl_op(op, self, 0, other, 0)
 
         else:
@@ -270,6 +272,10 @@ class NumberValue(Value):
 
     def __float__(self):
         return self.value * CONV_FACTOR.get(self.units, 1.0)
+
+    def __round__(self, n=None):
+        # Py3 output compatibility
+        return float(round(float(self)))
 
     def __str__(self):
         value = ("%0.03f" % self.value).strip('0').rstrip('.') or 0
