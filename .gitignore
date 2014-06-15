@@ -4,3 +4,5 @@ docs/_*
 *.pyc
 compass
 venv
+/build
+/dist

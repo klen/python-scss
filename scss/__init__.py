@@ -7,10 +7,10 @@ import operator
 from . import compat
 
 
-VERSION_INFO = (0, 8, 72)
+VERSION_INFO = (0, 8, 73)
 
 __project__ = "scss"
-__version__ = "0.8.72"
+__version__ = "0.8.73"
 __author__ = "Kirill Klenov <horneds@gmail.com>"
 __license__ = "GNU LGPL"
 

@@ -11,7 +11,9 @@ register: _register clean
 upload: _upload install _commit doc
 
 _upload:
-	python setup.py sdist upload
+	python setup.py sdist upload || echo 'Skipped'
+	python setup.py bdist_wheel upload || echo 'Skipped'
+
 _commit:
 	git add .
 	git add . -u
